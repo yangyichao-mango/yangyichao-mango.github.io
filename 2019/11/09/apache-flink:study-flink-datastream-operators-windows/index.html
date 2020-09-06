@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-150061865-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+<!-- Baidu Tongji -->
+<script>var _hmt = _hmt || []</script>
+<script async src="//hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63"></script>
+<!-- End Baidu Tongji -->
+
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>Apache Flink 学习：DataStream Api 中 Operators（算子）——窗口 | yangyichao-mango&#39;s blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Apache Flink">
+    <meta name="description" content="本站&amp;作者">
+<meta name="keywords" content="Apache Flink">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Apache Flink 学习：DataStream Api 中 Operators（算子）——窗口">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-operators-windows/index.html">
+<meta property="og:site_name" content="yangyichao-mango&#39;s blog">
+<meta property="og:description" content="本站&amp;作者">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-flink-datastream-operators-windows/滚动窗口.svg">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-flink-datastream-operators-windows/滑动窗口.svg">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-flink-datastream-operators-windows/会话窗口.svg">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-flink-datastream-operators-windows/全局窗口.svg">
+<meta property="og:updated_time" content="2019-11-11T10:45:12.300Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Apache Flink 学习：DataStream Api 中 Operators（算子）——窗口">
+<meta name="twitter:description" content="本站&amp;作者">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-flink-datastream-operators-windows/滚动窗口.svg">
+    
+        <link rel="alternate" type="application/atom+xml" title="yangyichao-mango&#39;s blog" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/img/avatar.jpg">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu"  >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand-new.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/avatar.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">yangyichao-mango</h5>
+          <a href="mailto:1048262223@qq.com" title="1048262223@qq.com" class="mail">1048262223@qq.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/yangyichao-mango" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/about"  >
+                <i class="icon icon-lg icon-user"></i>
+                About
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/links"  >
+                <i class="icon icon-lg icon-star"></i>
+                Links
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Apache Flink 学习：DataStream Api 中 Operators（算子）——窗口</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Apache Flink 学习：DataStream Api 中 Operators（算子）——窗口</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-11-09T14:48:53.000Z" itemprop="datePublished" class="page-time">
+  2019-11-09
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-Flink/">Apache Flink</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Window-生命周期"><span class="post-toc-number">1.</span> <span class="post-toc-text">Window 生命周期</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Keyed-vs-Non-Keyed-Windows"><span class="post-toc-number">2.</span> <span class="post-toc-text">Keyed vs Non-Keyed Windows</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Tumbling-Windows"><span class="post-toc-number">3.</span> <span class="post-toc-text">Tumbling Windows</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Sliding-Windows"><span class="post-toc-number">4.</span> <span class="post-toc-text">Sliding Windows</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Session-Windows"><span class="post-toc-number">5.</span> <span class="post-toc-text">Session Windows</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Global-Windows"><span class="post-toc-number">6.</span> <span class="post-toc-text">Global Windows</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#窗口函数"><span class="post-toc-number">7.</span> <span class="post-toc-text">窗口函数</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#ReduceFunction"><span class="post-toc-number">7.1.</span> <span class="post-toc-text">ReduceFunction</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#AggregateFunction"><span class="post-toc-number">7.2.</span> <span class="post-toc-text">AggregateFunction</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#FoldFunction"><span class="post-toc-number">7.3.</span> <span class="post-toc-text">FoldFunction</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#ProcessWindowFunction"><span class="post-toc-number">7.4.</span> <span class="post-toc-text">ProcessWindowFunction</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#ProcessWindowFunction-与-ReduceFunction"><span class="post-toc-number">7.4.1.</span> <span class="post-toc-text">ProcessWindowFunction 与 ReduceFunction</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#ProcessWindowFunction-与-AggregateFunction"><span class="post-toc-number">7.4.2.</span> <span class="post-toc-text">ProcessWindowFunction 与 AggregateFunction</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#ProcessWindowFunction-与-FoldFunction"><span class="post-toc-number">7.4.3.</span> <span class="post-toc-text">ProcessWindowFunction 与 FoldFunction</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#ProcessWindowFunction-中使用-state"><span class="post-toc-number">7.4.4.</span> <span class="post-toc-text">ProcessWindowFunction 中使用 state</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#WindowFunction（遗留）"><span class="post-toc-number">7.5.</span> <span class="post-toc-text">WindowFunction（遗留）</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Triggers"><span class="post-toc-number">8.</span> <span class="post-toc-text">Triggers</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#触发运算并且清除元素"><span class="post-toc-number">8.1.</span> <span class="post-toc-text">触发运算并且清除元素</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#WindowAssigners-的默认-Triggers"><span class="post-toc-number">8.2.</span> <span class="post-toc-text">WindowAssigners 的默认 Triggers</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#通用的-Triggers"><span class="post-toc-number">8.3.</span> <span class="post-toc-text">通用的 Triggers</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Evictors"><span class="post-toc-number">9.</span> <span class="post-toc-text">Evictors</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Allowed-Lateness"><span class="post-toc-number">10.</span> <span class="post-toc-text">Allowed Lateness</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#概念"><span class="post-toc-number">10.1.</span> <span class="post-toc-text">概念</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#迟到的数据做旁路输出（side-output）"><span class="post-toc-number">10.2.</span> <span class="post-toc-text">迟到的数据做旁路输出（side output）</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#拓展思考"><span class="post-toc-number">10.3.</span> <span class="post-toc-text">拓展思考</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#窗口结果的使用"><span class="post-toc-number">11.</span> <span class="post-toc-text">窗口结果的使用</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#窗口和-Watermark-的联系"><span class="post-toc-number">11.1.</span> <span class="post-toc-text">窗口和 Watermark 的联系</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#连续的窗口算子"><span class="post-toc-number">11.2.</span> <span class="post-toc-text">连续的窗口算子</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#设置窗口时产生的状态大小的注意事项"><span class="post-toc-number">11.3.</span> <span class="post-toc-text">设置窗口时产生的状态大小的注意事项</span></a></li></ol></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-apache-flink:study-flink-datastream-operators-windows"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">Apache Flink 学习：DataStream Api 中 Operators（算子）——窗口</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-11-09 22:48:53" datetime="2019-11-09T14:48:53.000Z"  itemprop="datePublished">2019-11-09</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-Flink/">Apache Flink</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>Apache Flink 学习：DataStream Api 中 Operators（算子）——窗口</p>
+<a id="more"></a>
+
+<p>Keyed Windows</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">stream</span><br><span class="line">       .keyBy(...)               &lt;-  keyed versus non-keyed windows</span><br><span class="line">       .window(...)              &lt;-  required: <span class="string">"assigner"</span></span><br><span class="line">      [.trigger(...)]            &lt;-  optional: <span class="string">"trigger"</span> (<span class="keyword">else</span> <span class="keyword">default</span> trigger)</span><br><span class="line">      [.evictor(...)]            &lt;-  optional: <span class="string">"evictor"</span> (<span class="keyword">else</span> no evictor)</span><br><span class="line">      [.allowedLateness(...)]    &lt;-  optional: <span class="string">"lateness"</span> (<span class="keyword">else</span> zero)</span><br><span class="line">      [.sideOutputLateData(...)] &lt;-  optional: <span class="string">"output tag"</span> (<span class="keyword">else</span> no side output <span class="keyword">for</span> late data)</span><br><span class="line">       .reduce/aggregate/fold/apply()      &lt;-  required: <span class="string">"function"</span></span><br><span class="line">      [.getSideOutput(...)]      &lt;-  optional: <span class="string">"output tag"</span></span><br></pre></td></tr></table></figure>
+
+<p>Non-Keyed Windows</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">stream</span><br><span class="line">       .windowAll(...)           &lt;-  required: <span class="string">"assigner"</span></span><br><span class="line">      [.trigger(...)]            &lt;-  optional: <span class="string">"trigger"</span> (<span class="keyword">else</span> <span class="keyword">default</span> trigger)</span><br><span class="line">      [.evictor(...)]            &lt;-  optional: <span class="string">"evictor"</span> (<span class="keyword">else</span> no evictor)</span><br><span class="line">      [.allowedLateness(...)]    &lt;-  optional: <span class="string">"lateness"</span> (<span class="keyword">else</span> zero)</span><br><span class="line">      [.sideOutputLateData(...)] &lt;-  optional: <span class="string">"output tag"</span> (<span class="keyword">else</span> no side output <span class="keyword">for</span> late data)</span><br><span class="line">       .reduce/aggregate/fold/apply()      &lt;-  required: <span class="string">"function"</span></span><br><span class="line">      [.getSideOutput(...)]      &lt;-  optional: <span class="string">"output tag"</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="Window-生命周期"><a href="#Window-生命周期" class="headerlink" title="Window 生命周期"></a><strong>Window 生命周期</strong></h1><p>简而言之，当属于该窗口的第一个元素到达时，将会创建一个窗口，并且当时间（Event Time 或者 Processing Time）超过其结束时间戳加上用户指定的允许延迟时间时，将完全删除该窗口，<strong>注意窗口都是左开右闭，比如：[0, 5)</strong>。<br>Flink 保证只删除基于时间的窗口，而不删除其他类型的窗口，例如 Global Window。例如，使用基于事件时间的窗口，并且创建一个窗口大小为5分钟的滚动（Tumbing）窗口，并且允许延迟1分钟。当时间戳属于12:00到12:05之间的第一个元素到达时，Flink 将创建一个新窗口，当 Watermark 通过12:06时间戳时，就会把这个窗口删除。</p>
+<p>此外，每个窗口都包含一个 Trigger 和一个函数（ProcessWindowFunction, ReduceFunction, AggregateFunction or FoldFunction）。函数包含了要应用于窗口内容的计算，而 Trigger 制定了什么情况下才触发执行这些函数。比如，触发策略可能类似于“当窗口中的元素数超过4时”或“当 WaterMark 通过窗口结束时”进行触发。Trigger 还可以决定什么时候删除窗口中的元素。</p>
+<p>除上述内容外，您还可以指定一个 Evictor，该 Evictor 将能够在 Trigger 触发后、应用函数之前和/或之后从窗口中移除元素。</p>
+<p>下面例子中的窗口都是按照 Event Time 或者 Processing Time进行指定。</p>
+<h1 id="Keyed-vs-Non-Keyed-Windows"><a href="#Keyed-vs-Non-Keyed-Windows" class="headerlink" title="Keyed vs Non-Keyed Windows"></a><strong>Keyed vs Non-Keyed Windows</strong></h1><p>首先要指定的是是否应该为流设置 key。使用keyBy（…）可以将无限流拆分为逻辑 keyed 流。</p>
+<p>在 Keyed Stream 的情况下，传入 event 的任何属性都可以用作键。拥有一个 Keyed Stream 将允许您的窗口计算由多个任务并行执行，因为每个逻辑 Keyed Stream 都可以独立于其他任务进行处理。所有引用同一个键的 event 都将被发送到同一个并行任务（通过 partitioner 完成）。</p>
+<p>如果不是 Keyed Stream，则不会将原始流拆分为多个逻辑流，所有窗口逻辑将由单个任务执行，即并行度为1。</p>
+<h1 id="Tumbling-Windows"><a href="#Tumbling-Windows" class="headerlink" title="Tumbling Windows"></a><strong>Tumbling Windows</strong></h1><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/blog-img/apache-flink:study-flink-datastream-operators-windows/滚动窗口.svg" alt="滚动窗口" title>
+                </div>
+                <div class="image-caption">滚动窗口</div>
+            </figure>
+
+<p>滚动窗口，如果你指定的滚动窗口大小为一天计算一次，并且你需要更具你本地的时间的 00:00:00 开始，则必须按照时区来指定窗口。<br>可以看到上图中，无论是多少个 key，每个 key 的窗口的起始和截止时间都相同。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Creates a new &#123;<span class="doctag">@code</span> TumblingEventTimeWindows&#125; &#123;<span class="doctag">@link</span> WindowAssigner&#125; that assigns</span></span><br><span class="line"><span class="comment"> * elements to time windows based on the element timestamp and offset.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 可以根据 时间戳 以及 偏移量 来指定 窗口的范围</span></span><br><span class="line"><span class="comment"> * </span></span><br><span class="line"><span class="comment"> * &lt;p&gt;For example, if you want window a stream by hour,but window begins at the 15th minutes</span></span><br><span class="line"><span class="comment"> * of each hour, you can use &#123;<span class="doctag">@code</span> of(Time.hours(1),Time.minutes(15))&#125;,then you will get</span></span><br><span class="line"><span class="comment"> * time windows start at 0:15:00,1:15:00,2:15:00,etc.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 比如，如果需要一个窗口大小为一个小时，从每个小时的第15分钟开始计数的窗口，则可以使用下面的代码实现</span></span><br><span class="line"><span class="comment"> * of(Time.hours(1),Time.minutes(15))</span></span><br><span class="line"><span class="comment"> * 这样获得的窗口就是 0:15:00，1:15:00，2:15:00 ...</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;Rather than that,if you are living in somewhere which is not using UTC±00:00 time,</span></span><br><span class="line"><span class="comment"> * such as China which is using UTC+08:00,and you want a time window with size of one day,</span></span><br><span class="line"><span class="comment"> * and window begins at every 00:00:00 of local time,you may use &#123;<span class="doctag">@code</span> of(Time.days(1),Time.hours(-8))&#125;.</span></span><br><span class="line"><span class="comment"> * The parameter of offset is &#123;<span class="doctag">@code</span> Time.hours(-8))&#125; since UTC+08:00 is 8 hours earlier than UTC time.</span></span><br><span class="line"><span class="comment"> * </span></span><br><span class="line"><span class="comment"> * 除此之外，如果您的时区不是 UTC±00:00 时间，比如在 中国（时区是 UTC+08:00），并且你需要一个一天大小的窗口，</span></span><br><span class="line"><span class="comment"> * 并且窗口时间是本地 00:00:00开始，则可以使用下面的代码实现</span></span><br><span class="line"><span class="comment"> * of(Time.days(1), Time.hours(-8))</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> size The size of the generated windows.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> offset The offset which window start would be shifted by.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> The time policy.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> TumblingEventTimeWindows <span class="title">of</span><span class="params">(Time size, Time offset)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> TumblingEventTimeWindows(size.toMilliseconds(), offset.toMilliseconds());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// daily tumbling event-time windows offset by -8 hours.</span></span><br><span class="line">    input</span><br><span class="line">        .keyBy(&lt;key selector&gt;)</span><br><span class="line">        .window(TumblingEventTimeWindows.of(Time.days(<span class="number">1</span>), Time.hours(-<span class="number">8</span>)))</span><br><span class="line">        .&lt;windowed transformation&gt;(&lt;window function&gt;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Sliding-Windows"><a href="#Sliding-Windows" class="headerlink" title="Sliding Windows"></a><strong>Sliding Windows</strong></h1><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/blog-img/apache-flink:study-flink-datastream-operators-windows/滑动窗口.svg" alt="滑动窗口" title>
+                </div>
+                <div class="image-caption">滑动窗口</div>
+            </figure>
+
+<p>滑动窗口，如果你指定窗口大小和滑动步长一样，那么和滚动窗口的作用一样，滑动窗口的一个明显的特征就是：<strong>窗口可能会重叠，即同一个元素可能会属于不同的窗口</strong>。</p>
+<p>和滚动窗口相同，如果你指定的滚动窗口大小为一天计算一次，你需要更具你本地的时间的 00:00:00 开始，则必须按照时区来指定窗口。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// sliding processing-time windows offset by -8 hours</span></span><br><span class="line">    input</span><br><span class="line">        .keyBy(&lt;key selector&gt;)</span><br><span class="line">        .window(SlidingProcessingTimeWindows.of(Time.hours(<span class="number">12</span>), Time.hours(<span class="number">1</span>), Time.hours(-<span class="number">8</span>)))</span><br><span class="line">        .&lt;windowed transformation&gt;(&lt;window function&gt;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Session-Windows"><a href="#Session-Windows" class="headerlink" title="Session Windows"></a><strong>Session Windows</strong></h1><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/blog-img/apache-flink:study-flink-datastream-operators-windows/会话窗口.svg" alt="会话窗口" title>
+                </div>
+                <div class="image-caption">会话窗口</div>
+            </figure>
+
+<p>会话窗口，根据会话来指定窗口，与滚动和滑动窗口相比，会话窗口不重叠，并且没有固定的开始和结束时间。会话窗口可以指定静态指定会话间隔，或者可以让用户动态指定会话间隔。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">DataStream&lt;T&gt; input = ...;</span><br><span class="line"></span><br><span class="line"><span class="comment">// event-time session windows with static gap</span></span><br><span class="line">input</span><br><span class="line">    .keyBy(&lt;key selector&gt;)</span><br><span class="line">    .window(EventTimeSessionWindows.withGap(Time.minutes(<span class="number">10</span>)))</span><br><span class="line">    .&lt;windowed transformation&gt;(&lt;window function&gt;);</span><br><span class="line">    </span><br><span class="line"><span class="comment">// event-time session windows with dynamic gap</span></span><br><span class="line">input</span><br><span class="line">    .keyBy(&lt;key selector&gt;)</span><br><span class="line">    .window(EventTimeSessionWindows.withDynamicGap((element) -&gt; &#123;</span><br><span class="line">        <span class="comment">// determine and return session gap</span></span><br><span class="line">    &#125;))</span><br><span class="line">    .&lt;windowed transformation&gt;(&lt;window function&gt;);</span><br></pre></td></tr></table></figure>
+
+<h1 id="Global-Windows"><a href="#Global-Windows" class="headerlink" title="Global Windows"></a><strong>Global Windows</strong></h1><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/blog-img/apache-flink:study-flink-datastream-operators-windows/全局窗口.svg" alt="全局窗口" title>
+                </div>
+                <div class="image-caption">全局窗口</div>
+            </figure>
+
+<p>全局窗口（即无窗口），代表所有元素斗数以一个全局窗口，如果你不指定 Trigger，那么永远也不会生产出数据，因为全局窗口没有窗口开始和窗口结束的概念。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">DataStream&lt;T&gt; input = ...;</span><br><span class="line"></span><br><span class="line">input</span><br><span class="line">    .keyBy(<span class="xml"><span class="tag">&lt;<span class="name">key</span> <span class="attr">selector</span>&gt;</span>)</span></span><br><span class="line"><span class="xml">    .window(GlobalWindows.create())</span></span><br><span class="line">    .&lt;windowed transformation&gt;(&lt;window function&gt;);</span><br></pre></td></tr></table></figure>
+
+<h1 id="窗口函数"><a href="#窗口函数" class="headerlink" title="窗口函数"></a><strong>窗口函数</strong></h1><p>在定义 window assigner 之后，我们需要指定要在每个窗口上执行的计算。当系统确定窗口准备好处理时（Trigger决定），这些窗口函数就可以用于处理每个（Keyed / Non-Keyed）窗口的元素。</p>
+<p>窗口函数可以是ReduceFunction、AggregateFunction、FoldFunction或ProcessWindowFunction之一。前两个函数执行起来会更高效，因为 Flink 可以在每个窗口中的元素到达时递增地聚合元素。ProcessWindowFunction获取包含在窗口中的所有元素的Iterable，以及有关元素所属窗口的其他元信息。</p>
+<p>使用ProcessWindowFunction的窗口函数不能像其他函数那样高效地执行，因为Flink在调用函数之前必须在内部缓冲窗口的所有元素。这可以通过将ProcessWindowFunction与ReduceFunction、AggregateFunction或FoldFunction组合使用来提高效率，从而使得其他窗口元数据或者窗口元素的进行增量聚合。</p>
+<h2 id="ReduceFunction"><a href="#ReduceFunction" class="headerlink" title="ReduceFunction"></a>ReduceFunction</h2><p>变量：两个输入生成一个输出，三个变量的类型必须相同。<br>触发时间：在每个窗口的元素到来的时候进行增量聚合。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">DataStream&lt;Tuple2&lt;String, Long&gt;&gt; input = ...;</span><br><span class="line"></span><br><span class="line">input</span><br><span class="line">    .keyBy(&lt;key selector&gt;)</span><br><span class="line">    .window(&lt;window assigner&gt;)</span><br><span class="line">    .reduce(<span class="keyword">new</span> ReduceFunction&lt;Tuple2&lt;String, Long&gt;&gt; &#123;</span><br><span class="line">      <span class="function"><span class="keyword">public</span> Tuple2&lt;String, Long&gt; <span class="title">reduce</span><span class="params">(Tuple2&lt;String, Long&gt; v1, Tuple2&lt;String, Long&gt; v2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Tuple2&lt;&gt;(v1.f0, v1.f1 + v2.f1);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="AggregateFunction"><a href="#AggregateFunction" class="headerlink" title="AggregateFunction"></a>AggregateFunction</h2><p>AggregateFunction 是 ReduceFunction 的一个扩展版本。</p>
+<p>变量：三个变量，一个是输入，一个是 accumulator 累加器，还有一个是输出，三个变量的类型可以不同。<br>触发时间：在每个窗口的元素到来的时候进行增量聚合。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * The accumulator is used to keep a running sum and a count. The &#123;<span class="doctag">@code</span> getResult&#125; method</span></span><br><span class="line"><span class="comment"> * computes the average.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">AverageAggregate</span></span></span><br><span class="line"><span class="class">    <span class="keyword">implements</span> <span class="title">AggregateFunction</span>&lt;<span class="title">Tuple2</span>&lt;<span class="title">String</span>, <span class="title">Long</span>&gt;, <span class="title">Tuple2</span>&lt;<span class="title">Long</span>, <span class="title">Long</span>&gt;, <span class="title">Double</span>&gt; </span>&#123;</span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Tuple2&lt;Long, Long&gt; <span class="title">createAccumulator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Tuple2&lt;&gt;(<span class="number">0L</span>, <span class="number">0L</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Tuple2&lt;Long, Long&gt; <span class="title">add</span><span class="params">(Tuple2&lt;String, Long&gt; value, Tuple2&lt;Long, Long&gt; accumulator)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Tuple2&lt;&gt;(accumulator.f0 + value.f1, accumulator.f1 + <span class="number">1L</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Double <span class="title">getResult</span><span class="params">(Tuple2&lt;Long, Long&gt; accumulator)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> ((<span class="keyword">double</span>) accumulator.f0) / accumulator.f1;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Tuple2&lt;Long, Long&gt; <span class="title">merge</span><span class="params">(Tuple2&lt;Long, Long&gt; a, Tuple2&lt;Long, Long&gt; b)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Tuple2&lt;&gt;(a.f0 + b.f0, a.f1 + b.f1);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">DataStream&lt;Tuple2&lt;String, Long&gt;&gt; input = ...;</span><br><span class="line"></span><br><span class="line">input</span><br><span class="line">    .keyBy(&lt;key selector&gt;)</span><br><span class="line">    .window(&lt;window assigner&gt;)</span><br><span class="line">    .aggregate(<span class="keyword">new</span> AverageAggregate());</span><br></pre></td></tr></table></figure>
+
+<h2 id="FoldFunction"><a href="#FoldFunction" class="headerlink" title="FoldFunction"></a>FoldFunction</h2><p>FoldFunction 是 AggregateFunction 的一个简易版本。</p>
+<p>变量：三个个变量，一个是输出值的初始化值，一个是输入，还有一个是输出，三个变量中输入和输出的类型可以不同，但是输出和输出初始化值必须相同。<br>触发时间：在每个窗口的元素到来的时候进行增量聚合。</p>
+<p>FoldFunction 指定如何将窗口的输入元素与输出类型的元素组合。对添加到窗口的每个元素和当前输出值增量调用 FoldFunction。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">DataStream&lt;Tuple2&lt;String, Long&gt;&gt; input = ...;</span><br><span class="line"></span><br><span class="line">input</span><br><span class="line">    .keyBy(&lt;key selector&gt;)</span><br><span class="line">    .window(&lt;window assigner&gt;)</span><br><span class="line">    .fold(<span class="string">""</span>, <span class="keyword">new</span> FoldFunction&lt;Tuple2&lt;String, Long&gt;, String&gt;&gt; &#123;</span><br><span class="line">       <span class="function"><span class="keyword">public</span> String <span class="title">fold</span><span class="params">(String acc, Tuple2&lt;String, Long&gt; value)</span> </span>&#123;</span><br><span class="line">         <span class="keyword">return</span> acc + value.f1;</span><br><span class="line">       &#125;</span><br><span class="line">    &#125;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="ProcessWindowFunction"><a href="#ProcessWindowFunction" class="headerlink" title="ProcessWindowFunction"></a>ProcessWindowFunction</h2><p>ProcessWindowFunction 可以得到一个包含窗口的所有元素的迭代器，以及一个访问时间和状态信息的上下文对象，使得它能够提供比其他窗口函数更好的灵活性。<br>但是这是以性能和资源消耗为代价的，因为元素不能增量聚合，而是需要在内部缓冲，直到窗口可以处理为止。</p>
+<p>变量：四个变量，一个是窗口的key，一个是包含了窗口信息的上下文，一个是窗口内所有元素的迭代器，一个是输出数据的收集器。<br>触发时间：窗口内有数据并且 Watermark 到达了窗口结束时间时触发。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">ProcessWindowFunction</span>&lt;<span class="title">IN</span>, <span class="title">OUT</span>, <span class="title">KEY</span>, <span class="title">W</span> <span class="keyword">extends</span> <span class="title">Window</span>&gt; <span class="keyword">implements</span> <span class="title">Function</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Evaluates the window and outputs none or several elements.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> key The key for which this window is evaluated.</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> context The context in which the window is being evaluated.</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> elements The elements in the window being evaluated.</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> out A collector for emitting elements.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> Exception The function may throw exceptions to fail the program and trigger recovery.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">            KEY key,</span></span></span><br><span class="line"><span class="function"><span class="params">            Context context,</span></span></span><br><span class="line"><span class="function"><span class="params">            Iterable&lt;IN&gt; elements,</span></span></span><br><span class="line"><span class="function"><span class="params">            Collector&lt;OUT&gt; out)</span> <span class="keyword">throws</span> Exception</span>;</span><br><span class="line"></span><br><span class="line">   	<span class="comment">/**</span></span><br><span class="line"><span class="comment">   	 * The context holding window metadata.</span></span><br><span class="line"><span class="comment">   	 */</span></span><br><span class="line">   	<span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Context</span> <span class="keyword">implements</span> <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span> </span>&#123;</span><br><span class="line">   	    <span class="comment">/**</span></span><br><span class="line"><span class="comment">   	     * Returns the window that is being evaluated.</span></span><br><span class="line"><span class="comment">   	     */</span></span><br><span class="line">   	    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> W <span class="title">window</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">   	    <span class="comment">/** Returns the current processing time. */</span></span><br><span class="line">   	    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">long</span> <span class="title">currentProcessingTime</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">   	    <span class="comment">/** Returns the current event-time watermark. */</span></span><br><span class="line">   	    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">long</span> <span class="title">currentWatermark</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">   	    <span class="comment">/**</span></span><br><span class="line"><span class="comment">   	     * State accessor for per-key and per-window state.</span></span><br><span class="line"><span class="comment">   	     *</span></span><br><span class="line"><span class="comment">   	     * &lt;p&gt;&lt;b&gt;<span class="doctag">NOTE:</span>&lt;/b&gt;If you use per-window state you have to ensure that you clean it up</span></span><br><span class="line"><span class="comment">   	     * by implementing &#123;<span class="doctag">@link</span> ProcessWindowFunction#clear(Context)&#125;.</span></span><br><span class="line"><span class="comment">   	     */</span></span><br><span class="line">   	    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> KeyedStateStore <span class="title">windowState</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">   	    <span class="comment">/**</span></span><br><span class="line"><span class="comment">   	     * State accessor for per-key global state.</span></span><br><span class="line"><span class="comment">   	     */</span></span><br><span class="line">   	    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> KeyedStateStore <span class="title">globalState</span><span class="params">()</span></span>;</span><br><span class="line">   	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">DataStream&lt;Tuple2&lt;String, Long&gt;&gt; input = ...;</span><br><span class="line"></span><br><span class="line">input</span><br><span class="line">  .keyBy(t -&gt; t.f0)</span><br><span class="line">  .timeWindow(Time.minutes(<span class="number">5</span>))</span><br><span class="line">  .process(<span class="keyword">new</span> MyProcessWindowFunction());</span><br><span class="line"></span><br><span class="line"><span class="comment">/* ... */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyProcessWindowFunction</span> </span></span><br><span class="line"><span class="class">    <span class="keyword">extends</span> <span class="title">ProcessWindowFunction</span>&lt;<span class="title">Tuple2</span>&lt;<span class="title">String</span>, <span class="title">Long</span>&gt;, <span class="title">String</span>, <span class="title">String</span>, <span class="title">TimeWindow</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(String key, Context context, Iterable&lt;Tuple2&lt;String, Long&gt;&gt; input, Collector&lt;String&gt; out)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">long</span> count = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (Tuple2&lt;String, Long&gt; in: input) &#123;</span><br><span class="line">      count++;</span><br><span class="line">    &#125;</span><br><span class="line">    out.collect(<span class="string">"Window: "</span> + context.window() + <span class="string">"count: "</span> + count);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用 ProcessWindowFunction 进行元素 count 是非常低效的，下面会讲到怎样将 ReduceFunction 或者 AggregateFunction 与 ProcessWindowFunction 结合使用将增量的数据的与 ProcessWindowFunction 配合进行使用。</p>
+<p>为什么需要用到 ProcessWindowFunction：如果必要的话，一般的业务逻辑是没必要使用到 ProcessWindowFunction 的，但是有的需求需要获取到当前元素时间戳，窗口开始结束等等的信息，这时就需要使用 ProcessWindowFunction 来获取这些信息了。</p>
+<h3 id="ProcessWindowFunction-与-ReduceFunction"><a href="#ProcessWindowFunction-与-ReduceFunction" class="headerlink" title="ProcessWindowFunction 与 ReduceFunction"></a>ProcessWindowFunction 与 ReduceFunction</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">DataStream&lt;SensorReading&gt; input = ...;</span><br><span class="line"></span><br><span class="line">input</span><br><span class="line">  .keyBy(&lt;key selector&gt;)</span><br><span class="line">  .timeWindow(&lt;duration&gt;)</span><br><span class="line">  .reduce(<span class="keyword">new</span> MyReduceFunction(), <span class="keyword">new</span> MyProcessWindowFunction());</span><br><span class="line"></span><br><span class="line"><span class="comment">// Function definitions</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MyReduceFunction</span> <span class="keyword">implements</span> <span class="title">ReduceFunction</span>&lt;<span class="title">SensorReading</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> SensorReading <span class="title">reduce</span><span class="params">(SensorReading r1, SensorReading r2)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> r1.value() &gt; r2.value() ? r2 : r1;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MyProcessWindowFunction</span></span></span><br><span class="line"><span class="class">    <span class="keyword">extends</span> <span class="title">ProcessWindowFunction</span>&lt;<span class="title">SensorReading</span>, <span class="title">Tuple2</span>&lt;<span class="title">Long</span>, <span class="title">SensorReading</span>&gt;, <span class="title">String</span>, <span class="title">TimeWindow</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(String key,</span></span></span><br><span class="line"><span class="function"><span class="params">                    Context context,</span></span></span><br><span class="line"><span class="function"><span class="params">                    Iterable&lt;SensorReading&gt; minReadings,</span></span></span><br><span class="line"><span class="function"><span class="params">                    Collector&lt;Tuple2&lt;Long, SensorReading&gt;&gt; out)</span> </span>&#123;</span><br><span class="line">      SensorReading min = minReadings.iterator().next();</span><br><span class="line">      out.collect(<span class="keyword">new</span> Tuple2&lt;Long, SensorReading&gt;(context.window().getStart(), min));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ProcessWindowFunction-与-AggregateFunction"><a href="#ProcessWindowFunction-与-AggregateFunction" class="headerlink" title="ProcessWindowFunction 与 AggregateFunction"></a>ProcessWindowFunction 与 AggregateFunction</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">DataStream&lt;Tuple2&lt;String, Long&gt;&gt; input = ...;</span><br><span class="line"></span><br><span class="line">input</span><br><span class="line">  .keyBy(&lt;key selector&gt;)</span><br><span class="line">  .timeWindow(&lt;duration&gt;)</span><br><span class="line">  .aggregate(<span class="keyword">new</span> AverageAggregate(), <span class="keyword">new</span> MyProcessWindowFunction());</span><br><span class="line"></span><br><span class="line"><span class="comment">// Function definitions</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * The accumulator is used to keep a running sum and a count. The &#123;<span class="doctag">@code</span> getResult&#125; method</span></span><br><span class="line"><span class="comment"> * computes the average.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">AverageAggregate</span></span></span><br><span class="line"><span class="class">    <span class="keyword">implements</span> <span class="title">AggregateFunction</span>&lt;<span class="title">Tuple2</span>&lt;<span class="title">String</span>, <span class="title">Long</span>&gt;, <span class="title">Tuple2</span>&lt;<span class="title">Long</span>, <span class="title">Long</span>&gt;, <span class="title">Double</span>&gt; </span>&#123;</span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Tuple2&lt;Long, Long&gt; <span class="title">createAccumulator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Tuple2&lt;&gt;(<span class="number">0L</span>, <span class="number">0L</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Tuple2&lt;Long, Long&gt; <span class="title">add</span><span class="params">(Tuple2&lt;String, Long&gt; value, Tuple2&lt;Long, Long&gt; accumulator)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Tuple2&lt;&gt;(accumulator.f0 + value.f1, accumulator.f1 + <span class="number">1L</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Double <span class="title">getResult</span><span class="params">(Tuple2&lt;Long, Long&gt; accumulator)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> ((<span class="keyword">double</span>) accumulator.f0) / accumulator.f1;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Tuple2&lt;Long, Long&gt; <span class="title">merge</span><span class="params">(Tuple2&lt;Long, Long&gt; a, Tuple2&lt;Long, Long&gt; b)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Tuple2&lt;&gt;(a.f0 + b.f0, a.f1 + b.f1);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MyProcessWindowFunction</span></span></span><br><span class="line"><span class="class">    <span class="keyword">extends</span> <span class="title">ProcessWindowFunction</span>&lt;<span class="title">Double</span>, <span class="title">Tuple2</span>&lt;<span class="title">String</span>, <span class="title">Double</span>&gt;, <span class="title">String</span>, <span class="title">TimeWindow</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(String key,</span></span></span><br><span class="line"><span class="function"><span class="params">                    Context context,</span></span></span><br><span class="line"><span class="function"><span class="params">                    Iterable&lt;Double&gt; averages,</span></span></span><br><span class="line"><span class="function"><span class="params">                    Collector&lt;Tuple2&lt;String, Double&gt;&gt; out)</span> </span>&#123;</span><br><span class="line">      Double average = averages.iterator().next();</span><br><span class="line">      out.collect(<span class="keyword">new</span> Tuple2&lt;&gt;(key, average));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ProcessWindowFunction-与-FoldFunction"><a href="#ProcessWindowFunction-与-FoldFunction" class="headerlink" title="ProcessWindowFunction 与 FoldFunction"></a>ProcessWindowFunction 与 FoldFunction</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">DataStream&lt;SensorReading&gt; input = ...;</span><br><span class="line"></span><br><span class="line">input</span><br><span class="line">  .keyBy(&lt;key selector&gt;)</span><br><span class="line">  .timeWindow(&lt;duration&gt;)</span><br><span class="line">  .fold(<span class="keyword">new</span> Tuple3&lt;String, Long, Integer&gt;(<span class="string">""</span>,<span class="number">0L</span>, <span class="number">0</span>), <span class="keyword">new</span> MyFoldFunction(), <span class="keyword">new</span> MyProcessWindowFunction())</span><br><span class="line"></span><br><span class="line"><span class="comment">// Function definitions</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MyFoldFunction</span></span></span><br><span class="line"><span class="class">    <span class="keyword">implements</span> <span class="title">FoldFunction</span>&lt;<span class="title">SensorReading</span>, <span class="title">Tuple3</span>&lt;<span class="title">String</span>, <span class="title">Long</span>, <span class="title">Integer</span>&gt; &gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Tuple3&lt;String, Long, Integer&gt; <span class="title">fold</span><span class="params">(Tuple3&lt;String, Long, Integer&gt; acc, SensorReading s)</span> </span>&#123;</span><br><span class="line">      Integer cur = acc.getField(<span class="number">2</span>);</span><br><span class="line">      acc.setField(cur + <span class="number">1</span>, <span class="number">2</span>);</span><br><span class="line">      <span class="keyword">return</span> acc;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MyProcessWindowFunction</span></span></span><br><span class="line"><span class="class">    <span class="keyword">extends</span> <span class="title">ProcessWindowFunction</span>&lt;<span class="title">Tuple3</span>&lt;<span class="title">String</span>, <span class="title">Long</span>, <span class="title">Integer</span>&gt;, <span class="title">Tuple3</span>&lt;<span class="title">String</span>, <span class="title">Long</span>, <span class="title">Integer</span>&gt;, <span class="title">String</span>, <span class="title">TimeWindow</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(String key,</span></span></span><br><span class="line"><span class="function"><span class="params">                    Context context,</span></span></span><br><span class="line"><span class="function"><span class="params">                    Iterable&lt;Tuple3&lt;String, Long, Integer&gt;&gt; counts,</span></span></span><br><span class="line"><span class="function"><span class="params">                    Collector&lt;Tuple3&lt;String, Long, Integer&gt;&gt; out)</span> </span>&#123;</span><br><span class="line">    Integer count = counts.iterator().next().getField(<span class="number">2</span>);</span><br><span class="line">    out.collect(<span class="keyword">new</span> Tuple3&lt;String, Long, Integer&gt;(key, context.window().getEnd(),count));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ProcessWindowFunction-中使用-state"><a href="#ProcessWindowFunction-中使用-state" class="headerlink" title="ProcessWindowFunction 中使用 state"></a>ProcessWindowFunction 中使用 state</h3><h2 id="WindowFunction（遗留）"><a href="#WindowFunction（遗留）" class="headerlink" title="WindowFunction（遗留）"></a>WindowFunction（遗留）</h2><p>在一些可以使用 ProcessWindowFunction 的地方，你也可以使用 WindowFunction，这是较旧版本的 ProcessWindowFunction，它提供的上下文信息较少，并且没有一些高级功能，例如 per-window keyed state。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">WindowFunction</span>&lt;<span class="title">IN</span>, <span class="title">OUT</span>, <span class="title">KEY</span>, <span class="title">W</span> <span class="keyword">extends</span> <span class="title">Window</span>&gt; <span class="keyword">extends</span> <span class="title">Function</span>, <span class="title">Serializable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Evaluates the window and outputs none or several elements.</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> key The key for which this window is evaluated.</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> window The window that is being evaluated.</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> input The elements in the window being evaluated.</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> out A collector for emitting elements.</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@throws</span> Exception The function may throw exceptions to fail the program and trigger recovery.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">apply</span><span class="params">(KEY key, W window, Iterable&lt;IN&gt; input, Collector&lt;OUT&gt; out)</span> <span class="keyword">throws</span> Exception</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">DataStream&lt;Tuple2&lt;String, Long&gt;&gt; input = ...;</span><br><span class="line"></span><br><span class="line">input</span><br><span class="line">    .keyBy(&lt;key selector&gt;)</span><br><span class="line">    .window(&lt;window assigner&gt;)</span><br><span class="line">    .apply(<span class="keyword">new</span> MyWindowFunction());</span><br></pre></td></tr></table></figure>
+
+<h1 id="Triggers"><a href="#Triggers" class="headerlink" title="Triggers"></a><strong>Triggers</strong></h1><p>触发器决定了窗口函数什么时候处理窗口中的数据。每一个 WindowAssigner 都会带有一个默认的 Trigger，如果默认的 Trigger 不符合需求，你可以使用 trigger(…) 指定你需要的触发器。</p>
+<p>一个 Trigger 接口有五个方法，可以通过编写函数指定如何对不同的 event 做出相应。</p>
+<table>
+    <thead>
+        <tr>
+            <th style="width: 10%">Function</th>
+            <th style="width: 20%">作用</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="text-align: center;"><strong>TriggerResult onElement(T element, long timestamp, W window, TriggerContext ctx)</strong>
+            </td>
+            <td>每向窗口添加一个元素时触发一次。
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center;"><strong>TriggerResult onEventTime(long time, W window, TriggerContext ctx)</strong>
+            </td>
+            <td>Event Time timer 触发时调用。
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center;"><strong>TriggerResult onProcessingTime(long time, W window, TriggerContext ctx)</strong>
+            </td>
+            <td>Processing Time timer 调用时触发。
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center;"><strong>void onMerge(W window, OnMergeContext ctx)</strong>
+            </td>
+            <td>方法与有状态 Trigger 相关，并在两个触发器的相应窗口合并时合并它们的状态，例如在使用会话窗口时（会话窗口每添加一个元素就会产生一个窗口）。
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center;"><strong>void clear(W window, TriggerContext ctx)</strong>
+            </td>
+            <td>将当前窗口的 state 清除。
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<p>前三个函数通过 TriggerResult 决定如何处理它们的调用事件。</p>
+<table>
+    <thead>
+        <tr>
+            <th style="width: 10%">TriggerResult</th>
+            <th style="width: 20%">作用</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="text-align: center;"><strong>TriggerResult.CONTINUE</strong>
+            </td>
+            <td>什么都不做。
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center;"><strong>TriggerResult.FIRE</strong>
+            </td>
+            <td>触发计算。
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center;"><strong>TriggerResult.PURGE</strong>
+            </td>
+            <td>清除窗口内的元素。
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center;"><strong>TriggerResult.FIRE_AND_PURGE</strong>
+            </td>
+            <td>触发计算，并且在此之后清除窗口内的元素。
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<h2 id="触发运算并且清除元素"><a href="#触发运算并且清除元素" class="headerlink" title="触发运算并且清除元素"></a>触发运算并且清除元素</h2><h2 id="WindowAssigners-的默认-Triggers"><a href="#WindowAssigners-的默认-Triggers" class="headerlink" title="WindowAssigners 的默认 Triggers"></a>WindowAssigners 的默认 Triggers</h2><p>很多 WindowAssigners 的默认 Triggers是适用于很多场景的。例如，所有的 event-time window assigners 都将 EventTimeTrigger 作为默认的 Trigger。这个 Trigger 的作用就是当 Watermark 到达了窗口结束时间时就触发。<br><strong>提示1：GlobalWindow 的默认 Trigger 是永远不会触发的 NeverTrigger。</strong><br><strong>提示2：通过使用 trigger() 指定触发器，您将覆盖 WindowAssigner 的默认触发器。例如，如果为 TumblingEventTimeWindows 指定 CountTrigger，则不会再根据时间进度而仅按 count 触发窗口。</strong></p>
+<h2 id="通用的-Triggers"><a href="#通用的-Triggers" class="headerlink" title="通用的 Triggers"></a>通用的 Triggers</h2><table>
+    <thead>
+        <tr>
+            <th style="width: 10%">Trigger</th>
+            <th style="width: 20%">作用</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="text-align: center;"><strong>EventTimeTrigger</strong>
+            </td>
+            <td>根据由 Watermark 计算的 Event Time 进度触发。
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center;"><strong>ProcessingTimeTrigger</strong>
+            </td>
+            <td>根据 Processing Time 触发。
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center;"><strong>CountTrigger</strong>
+            </td>
+            <td>在窗口中的元素数超过给定限额时触发。
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center;"><strong>PurgingTrigger</strong>
+            </td>
+            <td>将另一个 Trigger 作为参数，并将其转换为清除触发器。
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<h1 id="Evictors"><a href="#Evictors" class="headerlink" title="Evictors"></a><strong>Evictors</strong></h1><p>Flink 的窗口模型中允许指定除 WindowAssigner 和 Trigger 之外的可选逐出器（Evictor）。可以使用exictor(…)方法指定。Exictor 能够在触发器触发之后，并在使用窗口函数之前或者之后移除元素。为此，逐出器接口有两个方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Optionally evicts elements. Called before windowing function.</span></span><br><span class="line"><span class="comment"> * 在执行窗口函数之前执行。</span></span><br><span class="line"><span class="comment"> * </span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> elements The elements currently in the pane.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> size The current number of elements in the pane.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> window The &#123;<span class="doctag">@link</span> Window&#125;</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> evictorContext The context for the Evictor</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">evictBefore</span><span class="params">(Iterable&lt;TimestampedValue&lt;T&gt;&gt; elements, <span class="keyword">int</span> size, W window, EvictorContext evictorContext)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Optionally evicts elements. Called after windowing function.</span></span><br><span class="line"><span class="comment"> * 在执行窗口函数之后执行。</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> elements The elements currently in the pane.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> size The current number of elements in the pane.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> window The &#123;<span class="doctag">@link</span> Window&#125;</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> evictorContext The context for the Evictor</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">evictAfter</span><span class="params">(Iterable&lt;TimestampedValue&lt;T&gt;&gt; elements, <span class="keyword">int</span> size, W window, EvictorContext evictorContext)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<table>
+    <thead>
+        <tr>
+            <th style="width: 10%">Evictor</th>
+            <th style="width: 20%">作用</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="text-align: center;"><strong>CountEvictor</strong>
+            </td>
+            <td>保持窗口内元素数量符合用户指定数量，如果多于用户指定的数量，从窗口缓冲区的开头丢弃剩余的元素。
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center;"><strong>DeltaEvictor</strong>
+            </td>
+            <td>使用 DeltaFunction 和一个阈值，计算窗口缓冲区中的最后一个元素与其余每个元素之间的 delta 值，并删除 delta 值大于或等于阈值的元素。
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center;"><strong>TimeEvictor</strong>
+            </td>
+            <td>以毫秒为单位的时间间隔作为参数，对于给定的窗口，找到元素中的最大的时间戳max_ts，并删除时间戳小于max_ts - interval的所有元素。
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<p>默认情况下，都只会在执行 WindowFunction 之前执行 Evictor。</p>
+<p><strong>提示：Flink 不能保证窗口中元素的顺序。这意味着尽管逐出器可能会从窗口的开头移除元素，但这些元素不一定是最先到达或最后到达的元素。</strong></p>
+<h1 id="Allowed-Lateness"><a href="#Allowed-Lateness" class="headerlink" title="Allowed Lateness"></a><strong>Allowed Lateness</strong></h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>使用 Event Time 窗口时，可能会发生元素到达晚的情况，即 Flink 用于跟踪 Event Time 进度的 Watermark 已超过元素所属窗口的结束时间戳。</p>
+<p>默认情况下，当发现 Watermark 已经超过到达的元素所属的窗口结束时间时，将删除这个延迟元素。但是 Flink 可以给窗口算子指定一个最大允许延迟时间。Allowed lateness 指定元素在被删除之前可以延迟多少时间，其默认值为0。</p>
+<p>在迟到元素到达时，如果 Watermark 大于其所属窗口的结束时间时，并且 Watermark 小于窗口结束时间加上 allowed lateness，这个迟到的元素仍然可以被加到这个窗口内进行运算。有的触发器会出现在延迟但是没有丢弃的元素到达时，使得窗口再次计算，比如 EventTimeTrigger。</p>
+<p><strong>提示1：在 assignTimestampsAndWatermarks 时有一个 maxOutOfOrderness 的概念，maxOutOfOrderness 是生成 Watermark 所需要的，是指元素最大无序时间。而 Allowed Lateness 是指在 Watermark 到达窗口结束时间之后允许延迟多长时间，两个概念不一样。</strong><br><strong>提示2：<br>a.通过 watermark 机制来处理 out-of-order 的问题，属于第一层防护，属于全局性的防护，通常说的乱序问题的解决办法，就是指这类；<br>b.通过窗口上的 allowedLateness 机制来处理 out-of-order 的问题，属于第二层防护，属于特定 window operator 的防护，late element 的问题就是指这类</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">DataStream&lt;T&gt; input = ...;</span><br><span class="line"></span><br><span class="line">input</span><br><span class="line">    .keyBy(&lt;key selector&gt;)</span><br><span class="line">    .window(&lt;window assigner&gt;)</span><br><span class="line">    .allowedLateness(&lt;time&gt;)</span><br><span class="line">    .&lt;windowed transformation&gt;(&lt;window function&gt;);</span><br></pre></td></tr></table></figure>
+
+<p><strong>提示：当使用 GlobalWindows 时，没有元素会被认为是迟到的，因为这个窗口哦的结束时间时 Long.MAX_VALUE。</strong></p>
+<h2 id="迟到的数据做旁路输出（side-output）"><a href="#迟到的数据做旁路输出（side-output）" class="headerlink" title="迟到的数据做旁路输出（side output）"></a>迟到的数据做旁路输出（side output）</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> OutputTag&lt;T&gt; lateOutputTag = <span class="keyword">new</span> OutputTag&lt;T&gt;(<span class="string">"late-data"</span>)&#123;&#125;;</span><br><span class="line"></span><br><span class="line">DataStream&lt;T&gt; input = ...;</span><br><span class="line"></span><br><span class="line">SingleOutputStreamOperator&lt;T&gt; result = input</span><br><span class="line">    .keyBy(&lt;key selector&gt;)</span><br><span class="line">    .window(&lt;window assigner&gt;)</span><br><span class="line">    .allowedLateness(&lt;time&gt;)</span><br><span class="line">    .sideOutputLateData(lateOutputTag)</span><br><span class="line">    .&lt;windowed transformation&gt;(&lt;window function&gt;);</span><br><span class="line"></span><br><span class="line">DataStream&lt;T&gt; lateStream = result.getSideOutput(lateOutputTag);</span><br></pre></td></tr></table></figure>
+
+<h2 id="拓展思考"><a href="#拓展思考" class="headerlink" title="拓展思考"></a>拓展思考</h2><p>当指定 Allowed Lateness &gt; 0 时，在 Watermark 通过窗口结束时间后，<strong>将保留窗口及其内容</strong>。在这种情况下，当一个延迟但未被丢弃的元素到达时，它可能会再次触发窗口运算。这些被触发运算的被称为 late firing。在使用会话窗口时，它们可能会将两个预先存在的未合并窗口进行合并，下面是一个例子。</p>
+<p>比如：有一个会话窗口且 Gap 为3分钟，现在有两个窗口，第一个窗口起始和结束时间为（01:00:00，01:00:05），第二个窗口起始和结束时间为（01:00:09，01:00:15），如果我们在此时不设置 Allowed Lateness 时，那么如果不保存第一个窗口的数据，运算第二个窗口的数据时，不会有什么问题，但是如果我们设置了 Allowed Lateness = 5 min，那么这时就会有问题了，比如有迟到元素01:00:15才到达，元素自己的时间戳为01:00:07，这样这个元素就可以将两个窗口的数据结合为一个窗口。</p>
+<p><strong>提示：延迟数据触发的运算应该将之前的计算结果更新，所以如果下游 sink 使用了 kafka，则这种情况不是很适用（除非消费 kafka 的是一些 updateable dfs），否则，你将会得到很多的对相同组数据计算的结果。</strong></p>
+<h1 id="窗口结果的使用"><a href="#窗口结果的使用" class="headerlink" title="窗口结果的使用"></a><strong>窗口结果的使用</strong></h1><p>窗口计算的结果也会转化为一个数据流，这份结果中不会包含窗口操作的任何信息，所以如果后续计算中需要这些信息，你必须使用 ProcessWindowFunction 将这些信息通过编码传输进去。</p>
+<h2 id="窗口和-Watermark-的联系"><a href="#窗口和-Watermark-的联系" class="headerlink" title="窗口和 Watermark 的联系"></a>窗口和 Watermark 的联系</h2><p>当 Watermark 到达窗口算子处时，会触发两个事件：<br>1.Watermark 会触发所有的窗口中的最大时间戳（窗口结束时间戳 - 1）&lt; 到达的最新 Watermark的窗口运算。<br>2.将 Watermark 发送到下游算子。<br>Intuitively, a watermark “flushes” out any windows that would be considered late in downstream operations once they receive that watermark.</p>
+<h2 id="连续的窗口算子"><a href="#连续的窗口算子" class="headerlink" title="连续的窗口算子"></a>连续的窗口算子</h2><h2 id="设置窗口时产生的状态大小的注意事项"><a href="#设置窗口时产生的状态大小的注意事项" class="headerlink" title="设置窗口时产生的状态大小的注意事项"></a>设置窗口时产生的状态大小的注意事项</h2><p>窗口大小可以定义的很大（如天、周或月），因此可能会累积非常大的状态（state）。所以在估计窗口计算的存储需求时，需要记住以下几个规则：</p>
+<p>1.Flink 会为每个元素所属的窗口创建一个副本。因此，滚动的窗口保留每个元素的一个副本（一个元素只属于一个窗口）。相反，滑动窗口可能会创建每个元素中的几个副本。因此，1天大小的窗口，1秒滑动步长的滑动窗口可能不是一个好主意。</p>
+<p>2.ReduceFunction、AggregateFunction 和 FoldFunction 可以显著减少存储需求，因为它们在元素到达时就聚合元素，并且每个窗口只存储一个值。相反，仅仅使用 ProcessWindowFunction 就需要累积所有元素。</p>
+<p>3.使用 Evictor 可防止任何预聚合，因为在应用计算之前，窗口的所有元素都必须通过 Evictor 传递。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2019-11-11T10:45:12.300Z" itemprop="dateUpdated">2019-11-11 18:45:12</time>
+</span><br>
+
+
+        
+        本文链接：<a href="/2019/11/09/apache-flink:study-flink-datastream-operators-windows/" target="_blank" rel="external">https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-operators-windows/</a>
+  <br>转载须知：<a href="/about/#版权声明" target="_blank" rel="copyright">版权声明</a>
+
+        
+    </div>
+    
+    <footer>
+        <a href="https://yangyichao-mango.github.io">
+            <img src="/img/avatar.jpg" alt="yangyichao-mango">
+            yangyichao-mango
+        </a>
+    </footer>
+</blockquote>
+
+        
+<div class="page-reward">
+    <a id="rewardBtn" href="javascript:;" class="page-reward-btn waves-effect waves-circle waves-light">赏</a>
+</div>
+
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Apache-Flink/">Apache Flink</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-operators-windows/&title=《Apache Flink 学习：DataStream Api 中 Operators（算子）——窗口》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-operators-windows/&title=《Apache Flink 学习：DataStream Api 中 Operators（算子）——窗口》 — yangyichao-mango's blog&source=Apache Flink 学习：DataStream Api 中 Operators（算子）——窗口" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-operators-windows/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Apache Flink 学习：DataStream Api 中 Operators（算子）——窗口》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-operators-windows/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-operators-windows/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/11/10/apache-kafka:study-kafka-in-data-process/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Apache Kafka 学习：kafka在数据处理中的应用</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/11/09/apache-flink:study-flink-datastream-operators-overview/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Apache Flink 学习：DataStream Api 中 Operators（算子）——概览</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+<section class="comments" id="comments">
+    <div id="disqus_thread"></div>
+    <script>
+    var disqus_shortname = 'true';
+    lazyScripts.push('//' + disqus_shortname + '.disqus.com/embed.js')
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+<div id="reward" class="page-modal reward-lay">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <h3 class="reward-title">
+        <i class="icon icon-quote-left"></i>
+        谢谢大爷~
+        <i class="icon icon-quote-right"></i>
+    </h3>
+    <div class="reward-content">
+        
+        <div class="reward-code">
+            <img id="rewardCode" src="/img/wechat.png" alt="打赏二维码">
+        </div>
+        
+        <label class="reward-toggle">
+            <input id="rewardToggle" type="checkbox" class="reward-toggle-check"
+                data-wechat="/img/wechat.png" data-alipay="/img/alipay.png">
+            <div class="reward-toggle-ctrol">
+                <span class="reward-toggle-item wechat">微信</span>
+                <span class="reward-toggle-label"></span>
+                <span class="reward-toggle-item alipay">支付宝</span>
+            </div>
+        </label>
+        
+    </div>
+</div>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>yangyichao-mango &copy; 2019 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-operators-windows/&title=《Apache Flink 学习：DataStream Api 中 Operators（算子）——窗口》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-operators-windows/&title=《Apache Flink 学习：DataStream Api 中 Operators（算子）——窗口》 — yangyichao-mango's blog&source=Apache Flink 学习：DataStream Api 中 Operators（算子）——窗口" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-operators-windows/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Apache Flink 学习：DataStream Api 中 Operators（算子）——窗口》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-operators-windows/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-operators-windows/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPYAAAD2CAAAAADAeSUUAAADOklEQVR42u3a0WrbQBAF0Pz/T7tQ+lAIke+dcYi1OftkZCPtUaC3M7MfH/F6/F2fr/y/vvrl9e+Tu+XXX7ywsbGxb8J+XK7PmK8ef30leXrybf70J68GGxsb+zj2dWi127q+kgdbHn65BRsbG/s3s68fmVzJt5WEVlsIYWNjY2MnLafrhlGy9aRM+uHcxsbGxn5LdhIM+UbzsJm1hNp4w8bGxj6b3Q563/nzN863sbGxsd+S/VivTRQlBcxrd/vvntjY2NgHsZNBbD523bSKNi2q2VEhbGxs7DPYs5DID/EUzfp4V/ko+kluY2NjYx/B3jRxEvYsujaDhzwasbGxsU9i75vvLWDWeNoPM4ZzD2xsbOw3ZrePTGKsjZPZCCFvPBVTEWxsbOwbsttmfdJOmnXj20KlHS1EMYaNjY19Q/as5NiUCrMxbRuxT4IWGxsb+yD2LDbaV7YPsNmVJ68bGxsb+xewvwPTDg/a9lMx+sXGxsY+jp0fr5kVEvm4dzZ4bl8lNjY29hnsWet/09bfjwe+5e+MjY2NfXN23o7Jm/j5oZ/h1kfB+eVJJWxsbOyD2O2DN+3+fRTNhgTY2NjYJ7HbgmHf+tl8m5c6+ckcbGxs7JPYr2oktS9uttr7YGNjY5/Kbo+8tEGSHOvJG095a+nJt9jY2NgHsTdHc/Jv2xLiEa98CIGNjY19Kvtlo9OgjGnHxvk9699jY2NjH8re89qGVPu6c2oRYNjY2Ng3Z+f/lU9IbVDlpcus+CmmH9jY2NhHsPeNm/a15jHZNrmiYMbGxsY+jp3/Cz/Lgtk4eT+WKIYE2NjY2Ldlt4cX21Kh/ZyXFjmsBmNjY2PfkD0bFcxaTu3YYFbARL/ExsbGPojdNnfaLc5aS8O8nZUi2NjY2DdkP8qVbyuJrv04YThsxsbGxj6IvQmDTXOnbfS3raU8dLGxsbHPYO+P7OQFRlvGtCVNUdhgY2NjH8eeBcN1CynJyVk5NBtRf7wqD7GxsbGPYG+GAW3Jkd+taCdhY2Nj/0p2foBmdtBndlgz/8NgY2Njn82eRUJbHrSv8vpzvh9sbGzss9mb7c6KhE2pMxsPvGy+jY2Njf1e7D9Uw4zgNroE8AAAAABJRU5ErkJggg==" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

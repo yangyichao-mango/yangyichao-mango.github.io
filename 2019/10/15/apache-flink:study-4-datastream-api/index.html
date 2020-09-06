@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-150061865-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+<!-- Baidu Tongji -->
+<script>var _hmt = _hmt || []</script>
+<script async src="//hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63"></script>
+<!-- End Baidu Tongji -->
+
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>Apache Flink 零基础入门（四）：DataStream API 编程 学习心得 | yangyichao-mango&#39;s blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Apache Flink">
+    <meta name="description" content="本站&amp;作者">
+<meta name="keywords" content="Apache Flink">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Apache Flink 零基础入门（四）：DataStream API 编程 学习心得">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2019/10/15/apache-flink:study-4-datastream-api/index.html">
+<meta property="og:site_name" content="yangyichao-mango&#39;s blog">
+<meta property="og:description" content="本站&amp;作者">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-11-06T13:07:48.987Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Apache Flink 零基础入门（四）：DataStream API 编程 学习心得">
+<meta name="twitter:description" content="本站&amp;作者">
+    
+        <link rel="alternate" type="application/atom+xml" title="yangyichao-mango&#39;s blog" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/img/avatar.jpg">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu"  >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand-new.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/avatar.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">yangyichao-mango</h5>
+          <a href="mailto:1048262223@qq.com" title="1048262223@qq.com" class="mail">1048262223@qq.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/yangyichao-mango" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/about"  >
+                <i class="icon icon-lg icon-user"></i>
+                About
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/links"  >
+                <i class="icon icon-lg icon-star"></i>
+                Links
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Apache Flink 零基础入门（四）：DataStream API 编程 学习心得</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Apache Flink 零基础入门（四）：DataStream API 编程 学习心得</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-10-15T07:57:16.000Z" itemprop="datePublished" class="page-time">
+  2019-10-15
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-Flink/">Apache Flink</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#DataStream"><span class="post-toc-number">1.</span> <span class="post-toc-text">DataStream</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#RichParallelSourceFunction"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">RichParallelSourceFunction</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Evictor"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">Evictor</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#keyedStream"><span class="post-toc-number">2.</span> <span class="post-toc-text">keyedStream</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#KeyedStream-fold-R-initialValue-FoldFunction-lt-T-R-gt-folder"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">KeyedStream.fold(R initialValue, FoldFunction&lt;T, R&gt; folder)</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#可能出现的问题"><span class="post-toc-number">3.</span> <span class="post-toc-text">可能出现的问题</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Apache-Flink-Return-type-of-function-could-not-be-determined-automatically-due-to-type-erasure"><span class="post-toc-number">3.1.</span> <span class="post-toc-text">Apache Flink: Return type of function could not be determined automatically due to type erasure</span></a></li></ol></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-apache-flink:study-4-datastream-api"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">Apache Flink 零基础入门（四）：DataStream API 编程 学习心得</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-10-15 15:57:16" datetime="2019-10-15T07:57:16.000Z"  itemprop="datePublished">2019-10-15</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-Flink/">Apache Flink</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>学习心得</p>
+<a id="more"></a>
+
+<h2 id="DataStream"><a href="#DataStream" class="headerlink" title="DataStream"></a><strong>DataStream</strong></h2><h3 id="RichParallelSourceFunction"><a href="#RichParallelSourceFunction" class="headerlink" title="RichParallelSourceFunction"></a>RichParallelSourceFunction</h3><p>用户通过实现SourceFunction自定义DataSource</p>
+<p>如果设置了并行度，则会产生指定并行度个数的DataSource消费客户端去消费DataSource</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">StreamExecutionEnvironment.setParallelism(int)</span><br></pre></td></tr></table></figure>
+
+<p>举例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GroupedProcessingTimeWindow</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger LOGGER = LoggerFactory.getLogger(GroupedProcessingTimeWindow.class);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">DataSource</span> <span class="keyword">extends</span> <span class="title">RichParallelSourceFunction</span>&lt;<span class="title">Tuple2</span>&lt;<span class="title">String</span>, <span class="title">Integer</span>&gt;&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">boolean</span> isRunning = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">(SourceContext&lt;Tuple2&lt;String, Integer&gt;&gt; ctx)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">            Random random = <span class="keyword">new</span> Random();</span><br><span class="line">            <span class="keyword">while</span> (isRunning) &#123;</span><br><span class="line">                TimeUnit.MILLISECONDS.sleep((getRuntimeContext().getIndexOfThisSubtask() + <span class="number">1</span>) * <span class="number">1000</span> * <span class="number">5</span>);</span><br><span class="line">                String key = <span class="string">"类别"</span> + (<span class="keyword">char</span>) (<span class="string">'A'</span> + random.nextInt(<span class="number">3</span>));</span><br><span class="line">                <span class="keyword">int</span> value = random.nextInt(<span class="number">10</span>) + <span class="number">1</span>;</span><br><span class="line">                LOGGER.info(<span class="string">"Thread: &#123;&#125;, key: &#123;&#125;, value: &#123;&#125;, dataSource object: &#123;&#125;)"</span></span><br><span class="line">                        , Thread.currentThread().getName()</span><br><span class="line">                        , key</span><br><span class="line">                        , value</span><br><span class="line">                        , <span class="keyword">this</span>);</span><br><span class="line">                ctx.collect(<span class="keyword">new</span> Tuple2&lt;&gt;(key, value));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">cancel</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            isRunning = <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();</span><br><span class="line">        env.setParallelism(<span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">        DataSource dataSource = <span class="keyword">new</span> DataSource();</span><br><span class="line">        LOGGER.info(<span class="string">"dataSource object: &#123;&#125;"</span>, dataSource);</span><br><span class="line"></span><br><span class="line">        DataStream&lt;Tuple2&lt;String, Integer&gt;&gt; ds = env.addSource(dataSource);</span><br><span class="line">        KeyedStream&lt;Tuple2&lt;String, Integer&gt;, Tuple&gt; keyedStream = ds.keyBy(<span class="number">0</span>);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// KeyedStream&lt;Tuple2&lt;String, Integer&gt;, Tuple&gt; keyedStream = ds.keyBy("f0"); 通过指定字段名 f0</span></span><br><span class="line"></span><br><span class="line">        keyedStream</span><br><span class="line">            .sum(<span class="number">1</span>)</span><br><span class="line">            <span class="comment">// .sum("f1") 通过制定字段名 f1</span></span><br><span class="line">            .keyBy((KeySelector&lt;Tuple2&lt;String, Integer&gt;, Object&gt;) stringIntegerTuple2 -&gt; StringUtils.EMPTY)</span><br><span class="line">            .fold(<span class="keyword">new</span> HashMap&lt;String, Integer&gt;(),</span><br><span class="line">                    <span class="keyword">new</span> FoldFunction&lt;Tuple2&lt;String, Integer&gt;, HashMap&lt;String, Integer&gt;&gt;() &#123;</span><br><span class="line">                        <span class="meta">@Override</span></span><br><span class="line">                        <span class="function"><span class="keyword">public</span> HashMap&lt;String, Integer&gt; <span class="title">fold</span><span class="params">(HashMap&lt;String, Integer&gt; accumulator,</span></span></span><br><span class="line"><span class="function"><span class="params">                                Tuple2&lt;String, Integer&gt; value)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                            accumulator.put(value.f0, value.f1);</span><br><span class="line">                            <span class="keyword">return</span> accumulator;</span><br><span class="line">                        &#125;</span><br><span class="line">            &#125;)</span><br><span class="line">            .addSink(<span class="keyword">new</span> SinkFunction&lt;HashMap&lt;String, Integer&gt;&gt;() &#123;</span><br><span class="line">                <span class="meta">@Override</span></span><br><span class="line">                <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">invoke</span><span class="params">(HashMap&lt;String, Integer&gt; value, Context context)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                    <span class="comment">// 每个类型的商品成交量</span></span><br><span class="line">                    LOGGER.info(<span class="string">"&#123;&#125;"</span></span><br><span class="line">                            , value);</span><br><span class="line">                    <span class="comment">// 商品成交总量</span></span><br><span class="line">                    LOGGER.info(<span class="string">"&#123;&#125;"</span></span><br><span class="line">                            , value.values().stream().mapToInt(v -&gt; v).sum());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line"></span><br><span class="line">        env.execute();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过查看dataSource object:的log就会发现上面这个例子中国产生了3个DataSource实例。</p>
+<h3 id="Evictor"><a href="#Evictor" class="headerlink" title="Evictor"></a>Evictor</h3><p>CountEvictor：保持窗口内元素数量符合用户指定数量，如果多于用户指定的数量，从窗口缓冲区的开头丢弃剩余的元素。<br>DeltaEvictor：使用 DeltaFunction和 一个阈值，计算窗口缓冲区中的最后一个元素与其余每个元素之间的 delta 值，并删除 delta 值大于或等于阈值的元素。<br>TimeEvictor：以毫秒为单位的时间间隔作为参数，对于给定的窗口，找到元素中的最大的时间戳max_ts，并删除时间戳小于max_ts - interval的所有元素。</p>
+<h2 id="keyedStream"><a href="#keyedStream" class="headerlink" title="keyedStream"></a><strong>keyedStream</strong></h2><h3 id="KeyedStream-fold-R-initialValue-FoldFunction-lt-T-R-gt-folder"><a href="#KeyedStream-fold-R-initialValue-FoldFunction-lt-T-R-gt-folder" class="headerlink" title="KeyedStream.fold(R initialValue, FoldFunction&lt;T, R&gt; folder)"></a>KeyedStream.fold(R initialValue, FoldFunction&lt;T, R&gt; folder)</h3><p>添加一个合并key分组的算子，FoldFunction会接收到同一key的value，只有key相同的值才会被分发到同一个folder。</p>
+<h2 id="可能出现的问题"><a href="#可能出现的问题" class="headerlink" title="可能出现的问题"></a><strong>可能出现的问题</strong></h2><h3 id="Apache-Flink-Return-type-of-function-could-not-be-determined-automatically-due-to-type-erasure"><a href="#Apache-Flink-Return-type-of-function-could-not-be-determined-automatically-due-to-type-erasure" class="headerlink" title="Apache Flink: Return type of function could not be determined automatically due to type erasure"></a><font color="red">Apache Flink: Return type of function could not be determined automatically due to type erasure</font></h3><p>错误场景：<br>在用户定义DAG图算子的时候，可能会出现不支持lambda表达式的情况</p>
+<p>原因：<br>为了执行程序，Flink需要知道要处理的值的类型，因为它需要序列化和反序列化数据。<br>Flink的类型系统基于描述数据类型的TypeInformation进行序列化和反序列化，会将Java中的基本类型以及Object类型与TypeInformation进行映射。<br>当您指定一个函数时，Flink会尝试推断该函数的返回类型。<br>但是某些Lambda函数由于类型擦除而丢失了此信息（可以自己编译后再对编译成的.class文件进行反编译，然后查看函数签名，发现函数签名具体类型被擦除），<br>因此Flink无法通过此自动推断类型。<br><a href="https://flink.sojb.cn/dev/java_lambdas.html" target="_blank" rel="noopener">Flink Java Lambda表达式</a></p>
+<p>因此，必须显式声明返回类型。</p>
+<p>解决方案1：用户自己定义返回类型</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">DataStream&lt;String&gt; wordDataStream = dataStream.flatMap(</span><br><span class="line">    (String sentence, Collector&lt;String&gt; out) -&gt; &#123;</span><br><span class="line">        <span class="keyword">for</span>(String word: sentence.split(<span class="string">"\\W+"</span>)) &#123;</span><br><span class="line">            out.collect(word); <span class="comment">// collect objects of type String</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">).returns(Types.STRING);</span><br></pre></td></tr></table></figure>
+
+<p>解决方案2：显示声明返回类型</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">DataStream&lt;String&gt; wordDataStream = dataStream.flatMap(</span><br><span class="line">    <span class="keyword">new</span> FlatMapFunction&lt;String, String&gt;() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">flatMap</span><span class="params">(String sentence, Collector&lt;String&gt; out)</span> </span>&#123;</span><br><span class="line">            <span class="comment">// normalize and split the line</span></span><br><span class="line">            String[] words = sentence.toLowerCase().split(<span class="string">"\\W+"</span>);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// emit the pairs</span></span><br><span class="line">            <span class="keyword">for</span> (String word : words) &#123;</span><br><span class="line">                <span class="keyword">if</span> (word.length() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                    out.collect(word);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2019-11-06T13:07:48.987Z" itemprop="dateUpdated">2019-11-06 21:07:48</time>
+</span><br>
+
+
+        
+        本文链接：<a href="/2019/10/15/apache-flink:study-4-datastream-api/" target="_blank" rel="external">https://yangyichao-mango.github.io/2019/10/15/apache-flink:study-4-datastream-api/</a>
+  <br>转载须知：<a href="/about/#版权声明" target="_blank" rel="copyright">版权声明</a>
+
+        
+    </div>
+    
+    <footer>
+        <a href="https://yangyichao-mango.github.io">
+            <img src="/img/avatar.jpg" alt="yangyichao-mango">
+            yangyichao-mango
+        </a>
+    </footer>
+</blockquote>
+
+        
+<div class="page-reward">
+    <a id="rewardBtn" href="javascript:;" class="page-reward-btn waves-effect waves-circle waves-light">赏</a>
+</div>
+
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Apache-Flink/">Apache Flink</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2019/10/15/apache-flink:study-4-datastream-api/&title=《Apache Flink 零基础入门（四）：DataStream API 编程 学习心得》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2019/10/15/apache-flink:study-4-datastream-api/&title=《Apache Flink 零基础入门（四）：DataStream API 编程 学习心得》 — yangyichao-mango's blog&source=学习心得" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2019/10/15/apache-flink:study-4-datastream-api/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Apache Flink 零基础入门（四）：DataStream API 编程 学习心得》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2019/10/15/apache-flink:study-4-datastream-api/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2019/10/15/apache-flink:study-4-datastream-api/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/10/16/java-api:useful-api/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">useful-api-for-java</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/10/14/hello-world/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Hello World</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+<section class="comments" id="comments">
+    <div id="disqus_thread"></div>
+    <script>
+    var disqus_shortname = 'true';
+    lazyScripts.push('//' + disqus_shortname + '.disqus.com/embed.js')
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+<div id="reward" class="page-modal reward-lay">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <h3 class="reward-title">
+        <i class="icon icon-quote-left"></i>
+        谢谢大爷~
+        <i class="icon icon-quote-right"></i>
+    </h3>
+    <div class="reward-content">
+        
+        <div class="reward-code">
+            <img id="rewardCode" src="/img/wechat.png" alt="打赏二维码">
+        </div>
+        
+        <label class="reward-toggle">
+            <input id="rewardToggle" type="checkbox" class="reward-toggle-check"
+                data-wechat="/img/wechat.png" data-alipay="/img/alipay.png">
+            <div class="reward-toggle-ctrol">
+                <span class="reward-toggle-item wechat">微信</span>
+                <span class="reward-toggle-label"></span>
+                <span class="reward-toggle-item alipay">支付宝</span>
+            </div>
+        </label>
+        
+    </div>
+</div>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>yangyichao-mango &copy; 2019 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2019/10/15/apache-flink:study-4-datastream-api/&title=《Apache Flink 零基础入门（四）：DataStream API 编程 学习心得》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2019/10/15/apache-flink:study-4-datastream-api/&title=《Apache Flink 零基础入门（四）：DataStream API 编程 学习心得》 — yangyichao-mango's blog&source=学习心得" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2019/10/15/apache-flink:study-4-datastream-api/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Apache Flink 零基础入门（四）：DataStream API 编程 学习心得》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2019/10/15/apache-flink:study-4-datastream-api/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2019/10/15/apache-flink:study-4-datastream-api/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAN4AAADeCAAAAAB3DOFrAAACuElEQVR42u3a24obMRAE0P3/n04gT4HsmKpuyd7A8dMynovOLKjlan19xZ9ffz5Pf//9OXX86ZyvGx88PDy80dDzW//7mNfXtneYvdanO+Dh4eHd482Kwevp/vX5yTn5K348joeHh/dRXj7Q5Nt2oHh4eHj/I6+NLfKBzooTHh4e3md5SRhR3LRciOdxw8WsBQ8PDy/m7Rtg7//7rf09PDw8vLgknCoYm3h3M048PDy8G7xkiO3cm8QQ7VWzl4KHh4d3g9c2tPJmWDvEfBtB8m/4pu7h4eHhHeXlTankAXkx2GwaiPB4eHh4F3izhW97vG2AtbFF9IsBDw8P7ygvuaBezo6Wzu2SPX8WHh4e3ilePpXnzbCEmt9hFhk/9vfw8PDwLvDa4eahRl54ZuHyN8fx8PDwLvA2ja48zN3EGW1kvEpc8PDw8ErecMIdFYbZEjxfXuPh4eG9n7dpNc02SG1eX/FcPDw8vDXv2IRbRg/7O0QbufDw8PCu8fYRarJFIJ/WjxUYPDw8vLfw2rCgmKbLTQBtcXpcUuPh4eEd5W0G3bapknLSbv+KShceHh7eUV6+FD6QEI+C4FXEjIeHh3eBl980jw8217YFoGin4eHh4R3izRpdyaQ8wxxug+Hh4eFd4LXRQD59b4KMNt7Fw8PD+xSv/dnfUpOy0S6ah4UNDw8Pb83bTNOvY4LZcnnTcnvcOoCHh4f3Fl4+rHb5m8cZeamoCwMeHh7eiDeLDGabA9qF9eyVPW66wsPDwzvEm7W78ok7p7ZbE5LihIeHh3eP1xaDNoZIXk0yubdbDfDw8PBu8/JtVflQ2uHOKhgeHh7ez+dFbacyhpgFGcXWATw8PLwP8XJw/iLygpG33PDw8PDew8tvmreyZue0m7TqFTceHh7emneqAZaHC/tvD3f58PDw8FLeb90J2k9qdoGHAAAAAElFTkSuQmCC" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-150061865-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+<!-- Baidu Tongji -->
+<script>var _hmt = _hmt || []</script>
+<script async src="//hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63"></script>
+<!-- End Baidu Tongji -->
+
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>Apache Flink 学习：DataStream Api 中 EventTime | yangyichao-mango&#39;s blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Apache Flink">
+    <meta name="description" content="本站&amp;作者">
+<meta name="keywords" content="Apache Flink">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Apache Flink 学习：DataStream Api 中 EventTime">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-eventtime/index.html">
+<meta property="og:site_name" content="yangyichao-mango&#39;s blog">
+<meta property="og:description" content="本站&amp;作者">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-flink-datastream-eventtime/时间.svg">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-flink-datastream-eventtime/顺序流的Watermark.svg">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-flink-datastream-eventtime/无序流的Watermark.svg">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-flink-datastream-eventtime/并行流的Watermarks.svg">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-flink-datastream-eventtime/KafkaSource多分区Watermark.svg">
+<meta property="og:updated_time" content="2019-11-09T07:41:48.694Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Apache Flink 学习：DataStream Api 中 EventTime">
+<meta name="twitter:description" content="本站&amp;作者">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-flink-datastream-eventtime/时间.svg">
+    
+        <link rel="alternate" type="application/atom+xml" title="yangyichao-mango&#39;s blog" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/img/avatar.jpg">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu"  >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand-new.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/avatar.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">yangyichao-mango</h5>
+          <a href="mailto:1048262223@qq.com" title="1048262223@qq.com" class="mail">1048262223@qq.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/yangyichao-mango" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/about"  >
+                <i class="icon icon-lg icon-user"></i>
+                About
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/links"  >
+                <i class="icon icon-lg icon-star"></i>
+                Links
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Apache Flink 学习：DataStream Api 中 EventTime</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Apache Flink 学习：DataStream Api 中 EventTime</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-11-09T04:09:56.000Z" itemprop="datePublished" class="page-time">
+  2019-11-09
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-Flink/">Apache Flink</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Processing-time"><span class="post-toc-number">1.</span> <span class="post-toc-text">Processing time</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Event-time"><span class="post-toc-number">2.</span> <span class="post-toc-text">Event time</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Event-Time-和-Watermark"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">Event Time 和 Watermark</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#并行流的-Watermarks"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">并行流的 Watermarks</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Ingestion-time"><span class="post-toc-number">3.</span> <span class="post-toc-text">Ingestion time</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#生成-Timestamps-和-Watermarks"><span class="post-toc-number">4.</span> <span class="post-toc-text">生成 Timestamps 和 Watermarks</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#分配-Timestamps"><span class="post-toc-number">4.1.</span> <span class="post-toc-text">分配 Timestamps</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#数据流源生成-Timestamps-和-Watermarks"><span class="post-toc-number">4.1.1.</span> <span class="post-toc-text">数据流源生成 Timestamps 和 Watermarks</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Timestamp-分配器-Watermark生成器"><span class="post-toc-number">4.1.2.</span> <span class="post-toc-text">Timestamp 分配器 / Watermark生成器</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Kafka-分区的-Timestamp"><span class="post-toc-number">5.</span> <span class="post-toc-text">Kafka 分区的 Timestamp</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-apache-flink:study-flink-datastream-eventtime"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">Apache Flink 学习：DataStream Api 中 EventTime</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-11-09 12:09:56" datetime="2019-11-09T04:09:56.000Z"  itemprop="datePublished">2019-11-09</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-Flink/">Apache Flink</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>Apache Flink 学习：DataStream Api 中 EventTime</p>
+<a id="more"></a>
+
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/blog-img/apache-flink:study-flink-datastream-eventtime/时间.svg" alt="时间" title>
+                </div>
+                <div class="image-caption">时间</div>
+            </figure>
+
+<h1 id="Processing-time"><a href="#Processing-time" class="headerlink" title="Processing time"></a><strong>Processing time</strong></h1><p>处理时间是指执行相应操作的机器的系统时间</p>
+<h1 id="Event-time"><a href="#Event-time" class="headerlink" title="Event time"></a><strong>Event time</strong></h1><p>事件时间是每个事件在其生产设备（生产event的设备，手机等的源头设备）上发生的时间</p>
+<h2 id="Event-Time-和-Watermark"><a href="#Event-Time-和-Watermark" class="headerlink" title="Event Time 和 Watermark"></a>Event Time 和 Watermark</h2><p>Flink中测量事件时间进度的机制是Watermark。Watermark作为数据流的一部分流动，并带有时间戳t。Watermark（t）声明该流中的 Event Time 已达到时间t，这意味着流中不应再有时间戳t’&lt;=t的元素（即 Event Time 早于或等于 Watermark 的事件）</p>
+<p>下图显示了具有时间戳的事件流，以及内联流动的水印。在这个例子中，事件是有序的，这意味着 Watermark 只是流中的周期性标记。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/blog-img/apache-flink:study-flink-datastream-eventtime/顺序流的Watermark.svg" alt="顺序流的Watermark" title>
+                </div>
+                <div class="image-caption">顺序流的Watermark</div>
+            </figure>
+
+<p><strong>Watermark对于无序流是至关重要的</strong>，如下所示，其中事件到达顺序不是按时间戳顺序。Watermark代表通过流中的该点，这个时间戳之前的事件都应该到达了。一旦Watermark到达算子，算子就可以将其内部事件时钟更新到Watermark的值。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/blog-img/apache-flink:study-flink-datastream-eventtime/无序流的Watermark.svg" alt="无序流的Watermark" title>
+                </div>
+                <div class="image-caption">无序流的Watermark</div>
+            </figure>
+
+<h2 id="并行流的-Watermarks"><a href="#并行流的-Watermarks" class="headerlink" title="并行流的 Watermarks"></a>并行流的 Watermarks</h2><p>Watermark 在源数据 Function 处生成，或直接在源数据 Function 之后生成。源数据 Function 的每个并行子任务通常独立生成其 Watermark。这些 Watermark 定义并行源数据的 Event Time。</p>
+<p>当 Watermark 流过程序时，会更新到达算子的 Event Time，当一个 Watermark 更新了算子的 Event Time 时，它会为其下游的后续算子生成一个新的 Watermark。</p>
+<p>某些算子消费多个输入流，例如：union 算子或者跟在 keyBy，partition 算子的之后的算子。这样的算子的 Event Time 是所有输入 stream 中最小的 Watermark，即：<br><strong>Operator Event Time = min(Input Stream 1 Watermark, Input Stream 2 Watermark…)</strong><br>算子会跟着输入流 Watermark 的更新来更新算子自己的 Event Time。</p>
+<p>下图显示了流经并行流的事件和 Watermark 以及算子获取 Event Time 的示例。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/blog-img/apache-flink:study-flink-datastream-eventtime/并行流的Watermarks.svg" alt="并行流的Watermarks" title>
+                </div>
+                <div class="image-caption">并行流的Watermarks</div>
+            </figure>
+
+<p>注意，Kafka支持分区 Watermark</p>
+<h1 id="Ingestion-time"><a href="#Ingestion-time" class="headerlink" title="Ingestion time"></a><strong>Ingestion time</strong></h1><p>注入时间是事件进入Flink Job的时间。在源Operator处，每条Operator获取源数据的时间作为Ingestion time时间戳</p>
+<h1 id="生成-Timestamps-和-Watermarks"><a href="#生成-Timestamps-和-Watermarks" class="headerlink" title="生成 Timestamps 和 Watermarks"></a><strong>生成 Timestamps 和 Watermarks</strong></h1><h2 id="分配-Timestamps"><a href="#分配-Timestamps" class="headerlink" title="分配 Timestamps"></a>分配 Timestamps</h2><h3 id="数据流源生成-Timestamps-和-Watermarks"><a href="#数据流源生成-Timestamps-和-Watermarks" class="headerlink" title="数据流源生成 Timestamps 和 Watermarks"></a>数据流源生成 Timestamps 和 Watermarks</h3><p>数据源可以直接为它们产生的数据分配 Timestamp，并且他们也能发送 Watermark。这样做的话，在后面的处理中就没必要再去定义 Timestamp 分配器了，需要注意的是：如果在后面的处理中使用了一个 timestamp 分配器，由数据源提供的任何 timestamp 和 watermark 都会被重写。</p>
+<h3 id="Timestamp-分配器-Watermark生成器"><a href="#Timestamp-分配器-Watermark生成器" class="headerlink" title="Timestamp 分配器 / Watermark生成器"></a>Timestamp 分配器 / Watermark生成器</h3><p>Timestamp 分配器获取一个流并生成一个新的带有 Timestamp 元素和 Watermark 的流。如果上游的原始数据流已经有 Timestamp 或 Watermark，则 Timestamp 分配器将覆盖上游的 Timestamp 或 Watermark</p>
+<p>Timestamp 分配器通常在数据源之后立即指定，但这并不是严格要求的。通常是在 Timestamp 分配器之前先解析（MapFunction）和过滤（FilterFunction）数据源。在任何情况下，都需要在基于 Event Time 算子（例如 window 操作）运行之前指定 Timestamp 分配程序。<br>有一个特殊情况，当使用 Kafka 作为流作业的数据源时，Flink 允许在数据源内部指定 Timestamp 分配器和 Watermark 生成器。更多关于如何进行的信息请参考Kafka Connector的文档。</p>
+<p>直接在FlinkKafkaConsumer010上面使用assignTimestampsAndWatermarks可以根据kafka source的partitions的特性进行设置Timestamps和Watermarks，让用户做一些特殊的处理</p>
+<p>Running timestamp extractors / watermark generators directly inside the Kafka source, per Kafka<br>partition, allows users to let them exploit the per-partition characteristics.</p>
+<h1 id="Kafka-分区的-Timestamp"><a href="#Kafka-分区的-Timestamp" class="headerlink" title="Kafka 分区的 Timestamp"></a><strong>Kafka 分区的 Timestamp</strong></h1><p>当使用 Apache Kafka 作为数据源时，每个 Kafka 分区可能有一个简单的 Event Time 模式（递增的时间戳或有界无序）。然而，当 Flink Job 使用来自Kafka的流时，多个分区常常并行消费，每一个 operator 算子并行消费时就会破坏各个分区的时间模式（这是 Kafka 客户端消费 Kafka 数据必然发生的）。</p>
+<p>在这种情况下，可以使用 Flink’s Kafka-partition-aware watermark generation，使用该功能，每个 Kafka 分区在 Kafka consumer 内部生成 Watermark，每个分区合并 Watermark 的方式与流 shuffles 时合并 Watermark 的方式相同。</p>
+<p>例如，如果事件时间戳严格按照 Kafka 分区递增，则使用递增时间戳 Watermark 生成器生成每个分区的 Watermark 将是完美的全局 Watermark。</p>
+<p>下图显示了如何使用 Flink’s Kafka-partition-aware watermark generation，以及在这种情况下 Watermark 如何通过流数据流传播。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/blog-img/apache-flink:study-flink-datastream-eventtime/KafkaSource多分区Watermark.svg" alt="KafkaSource多分区Watermark" title>
+                </div>
+                <div class="image-caption">KafkaSource多分区Watermark</div>
+            </figure>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2019-11-09T07:41:48.694Z" itemprop="dateUpdated">2019-11-09 15:41:48</time>
+</span><br>
+
+
+        
+        本文链接：<a href="/2019/11/09/apache-flink:study-flink-datastream-eventtime/" target="_blank" rel="external">https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-eventtime/</a>
+  <br>转载须知：<a href="/about/#版权声明" target="_blank" rel="copyright">版权声明</a>
+
+        
+    </div>
+    
+    <footer>
+        <a href="https://yangyichao-mango.github.io">
+            <img src="/img/avatar.jpg" alt="yangyichao-mango">
+            yangyichao-mango
+        </a>
+    </footer>
+</blockquote>
+
+        
+<div class="page-reward">
+    <a id="rewardBtn" href="javascript:;" class="page-reward-btn waves-effect waves-circle waves-light">赏</a>
+</div>
+
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Apache-Flink/">Apache Flink</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-eventtime/&title=《Apache Flink 学习：DataStream Api 中 EventTime》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-eventtime/&title=《Apache Flink 学习：DataStream Api 中 EventTime》 — yangyichao-mango's blog&source=Apache Flink 学习：DataStream Api 中 EventTime" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-eventtime/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Apache Flink 学习：DataStream Api 中 EventTime》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-eventtime/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-eventtime/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/11/09/apache-flink:study-flink-datastream-operators-overview/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Apache Flink 学习：DataStream Api 中 Operators（算子）——概览</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/11/08/apache-flink:study-flink-slot-parallelism/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Apache Flink 学习：slot和parallelism设置的关系</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+<section class="comments" id="comments">
+    <div id="disqus_thread"></div>
+    <script>
+    var disqus_shortname = 'true';
+    lazyScripts.push('//' + disqus_shortname + '.disqus.com/embed.js')
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+<div id="reward" class="page-modal reward-lay">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <h3 class="reward-title">
+        <i class="icon icon-quote-left"></i>
+        谢谢大爷~
+        <i class="icon icon-quote-right"></i>
+    </h3>
+    <div class="reward-content">
+        
+        <div class="reward-code">
+            <img id="rewardCode" src="/img/wechat.png" alt="打赏二维码">
+        </div>
+        
+        <label class="reward-toggle">
+            <input id="rewardToggle" type="checkbox" class="reward-toggle-check"
+                data-wechat="/img/wechat.png" data-alipay="/img/alipay.png">
+            <div class="reward-toggle-ctrol">
+                <span class="reward-toggle-item wechat">微信</span>
+                <span class="reward-toggle-label"></span>
+                <span class="reward-toggle-item alipay">支付宝</span>
+            </div>
+        </label>
+        
+    </div>
+</div>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>yangyichao-mango &copy; 2019 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-eventtime/&title=《Apache Flink 学习：DataStream Api 中 EventTime》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-eventtime/&title=《Apache Flink 学习：DataStream Api 中 EventTime》 — yangyichao-mango's blog&source=Apache Flink 学习：DataStream Api 中 EventTime" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-eventtime/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Apache Flink 学习：DataStream Api 中 EventTime》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-eventtime/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2019/11/09/apache-flink:study-flink-datastream-eventtime/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPYAAAD2CAAAAADAeSUUAAADNElEQVR42u3awXLiMBAEUP7/p8l1qxJM9whvYfnplCJg+4lDMzN6POL1/LV+/3f2qX9ff75YybM9zljY2NjYF2E/D9cx4NUrrx7r+DrJdrx6f27BxsbG3pV9HAxtRM228ji08i2LQg4bGxv7xuwkrvLAy0OuDTNsbGxs7PbnfnvjpG2URxo2NjY2do6ZlQRtmZGE3H/qpWFjY2N/PTufin7/36fMt7GxsbG/mP0s1/rYNR8GJwPgoQIbGxt7I3YeADk+b+6v3Lc9fImNjY29Nzsf2SahkhcG7dasDKSjGgsbGxv7suy2/MgHtOtt/fz6dQmEjY2NvQU7//BsKNsOWZOrtUPil700bGxs7O3Y+c/9nDdrOeUblx/QedNFw8bGxr44exYMsyFBG07tO6MvEhsbG3sjdtIGao/F5CXH7MBN2/Z684TY2NjYF2fPYiOJkHY7ZuOE/At7FJmGjY2NfW32+nh1ViQk5VAyQog+hY2Njb0R+4zWfBuQ+aMP20bH78HGxsa+OPuMls1xkTA73LN+xz9yGxsbG3sj9kq7pz2Uk497k+u3V8bGxsbem5039Nv20KdCbiVKl6oubGxs7C9mz37ut5HT9rfaZ3isLGxsbOyN2O3W5IA3o9a46b8+GB5uEzY2NvYXs/ML5Q39TxUb7QihaIphY2Njb8RuMTN221pqY6wdAGNjY2PvxJ617Nvhbt5aardmNszAxsbGvgN79hM/D608hPLDQ0WkYWNjY2/EnhUhszKgjbF8JDA8ioSNjY29HTspTmaj1lnjvj36k4QxNjY29n3YbTmx0qLKW1f54Z4o8LCxsbG3Y7eBsd7ub9esvIkqMGxsbOwt2HmAzRpDbbwlg4R8s7CxsbHvw17H58dr8uu0x4CKgzvY2NjYF2c/yzV7oHaQkETdyvuxsbGxd2K3AbByZGelXMk3ej16sbGxsa/I/uyjzwLyjMB7M0jAxsbG3o69fpSnHRXUo9myqfTmvtjY2Ng3Zs+O+MwAs4FENB7GxsbGvjG7HQm3B3HakMvbYdjY2Nh7s89+uBVSO/SNvjxsbGzsjdj5oHdWDKxPm+syY6GkwcbGxr4U+wfiANmFVBRKJQAAAABJRU5ErkJggg==" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-150061865-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+<!-- Baidu Tongji -->
+<script>var _hmt = _hmt || []</script>
+<script async src="//hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63"></script>
+<!-- End Baidu Tongji -->
+
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>Apache Flink 学习：hdfs作为sink | yangyichao-mango&#39;s blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Apache Flink,Apache Hadoop">
+    <meta name="description" content="本站&amp;作者">
+<meta name="keywords" content="Apache Flink,Apache Hadoop">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Apache Flink 学习：hdfs作为sink">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2019/10/19/apache-flink:study-hdfs-sink/index.html">
+<meta property="og:site_name" content="yangyichao-mango&#39;s blog">
+<meta property="og:description" content="本站&amp;作者">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-10-25T03:40:04.196Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Apache Flink 学习：hdfs作为sink">
+<meta name="twitter:description" content="本站&amp;作者">
+    
+        <link rel="alternate" type="application/atom+xml" title="yangyichao-mango&#39;s blog" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/img/avatar.jpg">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu"  >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand-new.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/avatar.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">yangyichao-mango</h5>
+          <a href="mailto:1048262223@qq.com" title="1048262223@qq.com" class="mail">1048262223@qq.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/yangyichao-mango" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/about"  >
+                <i class="icon icon-lg icon-user"></i>
+                About
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/links"  >
+                <i class="icon icon-lg icon-star"></i>
+                Links
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Apache Flink 学习：hdfs作为sink</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Apache Flink 学习：hdfs作为sink</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-10-19T11:33:38.000Z" itemprop="datePublished" class="page-time">
+  2019-10-19
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-Flink/">Apache Flink</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#依赖项"><span class="post-toc-number">1.</span> <span class="post-toc-text">依赖项</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#demo代码"><span class="post-toc-number">2.</span> <span class="post-toc-text">demo代码</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#查看hdfs文件"><span class="post-toc-number">3.</span> <span class="post-toc-text">查看hdfs文件</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-apache-flink:study-hdfs-sink"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">Apache Flink 学习：hdfs作为sink</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-10-19 19:33:38" datetime="2019-10-19T11:33:38.000Z"  itemprop="datePublished">2019-10-19</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-Flink/">Apache Flink</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>Apache Flink 学习：hdfs作为source和sink的demo</p>
+<a id="more"></a>
+
+<h3 id="依赖项"><a href="#依赖项" class="headerlink" title="依赖项"></a><strong>依赖项</strong></h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">flink.version</span>&gt;</span>1.9.0<span class="tag">&lt;/<span class="name">flink.version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-connector-filesystem_2.12<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;flink.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="demo代码"><a href="#demo代码" class="headerlink" title="demo代码"></a><strong>demo代码</strong></h3><p>使用了kafka作为source，hdfs作为sink<br><strong>运行之前需要运行kafka集群，hadoop集群（zookeeper集群）</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/******************************* define dag *******************************/</span></span><br><span class="line"><span class="comment">// create the environment to create streams and configure execution</span></span><br><span class="line"><span class="keyword">final</span> StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();</span><br><span class="line"><span class="comment">// make parameters available in the web interface</span></span><br><span class="line">env.getConfig().setGlobalJobParameters(params);</span><br><span class="line">DataStream&lt;String&gt; sentenceStream = env.addSource(source);</span><br><span class="line">DataStream&lt;Tuple2&lt;String, Integer&gt;&gt; wordCountStream = sentenceStream</span><br><span class="line">        .flatMap(<span class="keyword">new</span> LineSplitter())</span><br><span class="line">        .keyBy(<span class="number">0</span>)</span><br><span class="line">        .sum(<span class="number">1</span>);</span><br><span class="line">wordCountStream.print();</span><br><span class="line"></span><br><span class="line">DataStream&lt;String&gt; kafkaSinkStream = wordCountStream</span><br><span class="line">        .map(<span class="keyword">new</span> WordBuilder());</span><br><span class="line"></span><br><span class="line"><span class="comment">/******************************* hdfs sink *******************************/</span></span><br><span class="line"></span><br><span class="line">BucketingSink&lt;String&gt; bucketingSink = <span class="keyword">new</span> BucketingSink&lt;&gt;(<span class="string">"/user/xxx/flink/from-kafka"</span>); <span class="comment">//hdfs上的路径</span></span><br><span class="line">bucketingSink.setWriter(<span class="keyword">new</span> StringWriter&lt;&gt;())</span><br><span class="line">        .setBatchSize(<span class="number">1024</span> * <span class="number">1024L</span>)</span><br><span class="line">        .setBatchRolloverInterval(<span class="number">2000</span>)</span><br><span class="line">        .setInactiveBucketThreshold(<span class="number">1000</span>);</span><br><span class="line"></span><br><span class="line">kafkaSinkStream.addSink(bucketingSink);</span><br></pre></td></tr></table></figure>
+
+<p>上面例子将创建一个 Sink，写入遵循下面格式的分桶文件中：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/base/path/&#123;date-time&#125;/_part-&#123;parallel-task&#125;-&#123;count&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>date-time</strong>：<br>是从setBucketer()自定义的日期/时间格式的字符串，如果不进行设置，默认Bucketer是DateTimeBucketer，默认值是yyyy-MM-dd–HH（DateTimeBucketer.DEFAULT_FORMAT_STRING）</p>
+<p><strong>_part-{parallel-task}-{count}：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEFAULT_VALID_PREFIX = <span class="string">"_"</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEFAULT_PART_PREFIX = <span class="string">"part"</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEFAULT_PENDING_SUFFIX = <span class="string">".pending"</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">openNewPartFile</span><span class="params">(Path bucketPath, BucketState&lt;T&gt; bucketState)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    Path partPath = assemblePartPath(bucketPath, subtaskIndex, bucketState.partCounter);</span><br><span class="line">    Path inProgressPath = getInProgressPathFor(partPath);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> Path <span class="title">assemblePartPath</span><span class="params">(Path bucket, <span class="keyword">int</span> subtaskIndex, <span class="keyword">int</span> partIndex)</span> </span>&#123;</span><br><span class="line">    String localPartSuffix = partSuffix != <span class="keyword">null</span> ? partSuffix : <span class="string">""</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Path(bucket, String.format(<span class="string">"%s-%s-%s%s"</span>, partPrefix, subtaskIndex, partIndex, localPartSuffix));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> Path <span class="title">getInProgressPathFor</span><span class="params">(Path path)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Path(path.getParent(), inProgressPrefix + path.getName()).suffix(inProgressSuffix);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看hdfs文件"><a href="#查看hdfs文件" class="headerlink" title="查看hdfs文件"></a><strong>查看hdfs文件</strong></h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ ./hdfs dfs -ls /user/xxx/flink/from-kafka/2019-10-19--19</span><br><span class="line">2019-10-19 20:08:31,244 WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using <span class="built_in">builtin</span>-java classes <span class="built_in">where</span> applicable</span><br><span class="line">Found 15 items</span><br><span class="line">-rw-r--r--   1 xxx supergroup          4 2019-10-19 19:45 /user/xxx/flink/from-kafka/2019-10-19--19/_part-0-0.pending</span><br><span class="line">-rw-r--r--   1 xxx supergroup          2 2019-10-19 19:45 /user/xxx/flink/from-kafka/2019-10-19--19/_part-1-0.pending</span><br><span class="line">-rw-r--r--   1 xxx supergroup          5 2019-10-19 19:44 /user/xxx/flink/from-kafka/2019-10-19--19/_part-2-0.pending</span><br><span class="line">-rw-r--r--   1 xxx supergroup         11 2019-10-19 19:45 /user/xxx/flink/from-kafka/2019-10-19--19/_part-2-1.pending</span><br><span class="line">-rw-r--r--   1 xxx supergroup         10 2019-10-19 19:44 /user/xxx/flink/from-kafka/2019-10-19--19/_part-3-0.pending</span><br><span class="line">-rw-r--r--   1 xxx supergroup         13 2019-10-19 19:45 /user/xxx/flink/from-kafka/2019-10-19--19/_part-3-1.pending</span><br><span class="line">-rw-r--r--   1 xxx supergroup          9 2019-10-19 19:45 /user/xxx/flink/from-kafka/2019-10-19--19/_part-4-0.pending</span><br><span class="line">-rw-r--r--   1 xxx supergroup         10 2019-10-19 19:44 /user/xxx/flink/from-kafka/2019-10-19--19/_part-5-0.pending</span><br></pre></td></tr></table></figure>
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2019-10-25T03:40:04.196Z" itemprop="dateUpdated">2019-10-25 11:40:04</time>
+</span><br>
+
+
+        
+        本文链接：<a href="/2019/10/19/apache-flink:study-hdfs-sink/" target="_blank" rel="external">https://yangyichao-mango.github.io/2019/10/19/apache-flink:study-hdfs-sink/</a>
+  <br>转载须知：<a href="/about/#版权声明" target="_blank" rel="copyright">版权声明</a>
+
+        
+    </div>
+    
+    <footer>
+        <a href="https://yangyichao-mango.github.io">
+            <img src="/img/avatar.jpg" alt="yangyichao-mango">
+            yangyichao-mango
+        </a>
+    </footer>
+</blockquote>
+
+        
+<div class="page-reward">
+    <a id="rewardBtn" href="javascript:;" class="page-reward-btn waves-effect waves-circle waves-light">赏</a>
+</div>
+
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Apache-Flink/">Apache Flink</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Apache-Hadoop/">Apache Hadoop</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2019/10/19/apache-flink:study-hdfs-sink/&title=《Apache Flink 学习：hdfs作为sink》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2019/10/19/apache-flink:study-hdfs-sink/&title=《Apache Flink 学习：hdfs作为sink》 — yangyichao-mango's blog&source=Apache Flink 学习：hdfs作为source和sink的demo" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2019/10/19/apache-flink:study-hdfs-sink/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Apache Flink 学习：hdfs作为sink》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2019/10/19/apache-flink:study-hdfs-sink/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2019/10/19/apache-flink:study-hdfs-sink/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/10/20/apache-zookeeper:3.4.12-mac-install/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Mac安装Apache Zookeeper-3.4.12</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/10/18/apache-hbase:1.3.5-mac-install/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Mac安装Apache HBase-1.3.5</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+<section class="comments" id="comments">
+    <div id="disqus_thread"></div>
+    <script>
+    var disqus_shortname = 'true';
+    lazyScripts.push('//' + disqus_shortname + '.disqus.com/embed.js')
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+<div id="reward" class="page-modal reward-lay">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <h3 class="reward-title">
+        <i class="icon icon-quote-left"></i>
+        谢谢大爷~
+        <i class="icon icon-quote-right"></i>
+    </h3>
+    <div class="reward-content">
+        
+        <div class="reward-code">
+            <img id="rewardCode" src="/img/wechat.png" alt="打赏二维码">
+        </div>
+        
+        <label class="reward-toggle">
+            <input id="rewardToggle" type="checkbox" class="reward-toggle-check"
+                data-wechat="/img/wechat.png" data-alipay="/img/alipay.png">
+            <div class="reward-toggle-ctrol">
+                <span class="reward-toggle-item wechat">微信</span>
+                <span class="reward-toggle-label"></span>
+                <span class="reward-toggle-item alipay">支付宝</span>
+            </div>
+        </label>
+        
+    </div>
+</div>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>yangyichao-mango &copy; 2019 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2019/10/19/apache-flink:study-hdfs-sink/&title=《Apache Flink 学习：hdfs作为sink》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2019/10/19/apache-flink:study-hdfs-sink/&title=《Apache Flink 学习：hdfs作为sink》 — yangyichao-mango's blog&source=Apache Flink 学习：hdfs作为source和sink的demo" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2019/10/19/apache-flink:study-hdfs-sink/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Apache Flink 学习：hdfs作为sink》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2019/10/19/apache-flink:study-hdfs-sink/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2019/10/19/apache-flink:study-hdfs-sink/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAN4AAADeCAAAAAB3DOFrAAACvUlEQVR42u3a0Y6CQAwFUP//p91XEwRu2xniJoenzYIyBxM73vb1io/3x3H8z/H4vOb4PtfveXbf49llBx4eHt5g6dcLvV7KGaAKO8NUHy4eHh7ebl6+0HxB1bPJka8ZDw8P73d4+fU5OMfj4eHh/UfeqtfmsNF68PDw8Lbx8i1sdes8jyceylrw8PDwYl7eRfqdv7f09/Dw8PDGXfVeEJC0/5PyMD/w8PDwdvDyL9zrbWvhZkHIW22h3VyJh4eHt5TX29Tmja78AeXRbSHMxcPDw9vGuw5Mk21x3uyfP8RmPo2Hh4e3iJeHBfmXcnUAaz7gdXMXPDw8vM28ai+pOkq1IDvp9e7w8PDwlvJWddsnbbNqiWoWLTw8PLxHeL0hgMmD641YRSUEDw8Pb8yrLihvZa39BJobdDw8PLzNvGpJqEau+dZ5ct/TwoCHh4e3lNfb5vaGAKohQm/k68vQFR4eHt4iXt6Gz6PVZNOcxx/JxjrKV/Dw8PAW8ZKf/Ul5qOKryDxQjkoCHh4e3oDXCxTmLau8DFSD3ZvPEA8PD2/Mqw5U5SHspGBUR7tOPyQ8PDy8DbxqZDAPIJIv+kkkEa0KDw8Pb8CrDjOtbVz1BgXydeLh4eHt4+U37oW/+WhXXs2i9eDh4eFt4K1a4vVyq1vwXoEptMHw8PDwxrxeuNBr5+evTcpAVGbw8PDwtvF6zfteVBFFCcXxhdN3wMPDw9vGq8YEvUZXtRRVr7nZUuPh4eGNee/iMWnk5wFxLwL+chYPDw9vA6/6pZ+8uArON8fVv/Hw8PD28co/71sN/t5oQq8w4OHh4T3Dy2/ZO9trjPVCEDw8PLxf480LRhJYVEOQZYUBDw8P73Fer4Tk2+jyph8PDw9vG6+65e3FB3mY2xsXGGUteHh4eDFvPlDVu0E+WLBqLAwPDw9vzPsD7hgr8HkveeYAAAAASUVORK5CYII=" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

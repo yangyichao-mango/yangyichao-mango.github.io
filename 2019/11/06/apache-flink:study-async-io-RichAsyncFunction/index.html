@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-150061865-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+<!-- Baidu Tongji -->
+<script>var _hmt = _hmt || []</script>
+<script async src="//hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63"></script>
+<!-- End Baidu Tongji -->
+
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>Apache Flink 学习：异步IO之RichAsyncFunction | yangyichao-mango&#39;s blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Apache Flink">
+    <meta name="description" content="本站&amp;作者">
+<meta name="keywords" content="Apache Flink">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Apache Flink 学习：异步IO之RichAsyncFunction">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2019/11/06/apache-flink:study-async-io-RichAsyncFunction/index.html">
+<meta property="og:site_name" content="yangyichao-mango&#39;s blog">
+<meta property="og:description" content="本站&amp;作者">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-async-io-RichAsyncFunction/异步IO.jpeg">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-async-io-RichAsyncFunction/异步原理.jpeg">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-async-io-RichAsyncFunction/有序.jpeg">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-async-io-RichAsyncFunction/ProcessingTime无序.jpeg">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-async-io-RichAsyncFunction/EventTime无序.jpeg">
+<meta property="og:updated_time" content="2019-11-08T02:42:18.399Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Apache Flink 学习：异步IO之RichAsyncFunction">
+<meta name="twitter:description" content="本站&amp;作者">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:study-async-io-RichAsyncFunction/异步IO.jpeg">
+    
+        <link rel="alternate" type="application/atom+xml" title="yangyichao-mango&#39;s blog" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/img/avatar.jpg">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu"  >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand-new.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/avatar.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">yangyichao-mango</h5>
+          <a href="mailto:1048262223@qq.com" title="1048262223@qq.com" class="mail">1048262223@qq.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/yangyichao-mango" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/about"  >
+                <i class="icon icon-lg icon-user"></i>
+                About
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/links"  >
+                <i class="icon icon-lg icon-star"></i>
+                Links
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Apache Flink 学习：异步IO之RichAsyncFunction</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Apache Flink 学习：异步IO之RichAsyncFunction</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-11-06T10:45:59.000Z" itemprop="datePublished" class="page-time">
+  2019-11-06
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-Flink/">Apache Flink</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#问题"><span class="post-toc-number">1.</span> <span class="post-toc-text">问题</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#设置kafka-consumer并行度的语义"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">设置kafka consumer并行度的语义</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#使用AsyncIO需要考虑的指标"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">使用AsyncIO需要考虑的指标</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#简介"><span class="post-toc-number">2.</span> <span class="post-toc-text">简介</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#目的"><span class="post-toc-number">3.</span> <span class="post-toc-text">目的</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#如何使用Async-I-O"><span class="post-toc-number">4.</span> <span class="post-toc-text">如何使用Async I/O</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#原理实现"><span class="post-toc-number">5.</span> <span class="post-toc-text">原理实现</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#消息的顺序性"><span class="post-toc-number">6.</span> <span class="post-toc-text">消息的顺序性</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#有序"><span class="post-toc-number">6.1.</span> <span class="post-toc-text">有序</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#ProcessingTime-无序"><span class="post-toc-number">6.2.</span> <span class="post-toc-text">ProcessingTime 无序</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#EventTime-无序"><span class="post-toc-number">6.3.</span> <span class="post-toc-text">EventTime 无序</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#说明"><span class="post-toc-number">7.</span> <span class="post-toc-text">说明</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-apache-flink:study-async-io-RichAsyncFunction"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">Apache Flink 学习：异步IO之RichAsyncFunction</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-11-06 18:45:59" datetime="2019-11-06T10:45:59.000Z"  itemprop="datePublished">2019-11-06</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-Flink/">Apache Flink</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>Apache Flink 学习：异步IO之RichAsyncFunction</p>
+<a id="more"></a>
+
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a><strong>问题</strong></h2><h3 id="设置kafka-consumer并行度的语义"><a href="#设置kafka-consumer并行度的语义" class="headerlink" title="设置kafka consumer并行度的语义"></a>设置kafka consumer并行度的语义</h3><p>1.如果设置kafka consumer的并发度为100，并且申请到集群中资源的Task Manager的slot个数也为100个，则每个slot中运行的任务都生成这么多数量的kafka consumer，还是每个slot一个kafka consumer?</p>
+<p>2.场景：一个keyBy过后设置了一分钟的窗口dataStream中，如果保证每次触发这个窗口时，窗口的数据永远只有一条的话，并且在保证窗口为1分钟大小的情况下，接口返回速度保证在10秒，使用Async IO是否就没有意义了，因为当前请求队列里面只有一条数据</p>
+<p>3.flink 默认执行一个Job的slot中线程数为什么是8，在哪里设置的</p>
+<h3 id="使用AsyncIO需要考虑的指标"><a href="#使用AsyncIO需要考虑的指标" class="headerlink" title="使用AsyncIO需要考虑的指标"></a>使用AsyncIO需要考虑的指标</h3><p>1.每个slot中Flink Job的线程数<br>2.如果需要使用时间窗口：时间窗口的大小，几分钟的窗口<br>2.如果需要keyBy：每个slot中Flink Job的大概key的个数（什么情况使用，什么情况不使用）</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a><strong>简介</strong></h2><p>我们知道flink对于外部数据源的操作可以通过自带的连接器，或者自定义sink和source实现数据的交互，那么为啥还需要异步IO呢？<br>那时因为对于实时处理，当我们需要使用外部存储数据参与计算时，与外部系统之间的交互延迟对流处理的整个工作进度起决定性的影响。<br>如果我们是使用传统方式mapfunction等算子里访问外部存储，实际上该交互过程是同步的，比如下图中：请求a发送到数据库，那么function会一直等待响应。在很多案例中，这个等待过程是非常浪费函数时间的。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/blog-img/apache-flink:study-async-io-RichAsyncFunction/异步IO.jpeg" alt="异步IO" title>
+                </div>
+                <div class="image-caption">异步IO</div>
+            </figure>
+
+<p>图中棕色的长条表示等待时间，可以发现网络等待时间极大地阻碍了吞吐和延迟。为了解决同步访问的问题，异步模式可以并发地处理多个请求和回复。<br>也就是说，你可以连续地向数据库发送用户a、b、c等的请求，与此同时，哪个请求的回复先返回了就处理哪个回复，从而连续的请求之间不需要阻塞等待，如上图右边所示。<br>这也正是 Async I/O 的实现原理。</p>
+<h2 id="目的"><a href="#目的" class="headerlink" title="目的"></a><strong>目的</strong></h2><p>将MapFunction或者FlatMapFunction中的同步访问外部存储设备的方法通过AsyncFunction替换以实现异步访问<br>在执行过程中，如果使用了keyBy，则相同的key整个执行周期都使用同一个线程，但是不同的key也可以使用同一个线程</p>
+<h2 id="如何使用Async-I-O"><a href="#如何使用Async-I-O" class="headerlink" title="如何使用Async I/O"></a><strong>如何使用Async I/O</strong></h2><p>我们需要自定义一个类实现RichAsyncFunction这个抽象类，实现其中的抽象方法，这点和自定义source很像。<br>主要是的抽象方法如下，然后在asyncInvoke()使用CompletableFuture执行异步操作（CompletableFuture会提供一个ForkJoinPool作为请求线程池）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">open</span><span class="params">(Configuration parameters)</span> <span class="keyword">throws</span> Exception</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">asyncInvoke</span><span class="params">(IN var1, ResultFuture&lt;OUT&gt; var2)</span> <span class="keyword">throws</span> Exception</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">default</span> <span class="keyword">void</span> <span class="title">timeout</span><span class="params">(IN input, ResultFuture&lt;OUT&gt; resultFuture)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    resultFuture.completeExceptionally(<span class="keyword">new</span> TimeoutException(<span class="string">"Async function call has timed out."</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后在AsyncDataStream中使用我们定义好的类，去实现主流异步的访问外部数据源</p>
+<h2 id="原理实现"><a href="#原理实现" class="headerlink" title="原理实现"></a><strong>原理实现</strong></h2><p>AsyncDataStream.(un)orderedWait 的主要工作就是创建了一个 AsyncWaitOperator。<br>AsyncWaitOperator 是支持异步 IO 访问的算子实现，该算子会运行 AsyncFunction 并处理异步返回的结果，其内部原理如下图所示</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/blog-img/apache-flink:study-async-io-RichAsyncFunction/异步原理.jpeg" alt="异步原理" title>
+                </div>
+                <div class="image-caption">异步原理</div>
+            </figure>
+
+<p>如图所示，AsyncWaitOperator 主要由两部分组成：StreamElementQueue 和 Emitter。<br>StreamElementQueue 是一个 Promise 队列，所谓 Promise 是一种异步抽象表示将来会有一个值（参考 Scala Promise 了解更多），这个队列是未完成的 Promise 队列，也就是进行中的请求队列。<br>Emitter 是一个单独的线程，负责发送消息（收到的异步回复）给下游。</p>
+<p>图中E5表示进入该算子的第五个元素（”Element-5”），在执行过程中首先会将其包装成一个 “Promise” P5，然后将P5放入队列。<br>最后调用 AsyncFunction 的 ayncInvoke 方法，该方法会向外部服务发起一个异步的请求，并注册回调。<br>该回调会在异步请求成功返回时调用 AsyncCollector.collect 方法将返回的结果交给框架处理。<br>实际上 AsyncCollector 也一个 Promise，也就是 P5，在调用 collect 的时候会标记 Promise 为完成状态，并通知 Emitter 线程有完成的消息可以发送了。<br>Emitter 就会从队列中拉取完成的 Promise ，并从 Promise 中取出消息发送给下游。</p>
+<h2 id="消息的顺序性"><a href="#消息的顺序性" class="headerlink" title="消息的顺序性"></a><strong>消息的顺序性</strong></h2><p>上文提到 Async I/O 提供了两种输出模式。<br>其实细分有三种模式: 有序，ProcessingTime 无序，EventTime 无序。<br>Flink 使用队列来实现不同的输出模式，并抽象出一个队列的接口（StreamElementQueue），这种分层设计使得AsyncWaitOperator和Emitter不用关心消息的顺序问题。<br>StreamElementQueue有两种具体实现，分别是 OrderedStreamElementQueue 和 UnorderedStreamElementQueue。<br>UnorderedStreamElementQueue 比较有意思，它使用了一套逻辑巧妙地实现完全无序和 EventTime 无序</p>
+<h3 id="有序"><a href="#有序" class="headerlink" title="有序"></a>有序</h3><p>有序比较简单，使用一个队列就能实现。<br>所有新进入该算子的元素（包括 watermark），都会包装成 Promise 并按到达顺序放入该队列。<br>如下图所示，尽管P4的结果先返回，但并不会发送，只有 P1 （队首）的结果返回了才会触发 Emitter 拉取队首元素进行发送</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/blog-img/apache-flink:study-async-io-RichAsyncFunction/有序.jpeg" alt="有序" title>
+                </div>
+                <div class="image-caption">有序</div>
+            </figure>
+
+<h3 id="ProcessingTime-无序"><a href="#ProcessingTime-无序" class="headerlink" title="ProcessingTime 无序"></a>ProcessingTime 无序</h3><p>ProcessingTime 无序也比较简单，因为没有 watermark，不需要协调 watermark 与消息的顺序性，所以使用两个队列就能实现，一个 uncompletedQueue 一个 completedQueue。<br>所有新进入该算子的元素，同样的包装成 Promise 并放入 uncompletedQueue 队列，当uncompletedQueue队列中任意的Promise返回了数据，则将该 Promise 移到 completedQueue 队列中，并通知 Emitter 消费。<br>如下图所示：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/blog-img/apache-flink:study-async-io-RichAsyncFunction/ProcessingTime无序.jpeg" alt="ProcessingTime无序" title>
+                </div>
+                <div class="image-caption">ProcessingTime无序</div>
+            </figure>
+
+<h3 id="EventTime-无序"><a href="#EventTime-无序" class="headerlink" title="EventTime 无序"></a>EventTime 无序</h3><p>EventTime 无序类似于有序与 ProcessingTime 无序的结合体。<br>因为有 watermark，需要协调 watermark 与消息之间的顺序性，所以uncompletedQueue中存放的元素从原先的 Promise 变成了 Promise 集合。<br>如果进入算子的是消息元素，则会包装成 Promise 放入队尾的集合中。<br>如果进入算子的是 watermark，也会包装成 Promise 并放到一个独立的集合中，再将该集合加入到 uncompletedQueue 队尾，最后再创建一个空集合加到 uncompletedQueue 队尾。<br>这样，watermark 就成了消息顺序的边界。<br>只有处在队首的集合中的 Promise 返回了数据，才能将该 Promise 移到 completedQueue 队列中，由 Emitter 消费发往下游。<br>只有队首集合空了，才能处理第二个集合。这样就保证了当且仅当某个 watermark 之前所有的消息都已经被发送了，该 watermark 才能被发送。过程如下图所示：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/blog-img/apache-flink:study-async-io-RichAsyncFunction/EventTime无序.jpeg" alt="EventTime无序" title>
+                </div>
+                <div class="image-caption">EventTime无序</div>
+            </figure>
+
+<h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a><strong>说明</strong></h2><p>1、AsyncDataStream有2个方法，unorderedWait表示数据不需要关注顺序，处理完立即发送，orderedWait表示数据需要关注顺序，为了实现该目标，操作算子会在该结果记录之前的记录为发送之前缓存该记录。这往往会引入额外的延迟和一些Checkpoint负载，因为相比于无序模式结果记录会保存在Checkpoint状态内部较长的时间。<br>2、Timeout配置，主要是为了处理死掉或者失败的任务，防止资源被长期阻塞占用。<br>3、最后一个参数Capacity表示同时最多有多少个异步请求在处理，异步IO的方式会导致更高的吞吐量，但是对于实时应用来说该操作也是一个瓶颈。限制并发请求数，算子不会积压过多的未处理请求，但是一旦超过容量的显示会触发背压。<br>该参数可以不配置，但是默认是100</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2019-11-08T02:42:18.399Z" itemprop="dateUpdated">2019-11-08 10:42:18</time>
+</span><br>
+
+
+        
+        本文链接：<a href="/2019/11/06/apache-flink:study-async-io-RichAsyncFunction/" target="_blank" rel="external">https://yangyichao-mango.github.io/2019/11/06/apache-flink:study-async-io-RichAsyncFunction/</a>
+  <br>转载须知：<a href="/about/#版权声明" target="_blank" rel="copyright">版权声明</a>
+
+        
+    </div>
+    
+    <footer>
+        <a href="https://yangyichao-mango.github.io">
+            <img src="/img/avatar.jpg" alt="yangyichao-mango">
+            yangyichao-mango
+        </a>
+    </footer>
+</blockquote>
+
+        
+<div class="page-reward">
+    <a id="rewardBtn" href="javascript:;" class="page-reward-btn waves-effect waves-circle waves-light">赏</a>
+</div>
+
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Apache-Flink/">Apache Flink</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2019/11/06/apache-flink:study-async-io-RichAsyncFunction/&title=《Apache Flink 学习：异步IO之RichAsyncFunction》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2019/11/06/apache-flink:study-async-io-RichAsyncFunction/&title=《Apache Flink 学习：异步IO之RichAsyncFunction》 — yangyichao-mango's blog&source=Apache Flink 学习：异步IO之RichAsyncFunction" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2019/11/06/apache-flink:study-async-io-RichAsyncFunction/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Apache Flink 学习：异步IO之RichAsyncFunction》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2019/11/06/apache-flink:study-async-io-RichAsyncFunction/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2019/11/06/apache-flink:study-async-io-RichAsyncFunction/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/11/08/apache-flink:study-flink-job-ExecutionGraph/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Apache Flink 学习：Flink Job ExecutionGraph生成过程</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/11/06/apache-common:study-apache-common-collections4/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Apache Common 包学习：常用集合类Collections4学习</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+<section class="comments" id="comments">
+    <div id="disqus_thread"></div>
+    <script>
+    var disqus_shortname = 'true';
+    lazyScripts.push('//' + disqus_shortname + '.disqus.com/embed.js')
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+<div id="reward" class="page-modal reward-lay">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <h3 class="reward-title">
+        <i class="icon icon-quote-left"></i>
+        谢谢大爷~
+        <i class="icon icon-quote-right"></i>
+    </h3>
+    <div class="reward-content">
+        
+        <div class="reward-code">
+            <img id="rewardCode" src="/img/wechat.png" alt="打赏二维码">
+        </div>
+        
+        <label class="reward-toggle">
+            <input id="rewardToggle" type="checkbox" class="reward-toggle-check"
+                data-wechat="/img/wechat.png" data-alipay="/img/alipay.png">
+            <div class="reward-toggle-ctrol">
+                <span class="reward-toggle-item wechat">微信</span>
+                <span class="reward-toggle-label"></span>
+                <span class="reward-toggle-item alipay">支付宝</span>
+            </div>
+        </label>
+        
+    </div>
+</div>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>yangyichao-mango &copy; 2019 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2019/11/06/apache-flink:study-async-io-RichAsyncFunction/&title=《Apache Flink 学习：异步IO之RichAsyncFunction》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2019/11/06/apache-flink:study-async-io-RichAsyncFunction/&title=《Apache Flink 学习：异步IO之RichAsyncFunction》 — yangyichao-mango's blog&source=Apache Flink 学习：异步IO之RichAsyncFunction" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2019/11/06/apache-flink:study-async-io-RichAsyncFunction/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Apache Flink 学习：异步IO之RichAsyncFunction》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2019/11/06/apache-flink:study-async-io-RichAsyncFunction/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2019/11/06/apache-flink:study-async-io-RichAsyncFunction/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPYAAAD2CAAAAADAeSUUAAADLklEQVR42u3aQXLbQAwEQP//0845ZYuawdKJBDdPLosi2cvDaAF8fMTH55fj+tPr879+6/o/ybN9/MSBjY2N/Sbs5HET9qOHePTp9fXvvc43S4ONjY29jn0dDPlt2qC6Dq38leQWbGxsbOz8d/41I9kj5IuIjY2NjX0SYMlD52fetQTY2NjYv4197/agja7kzP9WS8PGxsZ+efb51uJ1/v6R/jY2Njb2C7M/y2NW1mk3DG1BqlZgY2NjL2LnAZA8envO+UKcPD82Njb2DnYSS22o5BuDPJDO2xhFBQsbGxt7Ebsd32mHI/NxzPMXVgQYNjY29lux22ZA21htm6xJpOXV/uuXgY2Njb2DfVLoTwZrTr6bLNxRUGFjY2OvY7fFnVnhfpioQYwVzQNsbGzsRezzkn1bkJqVgdpBojrYsLGxsd+WncdG2wyejdTc+/eT3MbGxsZex85/6Lfn5GEzC7/29WBjY2PvZs9K8/mmpY2utlAVFZuwsbGx17Hvaqn+y2VKWhRPikrY2NjYi9gnoXJXI2EIKLcu2NjY2PvYCTX/0T8b7mm3H+dRio2Njb2bPftycZtgEfM5o/aO2NjY2PvYbbTkUdcuTdsGyJfsYaMXGxsbeyl71gDOC0DtHWcthCdXxsbGxl7EbgPmZHuQN2jbGMvLTMNcxcbGxn55dh5IbX0mbyrMliaJtCctXmxsbOyl7JOC0UlTNo/GdiP0zTWxsbGxl7Kvo2s2LpPHzL2tiCLAsLGxsd+W3d5gVjCaFe5zcH73v7oi2NjY2CvYs1Gb5KKzVvHPxVh9YGNjY78VexYA+SDO7KHr4ZvWhY2Njb2U3TZiZwX6k7Geczw2Njb2VnZePDop+uclp7ua0A/Px8bGxl7B/iyPtvCUj+BEkVNG1MPvYmNjYy9iz5oE5yM4s2WatYRnwYmNjY39Xux8pDIv7uTlodlGKH+fxcwpNjY29puzZ43VFpY83CzG6hIYNjY29i9mt/FzAmhLS8UiYmNjY/9idtIYONmWtGM9w4YxNjY29jr27OFa6oyUN3GL5gE2Njb2InYeAHedM4uf2abohv42NjY29uuy/wDvDgw3O7O5QAAAAABJRU5ErkJggg==" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>
