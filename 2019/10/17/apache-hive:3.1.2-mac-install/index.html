@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-150061865-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+<!-- Baidu Tongji -->
+<script>var _hmt = _hmt || []</script>
+<script async src="//hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63"></script>
+<!-- End Baidu Tongji -->
+
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>Mac安装Apache Hive-3.2.1 | yangyichao-mango&#39;s blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Mac安装,Apache Hive">
+    <meta name="description" content="本站&amp;作者">
+<meta name="keywords" content="Mac安装,Apache Hive">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mac安装Apache Hive-3.2.1">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2019/10/17/apache-hive:3.1.2-mac-install/index.html">
+<meta property="og:site_name" content="yangyichao-mango&#39;s blog">
+<meta property="og:description" content="本站&amp;作者">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-10-25T03:40:04.207Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mac安装Apache Hive-3.2.1">
+<meta name="twitter:description" content="本站&amp;作者">
+    
+        <link rel="alternate" type="application/atom+xml" title="yangyichao-mango&#39;s blog" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/img/avatar.jpg">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu"  >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand-new.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/avatar.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">yangyichao-mango</h5>
+          <a href="mailto:1048262223@qq.com" title="1048262223@qq.com" class="mail">1048262223@qq.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/yangyichao-mango" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/about"  >
+                <i class="icon icon-lg icon-user"></i>
+                About
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/links"  >
+                <i class="icon icon-lg icon-star"></i>
+                Links
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Mac安装Apache Hive-3.2.1</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Mac安装Apache Hive-3.2.1</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-10-17T06:58:34.000Z" itemprop="datePublished" class="page-time">
+  2019-10-17
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-Hive/">Apache Hive</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#安装Hadoop"><span class="post-toc-number">1.</span> <span class="post-toc-text">安装Hadoop</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#安装Hive"><span class="post-toc-number">2.</span> <span class="post-toc-text">安装Hive</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#brew安装"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">brew安装</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#环境变量修改"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">环境变量修改</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#使用mysql作为hive元数据存储"><span class="post-toc-number">2.3.</span> <span class="post-toc-text">使用mysql作为hive元数据存储</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#修改配置文件hive-site-xml"><span class="post-toc-number">2.4.</span> <span class="post-toc-text">修改配置文件hive-site.xml</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#hadoop中创建hive所需仓库"><span class="post-toc-number">2.5.</span> <span class="post-toc-text">hadoop中创建hive所需仓库</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#hive初始化mysql中的数据库hive"><span class="post-toc-number">2.6.</span> <span class="post-toc-text">hive初始化mysql中的数据库hive</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#命令"><span class="post-toc-number">2.6.1.</span> <span class="post-toc-text">命令</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#可能出现错误1：java-lang-NoSuchMethodError-com-google-common…"><span class="post-toc-number">2.6.2.</span> <span class="post-toc-text">可能出现错误1：java.lang.NoSuchMethodError: com.google.common…</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#可能出现错误2：java-lang-ClassNotFoundException-com-mysql…"><span class="post-toc-number">2.6.3.</span> <span class="post-toc-text">可能出现错误2：java.lang.ClassNotFoundException: com.mysql…</span></a></li></ol></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#启动Hive的Metastore-Server服务进程"><span class="post-toc-number">2.7.</span> <span class="post-toc-text">启动Hive的Metastore Server服务进程</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#登录hive客户端"><span class="post-toc-number">2.8.</span> <span class="post-toc-text">登录hive客户端</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#命令-1"><span class="post-toc-number">2.8.1.</span> <span class="post-toc-text">命令</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#可能出现的错误1：java-lang-IllegalArgumentException-java-net-URISyntaxException-…"><span class="post-toc-number">2.8.2.</span> <span class="post-toc-text">可能出现的错误1：java.lang.IllegalArgumentException: java.net.URISyntaxException:…</span></a></li></ol></li></ol></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-apache-hive:3.1.2-mac-install"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">Mac安装Apache Hive-3.2.1</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-10-17 14:58:34" datetime="2019-10-17T06:58:34.000Z"  itemprop="datePublished">2019-10-17</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-Hive/">Apache Hive</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>Mac安装Apache Hive-3.2.1教程</p>
+<a id="more"></a>
+
+
+<h2 id="安装Hadoop"><a href="#安装Hadoop" class="headerlink" title="安装Hadoop"></a><strong>安装Hadoop</strong></h2><p>下载包进行安装，则hadoop需要独立安装</p>
+<h2 id="安装Hive"><a href="#安装Hive" class="headerlink" title="安装Hive"></a><strong>安装Hive</strong></h2><h3 id="brew安装"><a href="#brew安装" class="headerlink" title="brew安装"></a>brew安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ brew install hive</span><br></pre></td></tr></table></figure>
+
+<p>此命令会把hive依赖的hadoop安装，所以就不需要单独进行安装hadoop<br>该命令默认安装的版本较新，我的hive是3.1.2，hadoop是3.2.1，安装位置：<font color="red">/usr/local/Cellar/hive/</font></p>
+<h3 id="环境变量修改"><a href="#环境变量修改" class="headerlink" title="环境变量修改"></a>环境变量修改</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ vim ~/.bash_profile</span><br><span class="line"><span class="built_in">export</span> HIVE_HOME=/usr/<span class="built_in">local</span>/Cellar/hive/3.1.2</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="string">"<span class="variable">$HIVE_HOME</span>/bin:<span class="variable">$PATH</span>"</span></span><br><span class="line"></span><br><span class="line">$ <span class="built_in">source</span> ~/.bash_profile</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用mysql作为hive元数据存储"><a href="#使用mysql作为hive元数据存储" class="headerlink" title="使用mysql作为hive元数据存储"></a>使用mysql作为hive元数据存储</h3><p>在mysql中为hive 创建用户，及初始化数据库<br>以下在mysql 中操作，注意：这里创建的用户名是 hadoop， 密码 mysql<br>第一行：创建数据库<br>第二、三行 创建用户，赋予权限<br>第四行 权限生效</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">create database hive;</span><br><span class="line">CREATE USER  <span class="string">'hadoop'</span>@<span class="string">'%'</span>  IDENTIFIED BY <span class="string">'mysql'</span>;</span><br><span class="line">GRANT ALL PRIVILEGES ON  *.* TO <span class="string">'hadoop'</span>@<span class="string">'%'</span> WITH GRANT OPTION;</span><br><span class="line">flush privileges;</span><br></pre></td></tr></table></figure>
+
+<p>查看权限是否已经存储</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM mysql.user;</span><br></pre></td></tr></table></figure>
+
+<h3 id="修改配置文件hive-site-xml"><a href="#修改配置文件hive-site-xml" class="headerlink" title="修改配置文件hive-site.xml"></a>修改配置文件hive-site.xml</h3><p>修改hive配置文件，我的配置文件位置在 <font color="red">/usr/local/Cellar/hive/3.1.2/libexec/conf</font><br>如果不存在hive-site.xml文件，则使用下面这个命令创建一个默认的hive-site.xml</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cp hive-default.xml.template hive-site.xml</span><br></pre></td></tr></table></figure>
+
+<p>修改配置文件</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>javax.jdo.option.ConnectionUserName<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>hadoop<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>javax.jdo.option.ConnectionPassword<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>mysql<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>javax.jdo.option.ConnectionURL<span class="tag">&lt;/<span class="name">name</span>&gt;</span>mysql</span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>jdbc:mysql://localhost:3306/hive<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>javax.jdo.option.ConnectionDriverName<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>com.mysql.jdbc.Driver<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>javax.jdo.option.ConnectionUserName – 连接mysql的账号，hadoop<br>javax.jdo.option.ConnectionPassword – 连接mysql的密码，mysql<br>javax.jdo.option.ConnectionURL – 对应上一步创建的数据库，localhost:3306/hive</p>
+<h3 id="hadoop中创建hive所需仓库"><a href="#hadoop中创建hive所需仓库" class="headerlink" title="hadoop中创建hive所需仓库"></a>hadoop中创建hive所需仓库</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="variable">$HADOOP_HOME</span>/bin/hadoop fs -mkdir       /tmp</span><br><span class="line">$ <span class="variable">$HADOOP_HOME</span>/bin/hadoop fs -mkdir   -p  /user/hive/warehouse</span><br><span class="line">$ <span class="variable">$HADOOP_HOME</span>/bin/hadoop fs -chmod g+w   /tmp</span><br><span class="line">$ <span class="variable">$HADOOP_HOME</span>/bin/hadoop fs -chmod g+w   /user/hive/warehouse</span><br></pre></td></tr></table></figure>
+
+<p>$HADOOP_HOME – 代表您的hadoop工作目录</p>
+<h3 id="hive初始化mysql中的数据库hive"><a href="#hive初始化mysql中的数据库hive" class="headerlink" title="hive初始化mysql中的数据库hive"></a>hive初始化mysql中的数据库hive</h3><h4 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="variable">$HIVE_HOME</span>/bin/schematool -dbType msyql -initSchema</span><br></pre></td></tr></table></figure>
+
+<h4 id="可能出现错误1：java-lang-NoSuchMethodError-com-google-common…"><a href="#可能出现错误1：java-lang-NoSuchMethodError-com-google-common…" class="headerlink" title="可能出现错误1：java.lang.NoSuchMethodError: com.google.common…"></a>可能出现错误1：java.lang.NoSuchMethodError: com.google.common…</h4><p>解决方案：<a href="https://yangyichao-mango.github.io/2019/10/17/apache-hive-error-NoSuchMethodError:com.google.common.base.Preconditions.checkArgument/">java.lang.NoSuchMethodError: com.google.common.base.Preconditions.checkArgument</a></p>
+<h4 id="可能出现错误2：java-lang-ClassNotFoundException-com-mysql…"><a href="#可能出现错误2：java-lang-ClassNotFoundException-com-mysql…" class="headerlink" title="可能出现错误2：java.lang.ClassNotFoundException: com.mysql…"></a>可能出现错误2：java.lang.ClassNotFoundException: com.mysql…</h4><p>解决方案：<a href="https://yangyichao-mango.github.io/2019/10/17/apache-hive-error-ClassNotFoundException:com.mysql.jdbc.driver/">java.lang.ClassNotFoundException: com.mysql.jdbc.Driver</a></p>
+<h3 id="启动Hive的Metastore-Server服务进程"><a href="#启动Hive的Metastore-Server服务进程" class="headerlink" title="启动Hive的Metastore Server服务进程"></a>启动Hive的Metastore Server服务进程</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="variable">$HIVE_HOME</span>/bin/hive --service metastore &amp;</span><br></pre></td></tr></table></figure>
+
+<h3 id="登录hive客户端"><a href="#登录hive客户端" class="headerlink" title="登录hive客户端"></a>登录hive客户端</h3><h4 id="命令-1"><a href="#命令-1" class="headerlink" title="命令"></a>命令</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="variable">$HIVE_HOME</span>/bin/ hive</span><br></pre></td></tr></table></figure>
+
+<h4 id="可能出现的错误1：java-lang-IllegalArgumentException-java-net-URISyntaxException-…"><a href="#可能出现的错误1：java-lang-IllegalArgumentException-java-net-URISyntaxException-…" class="headerlink" title="可能出现的错误1：java.lang.IllegalArgumentException: java.net.URISyntaxException:…"></a>可能出现的错误1：java.lang.IllegalArgumentException: java.net.URISyntaxException:…</h4><p>解决方案：<a href="https://yangyichao-mango.github.io/2019/10/17/apache-hive-error-URISyntaxException:Relative-path-in-absolute-URI:%7Bsystem:java.io.tmpdir%7D%7Bsystem-user-name%7D/">Exception in thread “main” java.lang.IllegalArgumentException: java.net.URISyntaxException:</a></p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2019-10-25T03:40:04.207Z" itemprop="dateUpdated">2019-10-25 11:40:04</time>
+</span><br>
+
+
+        
+        本文链接：<a href="/2019/10/17/apache-hive:3.1.2-mac-install/" target="_blank" rel="external">https://yangyichao-mango.github.io/2019/10/17/apache-hive:3.1.2-mac-install/</a>
+  <br>转载须知：<a href="/about/#版权声明" target="_blank" rel="copyright">版权声明</a>
+
+        
+    </div>
+    
+    <footer>
+        <a href="https://yangyichao-mango.github.io">
+            <img src="/img/avatar.jpg" alt="yangyichao-mango">
+            yangyichao-mango
+        </a>
+    </footer>
+</blockquote>
+
+        
+<div class="page-reward">
+    <a id="rewardBtn" href="javascript:;" class="page-reward-btn waves-effect waves-circle waves-light">赏</a>
+</div>
+
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Apache-Hive/">Apache Hive</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Mac安装/">Mac安装</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2019/10/17/apache-hive:3.1.2-mac-install/&title=《Mac安装Apache Hive-3.2.1》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2019/10/17/apache-hive:3.1.2-mac-install/&title=《Mac安装Apache Hive-3.2.1》 — yangyichao-mango's blog&source=Mac安装Apache Hive-3.2.1教程" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2019/10/17/apache-hive:3.1.2-mac-install/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Mac安装Apache Hive-3.2.1》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2019/10/17/apache-hive:3.1.2-mac-install/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2019/10/17/apache-hive:3.1.2-mac-install/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/10/17/apache-hive:error-URISyntaxException:Relative-path-in-absolute-URI:{system:java.io.tmpdir}{system-user-name}/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Apache Hive环境搭建错误：java.lang.IllegalArgumentException: java.net.URISyntaxException:...</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/10/17/apache-hive:error-ClassNotFoundException:com.mysql.jdbc.driver/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Apache Hive环境搭建错误：com.mysql.jdbc.Driver was not found in the CLASSPATH</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+<section class="comments" id="comments">
+    <div id="disqus_thread"></div>
+    <script>
+    var disqus_shortname = 'true';
+    lazyScripts.push('//' + disqus_shortname + '.disqus.com/embed.js')
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+<div id="reward" class="page-modal reward-lay">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <h3 class="reward-title">
+        <i class="icon icon-quote-left"></i>
+        谢谢大爷~
+        <i class="icon icon-quote-right"></i>
+    </h3>
+    <div class="reward-content">
+        
+        <div class="reward-code">
+            <img id="rewardCode" src="/img/wechat.png" alt="打赏二维码">
+        </div>
+        
+        <label class="reward-toggle">
+            <input id="rewardToggle" type="checkbox" class="reward-toggle-check"
+                data-wechat="/img/wechat.png" data-alipay="/img/alipay.png">
+            <div class="reward-toggle-ctrol">
+                <span class="reward-toggle-item wechat">微信</span>
+                <span class="reward-toggle-label"></span>
+                <span class="reward-toggle-item alipay">支付宝</span>
+            </div>
+        </label>
+        
+    </div>
+</div>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>yangyichao-mango &copy; 2019 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2019/10/17/apache-hive:3.1.2-mac-install/&title=《Mac安装Apache Hive-3.2.1》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2019/10/17/apache-hive:3.1.2-mac-install/&title=《Mac安装Apache Hive-3.2.1》 — yangyichao-mango's blog&source=Mac安装Apache Hive-3.2.1教程" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2019/10/17/apache-hive:3.1.2-mac-install/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Mac安装Apache Hive-3.2.1》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2019/10/17/apache-hive:3.1.2-mac-install/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2019/10/17/apache-hive:3.1.2-mac-install/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAN4AAADeCAAAAAB3DOFrAAACvElEQVR42u3awY7bMAwE0P3/n26vLbZxZkhpERTPJyNIFD0fTGKor6/4+vXH1X7yap3v33/+3+dvri48PDy8xdZfLZds/fuayQNK2M+fvHkEeHh4eNd4z1t8td19Ach/mzxcPDw8vM/kPW86aXzb7eLh4eH9H7ykPLTInISHh4f3Cby8hW2DhmdMu8LFrAUPDw8v5uUv8c+5vzLfw8PDw1tP1ZNxVBtJzMrD7MLDw8O7wTsVvObtb4JM1iwCDjw8PLxrvNm4azPWaiOGpGz843/x8PDwjvJmI6tNnLFv04voFg8PD+8CLx/kt0cN8k3P4tp2wIaHh4d3ihd13MErfh8ZtMHEsBbh4eHhnel1h4eZNiFCG4Lk47GXWQseHh7eIV4+1mo3NxuGnQo76qkdHh4e3ojXlodZ8Hq7xS+Ww8PDwxvx8ld8nQoH0XBeeDYFDA8PD+8Gbzbg30/e2sea7ycqEnh4eHgjXt7yboLdhJQcLMiPLNQdPR4eHt568p68jpMxWN7ytjFEPmbDw8PDO8vLx/az8dgweF2s/9fKeHh4eBd49TA+CB3ycjKLbjflBw8PD+8sb/P3baAww69KAh4eHt5RXn7cavZCz9vlel6XDNLw8PDwrvHaI1CzAf9s5LaKKvDw8PCu8fIisRme7Qdv7fgNDw8P7x6vXbo9MjU7OpA/guhkGR4eHt5R3uYgVB4utGOtNiJ5E+Pi4eHhHeXNWuE8pGgLQH7GYZi14OHh4Y14sxdufr9puJMS8ubB4eHh4V3g5Vceoc4A+Wgtv8fDw8O7x2uLQd52b8rDpjDg4eHh/QxvdbBpvcVk/XwkhoeHh/dpvLZDz0Pedu5/pTDg4eHhXes5Z4Ox/JP80MCbHeLh4eFd4yU/bgOIzfGC2SNbZS14eHh4k72tWtv9QYGW9HXqwsPDw0t5vwE1NZxxldGq1wAAAABJRU5ErkJggg==" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

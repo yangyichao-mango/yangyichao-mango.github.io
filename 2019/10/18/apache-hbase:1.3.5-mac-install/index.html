@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-150061865-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+<!-- Baidu Tongji -->
+<script>var _hmt = _hmt || []</script>
+<script async src="//hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63"></script>
+<!-- End Baidu Tongji -->
+
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>Mac安装Apache HBase-1.3.5 | yangyichao-mango&#39;s blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Apache HBase,Mac安装">
+    <meta name="description" content="本站&amp;作者">
+<meta name="keywords" content="Apache HBase,Mac安装">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mac安装Apache HBase-1.3.5">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2019/10/18/apache-hbase:1.3.5-mac-install/index.html">
+<meta property="og:site_name" content="yangyichao-mango&#39;s blog">
+<meta property="og:description" content="本站&amp;作者">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-10-25T03:40:04.199Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mac安装Apache HBase-1.3.5">
+<meta name="twitter:description" content="本站&amp;作者">
+    
+        <link rel="alternate" type="application/atom+xml" title="yangyichao-mango&#39;s blog" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/img/avatar.jpg">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu"  >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand-new.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/avatar.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">yangyichao-mango</h5>
+          <a href="mailto:1048262223@qq.com" title="1048262223@qq.com" class="mail">1048262223@qq.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/yangyichao-mango" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/about"  >
+                <i class="icon icon-lg icon-user"></i>
+                About
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/links"  >
+                <i class="icon icon-lg icon-star"></i>
+                Links
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Mac安装Apache HBase-1.3.5</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Mac安装Apache HBase-1.3.5</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-10-18T15:14:59.000Z" itemprop="datePublished" class="page-time">
+  2019-10-18
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-HBase/">Apache HBase</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#HBase安装"><span class="post-toc-number">1.</span> <span class="post-toc-text">HBase安装</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#HBase配置"><span class="post-toc-number">2.</span> <span class="post-toc-text">HBase配置</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#hbase-env-sh"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">hbase-env.sh</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#hbase-site-xml"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">hbase-site.xml</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#启动HBase"><span class="post-toc-number">2.3.</span> <span class="post-toc-text">启动HBase</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#验证是否安装成功"><span class="post-toc-number">2.4.</span> <span class="post-toc-text">验证是否安装成功</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#启动HBase-Shell"><span class="post-toc-number">2.5.</span> <span class="post-toc-text">启动HBase Shell</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#停止HBase运行"><span class="post-toc-number">2.6.</span> <span class="post-toc-text">停止HBase运行</span></a></li></ol></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#伪分布式模式"><span class="post-toc-number">3.</span> <span class="post-toc-text">伪分布式模式</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#修改hbase-env-sh"><span class="post-toc-number">3.1.</span> <span class="post-toc-text">修改hbase-env.sh</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#修改hbase-site-xml"><span class="post-toc-number">3.2.</span> <span class="post-toc-text">修改hbase-site.xml</span></a></li></ol></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#HBase-Shell"><span class="post-toc-number">4.</span> <span class="post-toc-text">HBase Shell</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-apache-hbase:1.3.5-mac-install"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">Mac安装Apache HBase-1.3.5</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-10-18 23:14:59" datetime="2019-10-18T15:14:59.000Z"  itemprop="datePublished">2019-10-18</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-HBase/">Apache HBase</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>Mac安装Apache HBase-1.3.5教程</p>
+<a id="more"></a>
+
+<h3 id="HBase安装"><a href="#HBase安装" class="headerlink" title="HBase安装"></a><strong>HBase安装</strong></h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ brew install hbase</span><br></pre></td></tr></table></figure>
+
+<p>安装在<font color="red"><strong>/usr/local/Cellar/hbase/1.3.5</strong></font></p>
+<h3 id="HBase配置"><a href="#HBase配置" class="headerlink" title="HBase配置"></a><strong>HBase配置</strong></h3><h4 id="hbase-env-sh"><a href="#hbase-env-sh" class="headerlink" title="hbase-env.sh"></a>hbase-env.sh</h4><p>在<font color="red">conf/hbase-env.sh设置JAVA_HOME</font></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> /usr/<span class="built_in">local</span>/Cellar/hbase/1.3.5/libexec/conf</span><br><span class="line">$ vim hbase-env.sh</span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=<span class="string">"<span class="variable">$(/usr/libexec/java_home --version 1.8)</span>"</span></span><br></pre></td></tr></table></figure>
+
+<p>Apache HBase-1.3.5中JAVA_HOME已经默认被配置好了<br>如果JAVA_HOME没有配置好，则需要设置JAVA_HOME，可以通过下面的命令查看JAVA_HOME</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ /usr/libexec/java_home</span><br><span class="line">/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home</span><br></pre></td></tr></table></figure>
+
+<h4 id="hbase-site-xml"><a href="#hbase-site-xml" class="headerlink" title="hbase-site.xml"></a>hbase-site.xml</h4><p>在<font color="red">conf/hbase-site.xml</font>设置HBase的核心配置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ vim hbase-site.xml</span><br><span class="line"></span><br><span class="line">&lt;configuration&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">    &lt;name&gt;hbase.rootdir&lt;/name&gt;</span><br><span class="line">    // 这里设置让HBase存储文件的地方</span><br><span class="line">    &lt;value&gt;file:///usr/<span class="built_in">local</span>/Cellar/hbase/tmp/hbase&lt;/value&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">      &lt;name&gt;hbase.zookeeper.property.dataDir&lt;/name&gt;</span><br><span class="line">      // 这里设置让HBase存储内建zookeeper文件的地方</span><br><span class="line">      &lt;value&gt;/usr/<span class="built_in">local</span>/Cellar/hbase/tmp/zookeeper&lt;/value&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure>
+
+<h4 id="启动HBase"><a href="#启动HBase" class="headerlink" title="启动HBase"></a>启动HBase</h4><p><font color="red">/usr/local/Cellar/hbase/1.3.5/bin/start-hbase.sh</font>提供HBase的启动</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ./start-hbase.sh</span><br><span class="line">starting master, logging to /usr/<span class="built_in">local</span>/var/<span class="built_in">log</span>/hbase/hbase-xxx-master-xxx.local.out</span><br></pre></td></tr></table></figure>
+
+<h4 id="验证是否安装成功"><a href="#验证是否安装成功" class="headerlink" title="验证是否安装成功"></a>验证是否安装成功</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ jps</span><br><span class="line">722 Launcher</span><br><span class="line">1142 HMaster</span><br><span class="line">726 Launcher</span><br><span class="line">1256 Jps</span><br></pre></td></tr></table></figure>
+
+<h4 id="启动HBase-Shell"><a href="#启动HBase-Shell" class="headerlink" title="启动HBase Shell"></a>启动HBase Shell</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ ./hbase shell</span><br><span class="line">2019-10-19 11:58:34,879 WARN  [main] util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using <span class="built_in">builtin</span>-java classes <span class="built_in">where</span> applicable</span><br><span class="line">HBase Shell; enter <span class="string">'help&lt;RETURN&gt;'</span> <span class="keyword">for</span> list of supported commands.</span><br><span class="line">Type <span class="string">"exit&lt;RETURN&gt;"</span> to leave the HBase Shell</span><br><span class="line">Version 1.3.5, rb59afe7b1dc650ff3a86034477b563734e8799a9, Wed Jun  5 15:57:14 PDT 2019</span><br><span class="line"></span><br><span class="line">hbase(main):001:0&gt;</span><br></pre></td></tr></table></figure>
+
+<h4 id="停止HBase运行"><a href="#停止HBase运行" class="headerlink" title="停止HBase运行"></a>停止HBase运行</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ./stop-hbase.sh</span><br><span class="line">stopping hbase...............</span><br></pre></td></tr></table></figure>
+
+<h3 id="伪分布式模式"><a href="#伪分布式模式" class="headerlink" title="伪分布式模式"></a><strong>伪分布式模式</strong></h3><p>必须先关闭HBase</p>
+<h4 id="修改hbase-env-sh"><a href="#修改hbase-env-sh" class="headerlink" title="修改hbase-env.sh"></a>修改hbase-env.sh</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HBASE_MANAGE_ZK = <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="修改hbase-site-xml"><a href="#修改hbase-site-xml" class="headerlink" title="修改hbase-site.xml"></a>修改hbase-site.xml</h4><p>设置HBase使用分布式模式运行</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>hbase.rootdir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    // Here you have to set the path where you want HBase to store its files.</span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://localhost:9000/hbase<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>hbase.cluster.distributed<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><font color="red"><strong>hbase.rootdir路径一定要跟hadoop中core-site.xml中fs.default.name相同</strong></font></p>
+<p>change the hbase.rootdir from the local filesystem to the address of your HDFS instance —offical quick start</p>
+<p>如何两处设置不同会引起ERROR: <font color="red">Can’t get master address from ZooKeeper; znode data == null错误错误</font></p>
+<p>在启动HBase之前, 请先启动Hadoop, 使之运行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">$ ./start-hbase.sh</span><br><span class="line">localhost: starting zookeeper, logging to /usr/<span class="built_in">local</span>/var/<span class="built_in">log</span>/hbase/hbase-xxx-zookeeper-xxx.local.out</span><br><span class="line">starting master, logging to /usr/<span class="built_in">local</span>/var/<span class="built_in">log</span>/hbase/hbase-xxx-master-xxx.local.out</span><br><span class="line">starting regionserver, logging to /usr/<span class="built_in">local</span>/var/<span class="built_in">log</span>/hbase/hbase-xxx-1-regionserver-xxx.local.out</span><br><span class="line"></span><br><span class="line">$ jps  <span class="comment">#验证是否启动成功, 包含HMaster和HRegionServer说明启动成功</span></span><br><span class="line">5614 HRegionServer</span><br><span class="line">2222 NameNode</span><br><span class="line">722 Launcher</span><br><span class="line">2323 DataNode</span><br><span class="line">5461 HMaster</span><br><span class="line">726 Launcher</span><br><span class="line">2650 ResourceManager</span><br><span class="line">2747 NodeManager</span><br><span class="line">2459 SecondaryNameNode</span><br><span class="line">5405 HQuorumPeer</span><br><span class="line">285</span><br><span class="line">5726 Jps</span><br></pre></td></tr></table></figure>
+
+<p>查看hdfs中文件夹</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ ./hdfs dfs -ls /</span><br><span class="line">2019-10-19 12:39:03,895 WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using <span class="built_in">builtin</span>-java classes <span class="built_in">where</span> applicable</span><br><span class="line">Found 3 items</span><br><span class="line">drwxr-xr-x   - xxx supergroup          0 2019-10-19 12:38 /hbase</span><br><span class="line">drwxrwxr-x   - xxx supergroup          0 2019-10-17 14:41 /tmp</span><br><span class="line">drwxr-xr-x   - xxx supergroup          0 2019-10-17 11:44 /user</span><br></pre></td></tr></table></figure>
+
+<h3 id="HBase-Shell"><a href="#HBase-Shell" class="headerlink" title="HBase Shell"></a><strong>HBase Shell</strong></h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">$ hbase shell  <span class="comment">#启动HBase Shell</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建表</span></span><br><span class="line">&gt; create <span class="string">'student'</span>, <span class="string">'description'</span>, <span class="string">'course'</span>  <span class="comment">#创建表名为student的表, 指明两个列名, 分别为description和course</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 信息明细</span></span><br><span class="line">&gt; list <span class="string">'student'</span>  <span class="comment">#列出list表信息</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 插入数据</span></span><br><span class="line"><span class="comment"># 意思为在student表row1处插入description:age的数据为18</span></span><br><span class="line"><span class="comment"># rowKey为row1，columnFamilyName为description，columnName为age</span></span><br><span class="line">&gt; put <span class="string">'student'</span>, <span class="string">'row1'</span>, <span class="string">'description:age'</span>, <span class="string">'18'</span></span><br><span class="line">&gt; put <span class="string">'student'</span>, <span class="string">'row1'</span>, <span class="string">'description:name'</span>, <span class="string">'liu'</span></span><br><span class="line">&gt; put <span class="string">'student'</span>, <span class="string">'row1'</span>, <span class="string">'course:chinese'</span>, <span class="string">'100'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 一次扫描所有数据</span></span><br><span class="line">&gt; scan <span class="string">'student'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 使表失效 / 有效</span></span><br><span class="line">&gt; <span class="built_in">disable</span> <span class="string">'student'</span></span><br><span class="line">&gt; <span class="built_in">enable</span> <span class="string">'student'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除表(要先disable)</span></span><br><span class="line">&gt;  drop <span class="string">'student'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 退出shell</span></span><br><span class="line">&gt; quit</span><br></pre></td></tr></table></figure>
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2019-10-25T03:40:04.199Z" itemprop="dateUpdated">2019-10-25 11:40:04</time>
+</span><br>
+
+
+        
+        本文链接：<a href="/2019/10/18/apache-hbase:1.3.5-mac-install/" target="_blank" rel="external">https://yangyichao-mango.github.io/2019/10/18/apache-hbase:1.3.5-mac-install/</a>
+  <br>转载须知：<a href="/about/#版权声明" target="_blank" rel="copyright">版权声明</a>
+
+        
+    </div>
+    
+    <footer>
+        <a href="https://yangyichao-mango.github.io">
+            <img src="/img/avatar.jpg" alt="yangyichao-mango">
+            yangyichao-mango
+        </a>
+    </footer>
+</blockquote>
+
+        
+<div class="page-reward">
+    <a id="rewardBtn" href="javascript:;" class="page-reward-btn waves-effect waves-circle waves-light">赏</a>
+</div>
+
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Apache-HBase/">Apache HBase</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Mac安装/">Mac安装</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2019/10/18/apache-hbase:1.3.5-mac-install/&title=《Mac安装Apache HBase-1.3.5》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2019/10/18/apache-hbase:1.3.5-mac-install/&title=《Mac安装Apache HBase-1.3.5》 — yangyichao-mango's blog&source=Mac安装Apache HBase-1.3.5教程" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2019/10/18/apache-hbase:1.3.5-mac-install/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Mac安装Apache HBase-1.3.5》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2019/10/18/apache-hbase:1.3.5-mac-install/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2019/10/18/apache-hbase:1.3.5-mac-install/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/10/19/apache-flink:study-hdfs-sink/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Apache Flink 学习：hdfs作为sink</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/10/18/idea-mac:show-class-hierarchy/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">IntelliJ IDEA 中如何查看一个类的所有继承关系</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+<section class="comments" id="comments">
+    <div id="disqus_thread"></div>
+    <script>
+    var disqus_shortname = 'true';
+    lazyScripts.push('//' + disqus_shortname + '.disqus.com/embed.js')
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+<div id="reward" class="page-modal reward-lay">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <h3 class="reward-title">
+        <i class="icon icon-quote-left"></i>
+        谢谢大爷~
+        <i class="icon icon-quote-right"></i>
+    </h3>
+    <div class="reward-content">
+        
+        <div class="reward-code">
+            <img id="rewardCode" src="/img/wechat.png" alt="打赏二维码">
+        </div>
+        
+        <label class="reward-toggle">
+            <input id="rewardToggle" type="checkbox" class="reward-toggle-check"
+                data-wechat="/img/wechat.png" data-alipay="/img/alipay.png">
+            <div class="reward-toggle-ctrol">
+                <span class="reward-toggle-item wechat">微信</span>
+                <span class="reward-toggle-label"></span>
+                <span class="reward-toggle-item alipay">支付宝</span>
+            </div>
+        </label>
+        
+    </div>
+</div>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>yangyichao-mango &copy; 2019 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2019/10/18/apache-hbase:1.3.5-mac-install/&title=《Mac安装Apache HBase-1.3.5》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2019/10/18/apache-hbase:1.3.5-mac-install/&title=《Mac安装Apache HBase-1.3.5》 — yangyichao-mango's blog&source=Mac安装Apache HBase-1.3.5教程" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2019/10/18/apache-hbase:1.3.5-mac-install/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Mac安装Apache HBase-1.3.5》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2019/10/18/apache-hbase:1.3.5-mac-install/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2019/10/18/apache-hbase:1.3.5-mac-install/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAN4AAADeCAAAAAB3DOFrAAACtklEQVR42u3c207rMBAF0P7/T3NeQZykey6ugrTyVBVSZxnJnu6xeL3i6+vX9f39+7smn3b1m8sXHh4e3vjRrwa+Gv7+4e5HSX6af9p/pgAPDw/vGO9+We8tyvlDz6fy8n08PDy8x/Dyx7pn56U5Hh4e3l/n5WV0Qq2S8PDw8J7AS8KCpOTN44x8xA9lLXh4eHgxL48VnvP6SH8PDw8Pb9xVz+PX+0V5/pu9Cw8PD+8ErxoZVIvXfGqSrag5Ih4eHt5hXh4KbNXy+ejNNhgeHh7eKq96Q684roa8k5h4dOIADw8Pr7h6zxtX+aNPRs+3Kzw8PLxzvOpH9O4tzHR8MKvcBsPDw8Mb8/ISNmnqb4Uaky3qMozAw8PDW+JN2kt5+VtdpavbRrOkxsPDw2vxJqFDUvJu/QWaBToeHh7e5777l/+ZXXX4+QGF5DUeHh7ead6kVT8vsicBRzTdeHh4eKu8/BhT88DTYMtZKNzx8PDwVnnJwpofn6q2uCYlexSU4OHh4R3j5YFC9QBBtQ2WjJhsEj9ORuDh4eGt8k5HtNWQoteQezMdeHh4eKu8ahup+kC9cLYaZ7zZEvDw8PBWeb3Ctxoo5LFvLyYux8p4eHh4Y15eBG+dZZrHFoWoAg8PD+8Ar7rczxfuatiRbABvJg4PDw9vlVc9HJAv+ieODpS3GTw8PLxjvDwerQKS8rc3ZXh4eHhP4OUBay9u6BXl1ZZY4WQEHh4eXpG3sOwOmliTLSeaODw8PLwDvOrimwxWLc3zw1jV13h4eHjneL0W1+47+aMnGwMeHh7eZ3hJY6wav+ZbyCSeiDYGPDw8vMfwqoV49bhVfu+RjQEPDw9viVddvnthbq/x9spnEQ8PD2/M2zr8VG2G3RfW+actZC14eHh4MW/yhb8aIvQ2ld1DWnh4eHgD3j/iWwMnT3SBngAAAABJRU5ErkJggg==" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

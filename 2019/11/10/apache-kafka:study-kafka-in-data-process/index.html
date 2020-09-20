@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-150061865-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+<!-- Baidu Tongji -->
+<script>var _hmt = _hmt || []</script>
+<script async src="//hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63"></script>
+<!-- End Baidu Tongji -->
+
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>Apache Kafka 学习：kafka在数据处理中的应用 | yangyichao-mango&#39;s blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Apache Kafka">
+    <meta name="description" content="本站&amp;作者">
+<meta name="keywords" content="Apache Kafka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Apache Kafka 学习：kafka在数据处理中的应用">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2019/11/10/apache-kafka:study-kafka-in-data-process/index.html">
+<meta property="og:site_name" content="yangyichao-mango&#39;s blog">
+<meta property="og:description" content="本站&amp;作者">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-11-11T01:42:14.697Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Apache Kafka 学习：kafka在数据处理中的应用">
+<meta name="twitter:description" content="本站&amp;作者">
+    
+        <link rel="alternate" type="application/atom+xml" title="yangyichao-mango&#39;s blog" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/img/avatar.jpg">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu"  >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand-new.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/avatar.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">yangyichao-mango</h5>
+          <a href="mailto:1048262223@qq.com" title="1048262223@qq.com" class="mail">1048262223@qq.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/yangyichao-mango" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/about"  >
+                <i class="icon icon-lg icon-user"></i>
+                About
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/links"  >
+                <i class="icon icon-lg icon-star"></i>
+                Links
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Apache Kafka 学习：kafka在数据处理中的应用</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Apache Kafka 学习：kafka在数据处理中的应用</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-11-10T15:12:14.000Z" itemprop="datePublished" class="page-time">
+  2019-11-10
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-Kafka/">Apache Kafka</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#离线数据处理"><span class="post-toc-number">1.</span> <span class="post-toc-text">离线数据处理</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#场景"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">场景</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#问题原因总结"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">问题原因总结</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#实施方案"><span class="post-toc-number">1.3.</span> <span class="post-toc-text">实施方案</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#kafka作用"><span class="post-toc-number">1.4.</span> <span class="post-toc-text">kafka作用</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#实时数据处理"><span class="post-toc-number">2.</span> <span class="post-toc-text">实时数据处理</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#场景-1"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">场景</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#问题原因总结-1"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">问题原因总结</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#实施方案-1"><span class="post-toc-number">2.3.</span> <span class="post-toc-text">实施方案</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#kafka作用-1"><span class="post-toc-number">2.4.</span> <span class="post-toc-text">kafka作用</span></a></li></ol></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-apache-kafka:study-kafka-in-data-process"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">Apache Kafka 学习：kafka在数据处理中的应用</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-11-10 23:12:14" datetime="2019-11-10T15:12:14.000Z"  itemprop="datePublished">2019-11-10</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-Kafka/">Apache Kafka</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>Apache Kafka 学习：kafka在数据处理中的应用的一些个人理解。</p>
+<a id="more"></a>
+
+<h1 id="离线数据处理"><a href="#离线数据处理" class="headerlink" title="离线数据处理"></a><strong>离线数据处理</strong></h1><h2 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h2><p>在离线数据处理的过程中。<br>如果不使用消息队列，在并发量很小的情况下，所有的客户端数据日志直接向hdfs写数据暂时不会产生什么问题。<br>如果不使用消息队列，在并发量很大的情况下，向 hdfs 写数据就会出现问题，首先，向hdfs写数据会有锁竞争的情况，可能会导致大部分写请求很长时间得不到锁，导致大量请求延迟或者超时，这是不能接受的；并且 hdfs 作为文件系统不能承受太大的并发量，在并发很高的情况下，集群可能会崩溃。</p>
+<h2 id="问题原因总结"><a href="#问题原因总结" class="headerlink" title="问题原因总结"></a>问题原因总结</h2><p>总的来说，在这种情况下，问题的根本在于高并发情况下，hdfs 作为文件系统不能承受高并发请求的问题。</p>
+<h2 id="实施方案"><a href="#实施方案" class="headerlink" title="实施方案"></a>实施方案</h2><p>所以需要一种工具可以将客户端日志这种高并发请求转换为低并发的请求，这时候就可以使用kafka这样的消息队列，客户端的高并发请求直接写入 kafka，然后 hdfs 以低并发消费 kafka 中的数据。这样就解决了文件系统不能支持高并发的情况。并且由于 kafka 的HA特性，可以保证数据的正确性。</p>
+<h2 id="kafka作用"><a href="#kafka作用" class="headerlink" title="kafka作用"></a>kafka作用</h2><p>将高并发请求以低并发方式处理。这种方式中解耦效果不明显，下面的实时数据处理使用到的解耦效果比较明显。</p>
+<h1 id="实时数据处理"><a href="#实时数据处理" class="headerlink" title="实时数据处理"></a><strong>实时数据处理</strong></h1><h2 id="场景-1"><a href="#场景-1" class="headerlink" title="场景"></a>场景</h2><p>在实时数据处理的过程中。<br>如果不使用消息队列，上游数据写入到类似 flink 这样的实时处理引擎当中，flink处理完成后向下游 olap 引擎（druid，clickhouse等）或者hdfs，hive，es等的文件系统写数据时，就需要为每一种 olap 引擎开发一种 connector，这样的情况下，每出现一种 olap 引擎或者每当下游的 olap 引擎升级版本引入新特性时，就需要 flink 开发工程师开发一种新的 connector 或者跟随 olap 引擎的升级而升级自己的 connector，这样 flink 开发工程师的维护成本之后就会特别高。<br>这里有同学可能会说可以在数据处理的过程中使用下游 olap 等的引擎提供的 sdk，这种方法是可以的，但是实时处理打不风情况下并发量很高，olap 引擎提供的 sdk 应对这种高并发的场景可能会有很多问题。</p>
+<h2 id="问题原因总结-1"><a href="#问题原因总结-1" class="headerlink" title="问题原因总结"></a>问题原因总结</h2><p>问题的根本在于实时处理引擎和下游之间的耦合问题，这就需要一种HA的中间件来将各个模块进行解耦，kafka这样的消息队列可以很好的解决这中模块之间高度耦合的情况。</p>
+<h2 id="实施方案-1"><a href="#实施方案-1" class="headerlink" title="实施方案"></a>实施方案</h2><p>在 flink 和 druid中间使用 kafka 进行解耦，让 flink 向 kafka 生成数据，druid 消费 kafka 的数据。<br>这样就使得 flink 可以只开发和维护一套针对于 kafka 的 connector，druid也只用开发和维护一套针对 kafka 的 connector，这样无论是实时处理引擎的升级或替换，或者是实时处理引擎下游的模块的升级或替换，都不会互相影响，并且这些模块的工程师只需要对消息队列的 connector 进行维护即可，并且可以根据其特性进行更好的优化。</p>
+<h2 id="kafka作用-1"><a href="#kafka作用-1" class="headerlink" title="kafka作用"></a>kafka作用</h2><p>模块之间的解耦。让各个模块各司其职。<br>拓展：<br>1.Java 虚拟机在 Java 语言和各个系统之间的作用。<br>2.Sql 进行三范式优化，不需要将所有数据都放在一张表当中，将n对n的表拆分出一张维表进行解耦。将维度拆分为维表可以减少数据量，更好划分和使用维度数据。<br>3.经典网络五层模型，划分为五层，则在每一层中更新或者新建协议栈只需要对上下层进行兼容即可，不需要对整个网络架构模型做调整。<br>4.Maven multiModule 划分。<br>5.springMvc。<br>等等。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2019-11-11T01:42:14.697Z" itemprop="dateUpdated">2019-11-11 09:42:14</time>
+</span><br>
+
+
+        
+        本文链接：<a href="/2019/11/10/apache-kafka:study-kafka-in-data-process/" target="_blank" rel="external">https://yangyichao-mango.github.io/2019/11/10/apache-kafka:study-kafka-in-data-process/</a>
+  <br>转载须知：<a href="/about/#版权声明" target="_blank" rel="copyright">版权声明</a>
+
+        
+    </div>
+    
+    <footer>
+        <a href="https://yangyichao-mango.github.io">
+            <img src="/img/avatar.jpg" alt="yangyichao-mango">
+            yangyichao-mango
+        </a>
+    </footer>
+</blockquote>
+
+        
+<div class="page-reward">
+    <a id="rewardBtn" href="javascript:;" class="page-reward-btn waves-effect waves-circle waves-light">赏</a>
+</div>
+
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Apache-Kafka/">Apache Kafka</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2019/11/10/apache-kafka:study-kafka-in-data-process/&title=《Apache Kafka 学习：kafka在数据处理中的应用》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2019/11/10/apache-kafka:study-kafka-in-data-process/&title=《Apache Kafka 学习：kafka在数据处理中的应用》 — yangyichao-mango's blog&source=Apache Kafka 学习：kafka在数据处理中的应用的一些个人理解。" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2019/11/10/apache-kafka:study-kafka-in-data-process/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Apache Kafka 学习：kafka在数据处理中的应用》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2019/11/10/apache-kafka:study-kafka-in-data-process/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2019/11/10/apache-kafka:study-kafka-in-data-process/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/11/11/apache-flink:study-allowedLateness-and-maxOutOfOrderness/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">apache-flink:study-allowedLateness-and-maxOutOfOrderness</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/11/09/apache-flink:study-flink-datastream-operators-windows/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Apache Flink 学习：DataStream Api 中 Operators（算子）——窗口</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+<section class="comments" id="comments">
+    <div id="disqus_thread"></div>
+    <script>
+    var disqus_shortname = 'true';
+    lazyScripts.push('//' + disqus_shortname + '.disqus.com/embed.js')
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+<div id="reward" class="page-modal reward-lay">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <h3 class="reward-title">
+        <i class="icon icon-quote-left"></i>
+        谢谢大爷~
+        <i class="icon icon-quote-right"></i>
+    </h3>
+    <div class="reward-content">
+        
+        <div class="reward-code">
+            <img id="rewardCode" src="/img/wechat.png" alt="打赏二维码">
+        </div>
+        
+        <label class="reward-toggle">
+            <input id="rewardToggle" type="checkbox" class="reward-toggle-check"
+                data-wechat="/img/wechat.png" data-alipay="/img/alipay.png">
+            <div class="reward-toggle-ctrol">
+                <span class="reward-toggle-item wechat">微信</span>
+                <span class="reward-toggle-label"></span>
+                <span class="reward-toggle-item alipay">支付宝</span>
+            </div>
+        </label>
+        
+    </div>
+</div>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>yangyichao-mango &copy; 2019 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2019/11/10/apache-kafka:study-kafka-in-data-process/&title=《Apache Kafka 学习：kafka在数据处理中的应用》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2019/11/10/apache-kafka:study-kafka-in-data-process/&title=《Apache Kafka 学习：kafka在数据处理中的应用》 — yangyichao-mango's blog&source=Apache Kafka 学习：kafka在数据处理中的应用的一些个人理解。" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2019/11/10/apache-kafka:study-kafka-in-data-process/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Apache Kafka 学习：kafka在数据处理中的应用》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2019/11/10/apache-kafka:study-kafka-in-data-process/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2019/11/10/apache-kafka:study-kafka-in-data-process/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPYAAAD2CAAAAADAeSUUAAADJElEQVR42u3awY4aMRAE0P3/nyZSTokS2KruQRq8zyc0gGeeORTu9tdXPB6/R/vJxx/j2ZV/r28+f/HAxsbG/hD24+V4xs7ffX0lGckMuQUbGxv7VHYSRW10tTmSh1Z7X2xsbGzs/K9/u83Y7BHaObGxsbGx2xBqtxD5Etwit7GxsbFvxs4DY3ZlU/rPqW+ppWFjY2Pfnj1r397z9Rv729jY2Ni3ZD8WYzPPplW8H9jY2NgnsV9vCfJIm8XhZjk2hSpsbGzsk9jv+KOflHI2reKkFf3N4mJjY2Mfys4xyS1ni5IvVt6c+M+72NjY2IeykyLOvkE7azBvtkZFbmNjY2N/LHtWuGkLQ+1RnmTp2x+srkthY2Nj357dFnSSkGhvnMRkHm/D0hg2Njb2h7M3IZTj8wZzG5zDZ8DGxsY+iL05XjN73Hbh8rhqW8jY2NjY57FnATaLkySKZhG7KiphY2NjfxR7c8u8vbqPyX1h66+nxcbGxj6aPewqXNoSaGfOf7x6x4ONjY19e3ZbxJ+R2vnzRd8UobCxsbHPYCd//TeHe9poSTYSeTHr6TNjY2NjH83eF/1b3uYozyyAsbGxsc9jt6d42sM3m0M/+6XBxsbG/gns2Ybkqm+1Zf0I9no2bGxs7OPYecFo/1jt9SQC8yNHWc0JGxsb+1PZs+1BfpQnCbD8Xu1964mwsbGxP4TdfuFRjlkRKgqh0UJjY2Njn8fOG66zJmvSGL7qaE5eWsLGxsY+j705HJNEzqx0NVvc6DU2Njb2Qew2bPat3Bl1swWKFg4bGxv7IHbbvs2jq91OzBoGsyYHNjY29hns9q98fhBnf+wmn6fe6mBjY2MfzW6R+QztFuLao0LY2NjYJ7FnxZr2ZlcdwcnLT9/MgI2NjX0QOx+zwzHJ8tVN2XKhZz8eNjY29mexN03T2RZlE0v5vb5ZSmxsbOzj2HkwzOJnUwaq8zbZhGBjY2P/YPYsWtoCULu9qZsK2NjY2D+SnR+sSfD5Z9rXUQBjY2NjH8dOIuEdpfzZXdqGNDY2NvbZ7PZx9w2DWfzMWhGX9bexsbGx78j+Bd6UbfGAvZcOAAAAAElFTkSuQmCC" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>
