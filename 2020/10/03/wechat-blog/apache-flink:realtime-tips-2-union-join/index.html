@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-150061865-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+<!-- Baidu Tongji -->
+<script>var _hmt = _hmt || []</script>
+<script async src="//hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63"></script>
+<!-- End Baidu Tongji -->
+
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>Tips | Flink 使用 union 代替 join、cogroup | yangyichao-mango&#39;s blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Apache Flink">
+    <meta name="description" content="本站&amp;作者">
+<meta name="keywords" content="Apache Flink">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Tips | Flink 使用 union 代替 join、cogroup">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/index.html">
+<meta property="og:site_name" content="yangyichao-mango&#39;s blog">
+<meta property="og:description" content="本站&amp;作者">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/gzh/wechat.png">
+<meta property="og:updated_time" content="2020-10-04T13:21:52.892Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Tips | Flink 使用 union 代替 join、cogroup">
+<meta name="twitter:description" content="本站&amp;作者">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/gzh/wechat.png">
+    
+        <link rel="alternate" type="application/atom+xml" title="yangyichao-mango&#39;s blog" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/img/avatar.jpg">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu"  >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand-new.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/avatar.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">yangyichao-mango</h5>
+          <a href="mailto:1048262223@qq.com" title="1048262223@qq.com" class="mail">1048262223@qq.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                Archives
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                Tags
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                Categories
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/yangyichao-mango" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/about"  >
+                <i class="icon icon-lg icon-user"></i>
+                About
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/links"  >
+                <i class="icon icon-lg icon-star"></i>
+                Links
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Tips | Flink 使用 union 代替 join、cogroup</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Tips | Flink 使用 union 代替 join、cogroup</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2020-10-03T06:21:53.000Z" itemprop="datePublished" class="page-time">
+  2020-10-03
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-Flink/">Apache Flink</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Tips-Flink-使用-union-代替-join、cogroup"><span class="post-toc-number">1.</span> <span class="post-toc-text">Tips | Flink 使用 union 代替 join、cogroup</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#需求场景分析"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">需求场景分析</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#需求场景"><span class="post-toc-number">1.1.1.</span> <span class="post-toc-text">需求场景</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#source-输入以及特点"><span class="post-toc-number">1.1.2.</span> <span class="post-toc-text">source 输入以及特点</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#sink-输出以及特点"><span class="post-toc-number">1.1.3.</span> <span class="post-toc-text">sink 输出以及特点</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#source、sink-样例数据"><span class="post-toc-number">1.1.4.</span> <span class="post-toc-text">source、sink 样例数据</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#实现方案"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">实现方案</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#cogroup"><span class="post-toc-number">1.2.1.</span> <span class="post-toc-text">cogroup</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#上述实现可能会存在的问题点"><span class="post-toc-number">1.2.2.</span> <span class="post-toc-text">上述实现可能会存在的问题点</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#逆推链路"><span class="post-toc-number">1.2.3.</span> <span class="post-toc-text">逆推链路</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#union"><span class="post-toc-number">1.3.</span> <span class="post-toc-text">union</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#总结"><span class="post-toc-number">1.4.</span> <span class="post-toc-text">总结</span></a></li></ol></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-wechat-blog/apache-flink:realtime-tips-2-union-join"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">Tips | Flink 使用 union 代替 join、cogroup</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2020-10-03 14:21:53" datetime="2020-10-03T06:21:53.000Z"  itemprop="datePublished">2020-10-03</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Apache-Flink/">Apache Flink</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <h1 id="Tips-Flink-使用-union-代替-join、cogroup"><a href="#Tips-Flink-使用-union-代替-join、cogroup" class="headerlink" title="Tips | Flink 使用 union 代替 join、cogroup"></a>Tips | Flink 使用 union 代替 join、cogroup</h1><blockquote>
+<p>本系列每篇文章都比较短小，不定期更新，从一些实际的 case 出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍在满足原有需求、实现原有逻辑的场景下，在 Flink 中使用 union 代替 cogroup(或者join) ，简化任务逻辑，提升任务性能的方法，阅读时长大概一分钟，话不多说，直接进入正文！</p>
+</blockquote>
+<h2 id="需求场景分析"><a href="#需求场景分析" class="headerlink" title="需求场景分析"></a>需求场景分析</h2><h3 id="需求场景"><a href="#需求场景" class="headerlink" title="需求场景"></a>需求场景</h3><p>需求诱诱诱来了。。。数据产品妹妹想要统计单个短视频粒度的<strong>点赞，播放，评论，分享，举报</strong>五类实时指标，并且汇总成 photo_id、1 分钟时间粒度的实时视频消费宽表（即宽表字段至少为：<strong>photo_id + play_cnt + like_cnt + comment_cnt + share_cnt + negative_cnt + minute_timestamp</strong>）产出至实时大屏。</p>
+<p>问题在于对同一个视频，五类视频消费行为的触发机制以及上报时间是不同，也就决定了对实时处理来说五类行为日志对应着五个不同的数据源。sql boy 们自然就想到了 join 操作将五类消费行为日志合并，可是实时 join(cogroup) 真的那么完美咩~，下文细谈。</p>
+<h3 id="source-输入以及特点"><a href="#source-输入以及特点" class="headerlink" title="source 输入以及特点"></a>source 输入以及特点</h3><p>首先我们分析下需求中的 source 特点：</p>
+<ul>
+<li>photo_id 粒度 play（播放）、like（点赞）、comment（评论）、share（分享）、negative（举报）明细数据，<strong>用户播放（点赞、评论…）n 次，客户端\服务端就会上传 n 条播放（点赞、评论…）日志至数据源</strong></li>
+<li>五类视频消费行为日志的 source schema 都为：<strong>photo_id + timestamp + 其他维度</strong></li>
+</ul>
+<h3 id="sink-输出以及特点"><a href="#sink-输出以及特点" class="headerlink" title="sink 输出以及特点"></a>sink 输出以及特点</h3><p>sink 特点如下：</p>
+<ul>
+<li>photo_id 粒度 play（播放）、like（点赞）、comment（评论）、share（分享）、negative（举报）<strong>1 分钟级别窗口聚合数据</strong></li>
+<li>实时视频消费宽表 sink schema 为：<strong>photo_id + play_cnt + like_cnt + comment_cnt + share_cnt + negative_cnt +  minute_timestamp</strong></li>
+</ul>
+<h3 id="source、sink-样例数据"><a href="#source、sink-样例数据" class="headerlink" title="source、sink 样例数据"></a>source、sink 样例数据</h3><p>source 数据：<br>| photo_id       | timestamp |         user_id | 说明 |<br>| ——— | – | ———– | ———– |<br>| 1     |  2020/10/3 11:30:33  |     3 | 播放 |<br>| 1   |  2020/10/3 11:30:33  |   4 | 播放 |<br>| 1   |  2020/10/3 11:30:33  |   5 | 播放 |<br>| 1   |  2020/10/3 11:30:33  |   4 | 点赞 |<br>| 2 |  2020/10/3 11:30:33  | 5 | 点赞 |<br>| 1 |  2020/10/3 11:30:33  | 5 | 评论 |</p>
+<p>sink 数据：<br>| photo_id       | timestamp | play_cnt | like_cnt | comment_cnt<br>| ——— | – | ———– | ———– | ———– |<br>| 1     |  2020/10/3 11:30:00  |     3 | 1 | 1 |<br>| 2   |  2020/10/3 11:30:00  |   0 | 1 | 0 |</p>
+<p>我们已经对数据源输入和输出有了完整的分析，那就瞧瞧有什么方案可以实现上述需求吧。</p>
+<h2 id="实现方案"><a href="#实现方案" class="headerlink" title="实现方案"></a>实现方案</h2><ul>
+<li>方案1：<strong>本小节 cogroup 方案</strong>直接消费原始日志数据，对五类不同的视频消费行为日志使用 cogroup 或者 join 进行窗口聚合计算</li>
+<li>方案2：对五类不同的视频消费行为日志分别单独聚合计算出分钟粒度指标数据，下游再对聚合好的指标数据按照 photo_id 进行合并</li>
+<li>方案3：<strong>本小节 union 方案</strong>既然数据源 schema 相同，直接对五类不同的视频消费行为日志做 union 操作，在后续的窗口函数中对五类指标进行聚合计算。后文介绍 union 方案的设计过程</li>
+</ul>
+<p>我们先上 cogroup 方案的示例代码。</p>
+<h3 id="cogroup"><a href="#cogroup" class="headerlink" title="cogroup"></a>cogroup</h3><p>cogroup 实现示例如下，示例代码直接使用了处理时间（也可替换为事件时间~），因此对数据源的时间戳做了简化（直接干掉）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Cogroup</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Long -&gt; photo_id 播放一次</span></span><br><span class="line">        DataStream&lt;Long&gt; play = SourceFactory.getDataStream(xxx);</span><br><span class="line">        <span class="comment">// Long -&gt; photo_id 点赞一次</span></span><br><span class="line">        DataStream&lt;Long&gt; like = SourceFactory.getDataStream(xxx);</span><br><span class="line">        <span class="comment">// Long -&gt; photo_id 评论一次</span></span><br><span class="line">        DataStream&lt;Long&gt; comment = SourceFactory.getDataStream(xxx);</span><br><span class="line">        <span class="comment">// Long -&gt; photo_id 分享一次</span></span><br><span class="line">        DataStream&lt;Long&gt; share = SourceFactory.getDataStream(xxx);</span><br><span class="line">        <span class="comment">// Long -&gt; photo_id 举报一次</span></span><br><span class="line">        DataStream&lt;Long&gt; negative = SourceFactory.getDataStream(xxx);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Tuple3&lt;Long, Long, Long&gt; -&gt; photo_id + play_cnt + like_cnt 播放和点赞的数据合并</span></span><br><span class="line">        DataStream&lt;Tuple3&lt;Long, Long, Long&gt;&gt; playAndLikeCnt = play</span><br><span class="line">            .coGroup(like)</span><br><span class="line">            .where(KeySelectorFactory.get(Function.identity()))</span><br><span class="line">            .equalTo(KeySelectorFactory.get(Function.identity()))</span><br><span class="line">            .window(TumblingProcessingTimeWindows.of(Time.seconds(<span class="number">60</span>)))</span><br><span class="line">            .apply(xxx1);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Tuple4&lt;Long, Long, Long, Long&gt; -&gt; photo_id + play_cnt + like_cnt + comment_cnt 播放、点赞、评论的数据合并</span></span><br><span class="line">        DataStream&lt;Tuple4&lt;Long, Long, Long, Long, Long&gt;&gt; playAndLikeAndComment = playAndLikeCnt</span><br><span class="line">            .coGroup(comment)</span><br><span class="line">            .where(KeySelectorFactory.get(playAndLikeModel -&gt; playAndLikeModel.f0))</span><br><span class="line">            .equalTo(KeySelectorFactory.get(Function.identity()))</span><br><span class="line">            .window(TumblingProcessingTimeWindows.of(Time.seconds(<span class="number">60</span>)))</span><br><span class="line">            .apply(xxx2);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Tuple5&lt;Long, Long, Long, Long, Long&gt; -&gt; photo_id + play_cnt + like_cnt + comment_cnt + share_cnt 播放、点赞、评论、分享的数据合并</span></span><br><span class="line">        DataStream&lt;Tuple5&lt;Long, Long, Long, Long, Long, Long&gt;&gt; playAndLikeAndCommentAndShare = playAndLikeAndComment</span><br><span class="line">            .coGroup(share)</span><br><span class="line">            .where(KeySelectorFactory.get(playAndLikeAndCommentModel -&gt; playAndLikeAndCommentModel.f0))</span><br><span class="line">            .equalTo(KeySelectorFactory.get(Function.identity()))</span><br><span class="line">            .window(TumblingProcessingTimeWindows.of(Time.seconds(<span class="number">60</span>)))</span><br><span class="line">            .apply(xxx2);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Tuple7&lt;Long, Long, Long, Long, Long, Long, Long&gt; -&gt; photo_id + play_cnt + like_cnt + comment_cnt + share_cnt + negative_cnt + minute_timestamp 播放、点赞、评论、分享、举报的数据合并</span></span><br><span class="line">        <span class="comment">// 同上~</span></span><br><span class="line">        DataStream&lt;Tuple7&lt;Long, Long, Long, Long, Long, Long, Long&gt;&gt; playAndLikeAndCommentAndShare = ***;</span><br><span class="line"></span><br><span class="line">        env.execute();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>粗暴一想，上面这样一搞不就结束了么，事情没那么简单，我们来做一个详细点的分析。</p>
+<h3 id="上述实现可能会存在的问题点"><a href="#上述实现可能会存在的问题点" class="headerlink" title="上述实现可能会存在的问题点"></a>上述实现可能会存在的问题点</h3><ul>
+<li><strong>从 flink 消费到 play 数据源的一条数据到最终产出这条数据被聚合后的数据，整个过程的数据延迟 &gt; 3 分钟…</strong></li>
+<li><strong>如果数据源持续增加（比如添加其他视频消费操作数据源），则整个任务算子变多，数据链路更长，任务稳定性会变差，产出数据延迟也会随着窗口计算变多，延迟更久</strong></li>
+</ul>
+<blockquote>
+<p><strong>数据产品妹妹</strong>：🤩，小哥哥好棒，既然问题点都分析出来了，技术小哥哥就帮人家解决一下嘛~</p>
+<p><strong>头文字 ∩ 技术小哥哥</strong>：搞。</p>
+<p><strong>头文字 ∩ 技术小哥哥</strong>：既然可能由于过多的窗口导致数据产出延迟，job 不稳定，那有没有什么方法减少窗口数量呢，思路转换一下。我们直接以整个 job 中只包含一个窗口算子操作为基点，逆推一下，则有以下数据链路。</p>
+</blockquote>
+<h3 id="逆推链路"><a href="#逆推链路" class="headerlink" title="逆推链路"></a>逆推链路</h3><p>1 - 5 为逆推的整条链路。</p>
+<ul>
+<li><strong>1.五类指标的数据都在单个窗口中计算</strong></li>
+<li><strong>2.五类指标的窗口 model 相同</strong></li>
+<li><strong>3.keyby 中的 key 一致（photo_id）</strong></li>
+<li><strong>4.五类指标的数据源都为 photo_id 粒度，并且五类数据源的 model 都必须相同，并且可以做合并</strong></li>
+<li><strong>5.union 算子可以对五类数据源做合并！！！</strong></li>
+</ul>
+<p>话不多说直接上 union 方案代码。</p>
+<h2 id="union"><a href="#union" class="headerlink" title="union"></a>union</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Union</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Tuple2&lt;Long, String&gt; -&gt; photo_id + "PLAY"标签</span></span><br><span class="line">        DataStream&lt;Tuple2&lt;Long, String&gt;&gt; play = SourceFactory.getDataStream(xxx);</span><br><span class="line">        <span class="comment">// Tuple2&lt;Long, String&gt; -&gt; photo_id + "LIKE"标签</span></span><br><span class="line">        DataStream&lt;Tuple2&lt;Long, String&gt;&gt; like = SourceFactory.getDataStream(xxx);</span><br><span class="line">        <span class="comment">// Tuple2&lt;Long, String&gt; -&gt; photo_id + "COMMENT"标签</span></span><br><span class="line">        DataStream&lt;Tuple2&lt;Long, String&gt;&gt; comment = SourceFactory.getDataStream(xxx);</span><br><span class="line">        <span class="comment">// Tuple2&lt;Long, String&gt; -&gt; photo_id + "SHARE"标签</span></span><br><span class="line">        DataStream&lt;Tuple2&lt;Long, String&gt;&gt; share = SourceFactory.getDataStream(xxx);</span><br><span class="line">        <span class="comment">// Tuple2&lt;Long, String&gt; -&gt; photo_id + "NEGATIVE"标签</span></span><br><span class="line">        DataStream&lt;Tuple2&lt;Long, String&gt;&gt; negative = SourceFactory.getDataStream(xxx);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Tuple5&lt;Long, Long, Long, Long&gt; -&gt; photo_id + play_cnt + like_cnt + comment_cnt + window_start_timestamp</span></span><br><span class="line">        DataStream&lt;Tuple3&lt;Long, Long, Long&gt;&gt; playAndLikeCnt = play</span><br><span class="line">            .union(like)</span><br><span class="line">            .union(comment)</span><br><span class="line">            .union(share)</span><br><span class="line">            .union(negative)</span><br><span class="line">            .keyBy(KeySelectorFactory.get(i -&gt; i.f0))</span><br><span class="line">            .timeWindow(Time.seconds(<span class="number">60</span>))</span><br><span class="line">            .process(xxx);</span><br><span class="line"></span><br><span class="line">        env.execute();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以发现，无论上游数据源怎样进行变化，上述 union 方案中始终可以保持只有一个窗口算子处理和计算数据，则可以解决之前列举的数据延迟以及 flink 任务算子过多的问题。</p>
+<p>在数据源的 schema 相同（或者不同但经过处理之后可以 format 成相同格式）的情况下，或者处理逻辑相同的话，可以使用 union 进行逻辑简化。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文首先介绍了我们的需求场景，第二部分分析了使用 cogroup（案例代码）是如何解决此需求场景，再分析了此实现方案可能会存在一些问题，并引出了 union 解决方案的逆推和设计思路。<br>在第三部分针对此场景使用 union 代替 cogroup 进行了一定程度上的优化。如果针对此场景，大佬们有更好的优化方案的话，期待留言喔。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/blog-img/gzh/wechat.png" alt="公众号" title>
+                </div>
+                <div class="image-caption">公众号</div>
+            </figure>
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2020-10-04T13:21:52.892Z" itemprop="dateUpdated">2020-10-04 21:21:52</time>
+</span><br>
+
+
+        
+        本文链接：<a href="/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/" target="_blank" rel="external">https://yangyichao-mango.github.io/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/</a>
+  <br>转载须知：<a href="/about/#版权声明" target="_blank" rel="copyright">版权声明</a>
+
+        
+    </div>
+    
+    <footer>
+        <a href="https://yangyichao-mango.github.io">
+            <img src="/img/avatar.jpg" alt="yangyichao-mango">
+            yangyichao-mango
+        </a>
+    </footer>
+</blockquote>
+
+        
+<div class="page-reward">
+    <a id="rewardBtn" href="javascript:;" class="page-reward-btn waves-effect waves-circle waves-light">赏</a>
+</div>
+
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Apache-Flink/">Apache Flink</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/&title=《Tips | Flink 使用 union 代替 join、cogroup》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/&title=《Tips | Flink 使用 union 代替 join、cogroup》 — yangyichao-mango's blog&source=" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Tips | Flink 使用 union 代替 join、cogroup》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between flex-row-reverse">
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2020/09/12/wechat-blog/apache-flink:realtime-tips-1/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Tips | Flink sink schema 字段设计小技巧</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+<section class="comments" id="comments">
+    <div id="disqus_thread"></div>
+    <script>
+    var disqus_shortname = 'true';
+    lazyScripts.push('//' + disqus_shortname + '.disqus.com/embed.js')
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+<div id="reward" class="page-modal reward-lay">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <h3 class="reward-title">
+        <i class="icon icon-quote-left"></i>
+        谢谢大爷~
+        <i class="icon icon-quote-right"></i>
+    </h3>
+    <div class="reward-content">
+        
+        <div class="reward-code">
+            <img id="rewardCode" src="/img/wechat.png" alt="打赏二维码">
+        </div>
+        
+        <label class="reward-toggle">
+            <input id="rewardToggle" type="checkbox" class="reward-toggle-check"
+                data-wechat="/img/wechat.png" data-alipay="/img/alipay.png">
+            <div class="reward-toggle-ctrol">
+                <span class="reward-toggle-item wechat">微信</span>
+                <span class="reward-toggle-label"></span>
+                <span class="reward-toggle-item alipay">支付宝</span>
+            </div>
+        </label>
+        
+    </div>
+</div>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>yangyichao-mango &copy; 2019 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://yangyichao-mango.github.io/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/&title=《Tips | Flink 使用 union 代替 join、cogroup》 — yangyichao-mango's blog&pic=https://yangyichao-mango.github.io/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://yangyichao-mango.github.io/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/&title=《Tips | Flink 使用 union 代替 join、cogroup》 — yangyichao-mango's blog&source=" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://yangyichao-mango.github.io/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Tips | Flink 使用 union 代替 join、cogroup》 — yangyichao-mango's blog&url=https://yangyichao-mango.github.io/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/&via=https://yangyichao-mango.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://yangyichao-mango.github.io/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPYAAAD2CAAAAADAeSUUAAADLklEQVR42u3aSXIiQRAEQP7/aeYBEk1EVmuMKrxPGGJpLw6hXB6P+Hq+uF695tUzyeuT9/78nMdfXNjY2NibsJ+XV3KLLeb6cfLK5K/XPxI2Njb2eezrYEjA1+/Nb+j6+fyI3xixsbGxseNoyQHJ7eYBiY2NjY09o+bRkrecZmUPNjY29rexk6ZSXngkBcls/NB+yw29NGxsbOyPZ+dT0c9//CfzbWxsbOwPZj/Lq20MzeJkpeyJFNjY2NgHsdvBbd7Wbz9tpW00vH9sbGzsI9izRcakuZ+PH5JAmh3xy9djY2NjH8fOGSsN+pV35XcSlUDY2NjYB7HbLnobM+1X5gtAbQwXEYiNjY29FXvWrEnKktlSTn7o7RG/yW1sbGzsbdlJFLWFRMJuG0/5M8XwABsbG/sI9mxBJzmmvLWUx9tKI6nYVMLGxsbeip2UFm3DaH0knBcet+U2NjY29rbsuwJm9jgvM1Z+kl8+HxsbG/s4dt5paUuUPLRmW5H51PqXIgQbGxv7CPbKWky7lJOXLnftIkU/AzY2Nvbm7Nm/+PlCT9HZKiNtVsxgY2Njn8deacG3Q+L2WNuCZ1YIYWNjY5/EXoG1EdVGYBtXxZ1gY2NjH8Fej42kuZ+v4+SfNitgsLGxsU9l5w2m/x88bakzHPFiY2Njb8tuh6mzZ9ploPWSKao+sLGxsTdnrzT3Z4XBjJEEW/4abGxs7G9gzxZrkpKmfWVbrkQubGxs7OPY60uW+Zhh/RAf5YWNjY39newEOTuslUCqea+OHhsbG/sgdj5YTVpOeWOoDci2TCpGvNjY2NjHsfObaHdg8oPLj6CNtDq9sbGxsTdk54CVZZo2tNqjj34wbGxs7OPYK+VBu0CT/DWPt2FZgo2NjX0E+1le10GVY/I4nIVlnWnY2NjY27LbAMgjp20wteXKSp8fGxsb+zx2G1qzEMpbVO13DccP2NjY2Mex852WfHFnVpzc1WZ6c8TY2NjY2PEwuC0tZrFUt5mwsbGxv57dNobyQuIGUtKowsbGxj6Ond90Xlq0JcRs2DwcHmBjY2MfxM4HvbMvWF+vuTfMsLGxsQ9i/wN8+SsmrS0UbAAAAABJRU5ErkJggg==" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

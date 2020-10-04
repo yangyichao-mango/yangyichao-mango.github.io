@@ -44,7 +44,7 @@ ga('send', 'pageview');
 <meta property="og:description" content="本站&amp;作者">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/gzh/wechat.png">
-<meta property="og:updated_time" content="2020-09-20T12:38:09.142Z">
+<meta property="og:updated_time" content="2020-09-24T13:38:30.956Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Tips | Flink sink schema 字段设计小技巧">
 <meta name="twitter:description" content="本站&amp;作者">
@@ -190,7 +190,7 @@ ga('send', 'pageview');
     <aside class="post-widget">
         <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
             <h4>TOC</h4>
-            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Tips-Flink-sink-schema-字段设计小技巧"><span class="post-toc-number">1.</span> <span class="post-toc-text">Tips | Flink sink schema 字段设计小技巧</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#sink-schema-中添加-version-版本字段"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">sink schema 中添加 version 版本字段</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#sink-schema-中添加时间戳字段"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">sink schema 中添加时间戳字段</span></a></li></ol></li></ol>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Tips-Flink-sink-schema-字段设计小技巧"><span class="post-toc-number">1.</span> <span class="post-toc-text">Tips | Flink sink schema 字段设计小技巧</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#sink-schema-中添加-version-版本字段"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">sink schema 中添加 version 版本字段</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#实践案例及使用方式"><span class="post-toc-number">1.1.1.</span> <span class="post-toc-text">实践案例及使用方式</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#可应对的故障场景"><span class="post-toc-number">1.1.2.</span> <span class="post-toc-text">可应对的故障场景</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#sink-schema-中添加时间戳字段"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">sink schema 中添加时间戳字段</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#实践案例及使用方式-1"><span class="post-toc-number">1.2.1.</span> <span class="post-toc-text">实践案例及使用方式</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#生产实践案例"><span class="post-toc-number">1.2.2.</span> <span class="post-toc-text">生产实践案例</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#总结"><span class="post-toc-number">1.3.</span> <span class="post-toc-text">总结</span></a></li></ol></li></ol>
         </nav>
     </aside>
 
@@ -217,25 +217,46 @@ ga('send', 'pageview');
         </div>
         <div class="post-content" id="post-content" itemprop="postContent">
             <h1 id="Tips-Flink-sink-schema-字段设计小技巧"><a href="#Tips-Flink-sink-schema-字段设计小技巧" class="headerlink" title="Tips | Flink sink schema 字段设计小技巧"></a>Tips | Flink sink schema 字段设计小技巧</h1><blockquote>
-<p>本系列每篇文章都比较短小，不定期更新，从一些实际的 case 出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍 Flink sink schema 字段设计小技巧，阅读时长大概一分钟，话不多说，直接进入正文！</p>
+<p>本系列每篇文章都比较短小，不定期更新，从一些实际的 case 出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍 Flink sink schema 字段设计小技巧，阅读时长大概 2 分钟，话不多说，直接进入正文！</p>
 </blockquote>
-<h2 id="sink-schema-中添加-version-版本字段"><a href="#sink-schema-中添加-version-版本字段" class="headerlink" title="sink schema 中添加 version 版本字段"></a>sink schema 中添加 version 版本字段</h2><p>生产实践案例：</p>
-<ul>
-<li><strong>非故障场景下产出的每条记录的 version 为 1</strong></li>
-<li><strong>故障场景下，需要修复数据时，为避免下游代码逻辑改动过大，可以在同一 sink 中产出 version &gt; 1（非 1）的修复数据</strong></li>
+<h2 id="sink-schema-中添加-version-版本字段"><a href="#sink-schema-中添加-version-版本字段" class="headerlink" title="sink schema 中添加 version 版本字段"></a>sink schema 中添加 version 版本字段</h2><p>如 title，直接上实践案例和使用方式。</p>
+<h3 id="实践案例及使用方式"><a href="#实践案例及使用方式" class="headerlink" title="实践案例及使用方式"></a>实践案例及使用方式</h3><ul>
+<li><strong>非故障场景下产出的每条记录的 version 字段值为 1</strong></li>
+<li><strong>故障场景下，可以在同一 sink 中产出 version &gt; 1（非 1）的数据，代表故障修复数据提供给下游消费</strong></li>
 </ul>
-<h2 id="sink-schema-中添加时间戳字段"><a href="#sink-schema-中添加时间戳字段" class="headerlink" title="sink schema 中添加时间戳字段"></a>sink schema 中添加时间戳字段</h2><p>有窗口场景中，sink schema 中可添加以下字段：</p>
+<h3 id="可应对的故障场景"><a href="#可应对的故障场景" class="headerlink" title="可应对的故障场景"></a>可应对的故障场景</h3><p>上游 flink 任务 A 发生故障导致产出脏数据至 kafka X，并且下游消费方可以按照下面两类进行划分：</p>
 <ul>
-<li><strong>flink_process_start_time(long)，代表 flink 窗口开始逻辑处理的时间戳</strong></li>
-<li><strong>flink_process_end_time(long)，代表 flink 窗口结束逻辑处理的时间戳</strong></li>
-<li><strong>window_start(long)，代表 flink 窗口开始时间戳</strong></li>
-<li><strong>window_end(long)，代表 flink 窗口结束时间戳</strong></li>
+<li><strong>下游为 flink 任务</strong>：flink 任务 B 消费 kafka X 中的脏数据，结果计算并产出错误数据</li>
+<li><strong>下游为 OLAP 引擎以及 BI 看板</strong>：结果导致看板展示数据异常</li>
 </ul>
-<p>生产实践案例：</p>
+<p>首先介绍下避免以及处理上述问题的整体思路：</p>
 <ul>
-<li><strong>flink_process_start_time，flink_process_end_time 在测试，验数时可帮助用户定位数据偏差原因和性能问题</strong></li>
-<li><strong>window_start，window_end 可以帮助用户定位每个窗口处理是否有丢数，及每个窗口处理了什么数据</strong></li>
+<li><strong>1.优化逻辑，保障上游任务稳定性</strong>：首先通过一些优化手段，尽可能保证上游 flink 任务 A 不出现故障</li>
+<li><strong>2.配置作业监控报警</strong>：针对整条链路配置对应的监控报警等，以及时发现和定位问题</li>
+<li><strong>3.制定故障处理、修复预案</strong>：需要制定对应的故障处理、修复预案，一旦出现故障，需要有可处理故障的能力</li>
+<li><strong>4.下游针对数据源特性改进消费和处理方式</strong>：保障即使消费了脏数据也不会对业务逻辑产生影响</li>
 </ul>
+<p>下文主要介绍<strong>第 2 点</strong>，出现上述故障时修复的方案，针对以上场景，目前有如下 3 种可选方案修复数据：</p>
+<ul>
+<li><strong>方案 1 - 离线方式修复</strong>：通过离线方式产出修复数据，对脏数据进行覆盖操作。缺点是故障修复延迟较高，需要切换离线、实时数据源，人工操作成本较高</li>
+<li><strong>方案 2 - 实时方式修复</strong>：重跑修数逻辑，产出修复数据至 kafka X-fix，下游 flink 任务 B 重新从 kafka X-fix 中的指定 offset 开始消费，计算并产出正确的数据。此方案对下游 flink 任务 B 来说，需要改动代码逻辑，存在修数 topic 和原 topic 切换逻辑，修复逻辑较为复杂</li>
+<li><strong>方案 3 - 实时方式修复（本小节 version 字段方案）</strong>：为避免下游产生数据源切换操作带来的高成本操作，可在原有 kafka topic 中产出修复数据，通过 version 字段区分正常产出数据以及修复数据，相对方案 1 和 2 的优点在于，不存在数据源切换逻辑，下游通过控制 version 字段值就可消费到对应的修复数据，明显降低人工操作成本，且修复逻辑相对简单</li>
+</ul>
+<blockquote>
+<p>Note: 方案 3 需要对 Kafka X 预留一定的 buffer，否则在产出修复数据时，由于写入或读出 Kafka X 的 QPS 过高，会影响正常产出数据的任务。</p>
+</blockquote>
+<h2 id="sink-schema-中添加时间戳字段"><a href="#sink-schema-中添加时间戳字段" class="headerlink" title="sink schema 中添加时间戳字段"></a>sink schema 中添加时间戳字段</h2><h3 id="实践案例及使用方式-1"><a href="#实践案例及使用方式-1" class="headerlink" title="实践案例及使用方式"></a>实践案例及使用方式</h3><p>有窗口场景中，sink schema 中可添加以下字段：</p>
+<ul>
+<li><strong>flink_process_start_time(long)：代表 flink 窗口开始逻辑处理的时间戳</strong></li>
+<li><strong>flink_process_end_time(long)：代表 flink 窗口结束逻辑处理的时间戳</strong></li>
+<li><strong>window_start(long)：代表 flink 窗口开始时间戳</strong></li>
+<li><strong>window_end(long)：代表 flink 窗口结束时间戳</strong></li>
+</ul>
+<h3 id="生产实践案例"><a href="#生产实践案例" class="headerlink" title="生产实践案例"></a>生产实践案例</h3><ul>
+<li><strong>flink_process_start_time，flink_process_end_time 在开发、测试、验数阶段可帮助用户定位数据偏差原因</strong></li>
+<li><strong>window_start，window_end 可以帮助用户定位每个窗口处理是否有丢数，及每个窗口处理的具体数据</strong></li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文主要介绍了在 sink schema 中添加 version（版本），时间戳扩展字段的小技巧，以帮助用户在生产环境中提升实时数据故障修复效率以及可用性。</p>
 <figure class="image-bubble">
                 <div class="img-lightbox">
                     <div class="overlay"></div>
@@ -250,7 +271,7 @@ ga('send', 'pageview');
     <div class="content">
         
 <span class="post-time">
-    最后更新时间：<time datetime="2020-09-20T12:38:09.142Z" itemprop="dateUpdated">2020-09-20 20:38:09</time>
+    最后更新时间：<time datetime="2020-09-24T13:38:30.956Z" itemprop="dateUpdated">2020-09-24 21:38:30</time>
 </span><br>
 
 
@@ -333,7 +354,14 @@ ga('send', 'pageview');
     </div>
 
     
-<nav class="post-nav flex-row flex-justify-between flex-row-reverse">
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Tips | Flink 使用 union 代替 join、cogroup</h4>
+      </a>
+    </div>
   
 
   
