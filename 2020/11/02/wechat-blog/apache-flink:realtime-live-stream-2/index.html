@@ -735,8 +735,30 @@
           
 
           
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yangyichao-mango" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:1048262223@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
 
           
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
           
 
           
@@ -757,7 +779,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5-Flink-%E7%9B%B4%E6%92%AD%EF%BC%88%E4%BA%8C%EF%BC%89-%E5%A6%82%E4%BD%95%E5%BB%BA%E8%AE%BE%E5%AE%9E%E6%97%B6%E5%85%AC%E5%85%B1%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8%EF%BC%9F"><span class="nav-text">生产实践 | Flink + 直播（二）| 如何建设实时公共画像维表？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84"><span class="nav-text">技术架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Question"><span class="nav-text">Question</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WHAT%EF%BC%9A%E5%AE%9E%E6%97%B6-amp-%E7%A6%BB%E7%BA%BF%E5%85%AC%E5%85%B1%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8%EF%BC%9F"><span class="nav-text">WHAT：实时 &amp; 离线公共画像维表？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-text">概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8C%BA%E5%88%AB"><span class="nav-text">区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A6%BB%E7%BA%BF%E5%85%AC%E5%85%B1%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8"><span class="nav-text">离线公共画像维表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E6%97%B6%E5%85%AC%E5%85%B1%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8"><span class="nav-text">实时公共画像维表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WHY%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BB%BA%E8%AE%BE%E5%AE%9E%E6%97%B6%E5%85%AC%E5%85%B1%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8%EF%BC%9F"><span class="nav-text">WHY：为什么建设实时公共画像维表？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B4%E6%92%AD%E9%97%B4%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8"><span class="nav-text">直播间画像维表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E6%92%AD-amp-%E8%A7%82%E4%BC%97%E7%94%A8%E6%88%B7%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8"><span class="nav-text">主播 &amp; 观众用户画像维表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HOW-WHO%EF%BC%9A%E6%80%8E%E6%A0%B7%E5%BB%BA%E8%AE%BE%EF%BC%9F%E7%94%A8%E4%BB%80%E4%B9%88%E5%BB%BA%E8%AE%BE%EF%BC%9F"><span class="nav-text">HOW + WHO：怎样建设？用什么建设？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B4%E6%92%AD%E9%97%B4%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F-amp-%E6%95%B0%E6%8D%AE%E6%B5%81%E8%BD%AC"><span class="nav-text">直播间生命周期 &amp; 数据流转</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B4%E6%92%AD%E9%97%B4%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8-%E5%AE%9E%E6%97%B6"><span class="nav-text">直播间画像维表-实时</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%9B%B4%E6%92%AD%E9%97%B4%E7%94%BB%E5%83%8F%E5%AE%9E%E6%97%B6%E6%95%B0%E6%8D%AE%E6%B5%81%E8%BD%AC"><span class="nav-text">直播间画像实时数据流转</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%84%E4%BB%B6%E9%80%89%E5%9E%8B"><span class="nav-text">组件选型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#flink-%E5%AE%9E%E6%97%B6%E7%BB%B4%E8%A1%A8%E5%BB%BA%E8%AE%BE%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B"><span class="nav-text">flink 实时维表建设代码示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E6%92%AD-amp-%E8%A7%82%E4%BC%97%E7%94%A8%E6%88%B7%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8-%E7%A6%BB%E7%BA%BF"><span class="nav-text">主播 &amp; 观众用户画像维表-离线</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BB%E6%92%AD-amp-%E8%A7%82%E4%BC%97%E7%94%BB%E5%83%8F%E6%95%B0%E6%8D%AE%E6%B5%81%E8%BD%AC"><span class="nav-text">主播 &amp; 观众画像数据流转</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E7%BB%84%E4%BB%B6"><span class="nav-text">存储组件</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-text">总结</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5-Flink-%E7%9B%B4%E6%92%AD%EF%BC%88%E4%BA%8C%EF%BC%89-%E5%A6%82%E4%BD%95%E5%BB%BA%E8%AE%BE%E5%AE%9E%E6%97%B6%E5%85%AC%E5%85%B1%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">生产实践 | Flink + 直播（二）| 如何建设实时公共画像维表？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84"><span class="nav-number">1.1.</span> <span class="nav-text">技术架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Question"><span class="nav-number">1.2.</span> <span class="nav-text">Question</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WHAT%EF%BC%9A%E5%AE%9E%E6%97%B6-amp-%E7%A6%BB%E7%BA%BF%E5%85%AC%E5%85%B1%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8%EF%BC%9F"><span class="nav-number">1.3.</span> <span class="nav-text">WHAT：实时 &amp; 离线公共画像维表？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-number">1.3.1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8C%BA%E5%88%AB"><span class="nav-number">1.3.2.</span> <span class="nav-text">区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A6%BB%E7%BA%BF%E5%85%AC%E5%85%B1%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8"><span class="nav-number">1.3.3.</span> <span class="nav-text">离线公共画像维表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E6%97%B6%E5%85%AC%E5%85%B1%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8"><span class="nav-number">1.3.4.</span> <span class="nav-text">实时公共画像维表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WHY%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BB%BA%E8%AE%BE%E5%AE%9E%E6%97%B6%E5%85%AC%E5%85%B1%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8%EF%BC%9F"><span class="nav-number">1.4.</span> <span class="nav-text">WHY：为什么建设实时公共画像维表？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B4%E6%92%AD%E9%97%B4%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8"><span class="nav-number">1.4.1.</span> <span class="nav-text">直播间画像维表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E6%92%AD-amp-%E8%A7%82%E4%BC%97%E7%94%A8%E6%88%B7%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8"><span class="nav-number">1.4.2.</span> <span class="nav-text">主播 &amp; 观众用户画像维表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HOW-WHO%EF%BC%9A%E6%80%8E%E6%A0%B7%E5%BB%BA%E8%AE%BE%EF%BC%9F%E7%94%A8%E4%BB%80%E4%B9%88%E5%BB%BA%E8%AE%BE%EF%BC%9F"><span class="nav-number">1.5.</span> <span class="nav-text">HOW + WHO：怎样建设？用什么建设？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B4%E6%92%AD%E9%97%B4%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F-amp-%E6%95%B0%E6%8D%AE%E6%B5%81%E8%BD%AC"><span class="nav-number">1.5.1.</span> <span class="nav-text">直播间生命周期 &amp; 数据流转</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B4%E6%92%AD%E9%97%B4%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8-%E5%AE%9E%E6%97%B6"><span class="nav-number">1.5.2.</span> <span class="nav-text">直播间画像维表-实时</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%9B%B4%E6%92%AD%E9%97%B4%E7%94%BB%E5%83%8F%E5%AE%9E%E6%97%B6%E6%95%B0%E6%8D%AE%E6%B5%81%E8%BD%AC"><span class="nav-number">1.5.2.1.</span> <span class="nav-text">直播间画像实时数据流转</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%84%E4%BB%B6%E9%80%89%E5%9E%8B"><span class="nav-number">1.5.2.2.</span> <span class="nav-text">组件选型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#flink-%E5%AE%9E%E6%97%B6%E7%BB%B4%E8%A1%A8%E5%BB%BA%E8%AE%BE%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.5.2.3.</span> <span class="nav-text">flink 实时维表建设代码示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E6%92%AD-amp-%E8%A7%82%E4%BC%97%E7%94%A8%E6%88%B7%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8-%E7%A6%BB%E7%BA%BF"><span class="nav-number">1.5.3.</span> <span class="nav-text">主播 &amp; 观众用户画像维表-离线</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BB%E6%92%AD-amp-%E8%A7%82%E4%BC%97%E7%94%BB%E5%83%8F%E6%95%B0%E6%8D%AE%E6%B5%81%E8%BD%AC"><span class="nav-number">1.5.3.1.</span> <span class="nav-text">主播 &amp; 观众画像数据流转</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E7%BB%84%E4%BB%B6"><span class="nav-number">1.5.3.2.</span> <span class="nav-text">存储组件</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.6.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
             
 
           </div>
@@ -777,7 +799,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2021</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
@@ -923,7 +945,7 @@
   
 
     
-      <script id="dsq-count-scr" src="https://antigeneral.disqus.com/count.js" async></script>
+      <script id="dsq-count-scr" src="https://true.disqus.com/count.js" async></script>
     
 
     
@@ -934,7 +956,7 @@
           this.page.title = '生产实践 | Flink + 直播（二）| 如何建设实时公共画像维表？';
         };
         var d = document, s = d.createElement('script');
-        s.src = 'https://antigeneral.disqus.com/embed.js';
+        s.src = 'https://true.disqus.com/embed.js';
         s.setAttribute('data-timestamp', '' + +new Date());
         (d.head || d.body).appendChild(s);
       </script>

@@ -83,7 +83,7 @@
 
 <meta name="description" content="本系列每篇文章都是从实际生产触发，从 5W 角度帮助大家理解全局一致性快照，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
 <meta property="og:type" content="article">
-<meta property="og:title" content="深入浅出 | 全局一致性快照（一）">
+<meta property="og:title" content="深入浅出 | flink 全局一致性快照（一）">
 <meta property="og:url" content="https://yangyichao-mango.github.io/2021/03/12/wechat-blog/apache-flink:state-1/index.html">
 <meta property="og:site_name" content="antigeneral&#39;s blog">
 <meta property="og:description" content="本系列每篇文章都是从实际生产触发，从 5W 角度帮助大家理解全局一致性快照，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
@@ -128,7 +128,7 @@
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/37.png">
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/38.png">
 <meta property="article:published_time" content="2021-03-12T06:21:53.000Z">
-<meta property="article:modified_time" content="2021-04-04T12:18:10.181Z">
+<meta property="article:modified_time" content="2021-04-04T14:39:01.166Z">
 <meta property="article:author" content="yangyichao-mango">
 <meta property="article:tag" content="Apache Flink">
 <meta name="twitter:card" content="summary">
@@ -168,7 +168,7 @@
 
 
 
-  <title>深入浅出 | 全局一致性快照（一） | antigeneral's blog</title>
+  <title>深入浅出 | flink 全局一致性快照（一） | antigeneral's blog</title>
   
 
 
@@ -366,7 +366,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">深入浅出 | 全局一致性快照（一）</h1>
+          <h1 class="post-title" itemprop="name headline">深入浅出 | flink 全局一致性快照（一）</h1>
         
 
         <div class="post-meta">
@@ -484,8 +484,10 @@
       
 
       
-        <h1 id="1-目录"><a href="#1-目录" class="headerlink" title="1.目录"></a>1.目录</h1><ol>
-<li><p>什么是状态？<br>发散思维的去思考状态。我们所理解的状态不仅仅只限于 flink 的状态。让大家了解到状态是一个无处不在的东西</p>
+        <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><p>目录<br>先带大家串一遍本篇文章的思路</p>
+</li>
+<li><p>什么是状态？<br>发散思维的去思考状态，我们所理解的状态不仅仅只限于 flink 的状态，让大家了解到状态是一个无处不在的东西</p>
 </li>
 <li><p>什么是全局一致性快照？和状态有什么关系？<br>全局一致性快照的一些生活、工作中应用的例子</p>
 </li>
@@ -497,74 +499,102 @@
 </li>
 <li><p>怎么实现全局一致性快照？<br>同步去做，包括时钟同步、Stop-the-world，但是这两种方法都不可接受；<br>既然同步无法做，那如果异步能做出相同的全局一致性状态也可以</p>
 </li>
-<li><p>分布式应用的全局一致性快照其 Process 状态和 Channel状态到底需要记录什么？其之间需要满足什么关系的一些思考？<br>不是必须要在同一时刻嘛，为啥还能异步去做？只要异步做出来的状态和同步做出来的状态效果一致也可以。</p>
+<li><p>分布式应用的全局一致性快照其 Process 状态和 Channel 状态到底需要记录什么？怎么记录 Channel 的状态？<br>不是必须要在同一时刻嘛，为啥还能异步去做？只要异步做出来的状态和同步做出来的状态效果一致也可以。并且详细分析了 process 和 channel 中的状态包括什么，以及记录 channel 状态的方法。</p>
 </li>
 <li><p>Chandy-Lamport 算法流程、例子<br>介绍 Chandy-Lamport 算法流程并以一个例子介绍其执行过程</p>
 </li>
-<li><p>flink 实现的全局一致性快照介绍</p>
+<li><p>flink 实现的全局一致性快照介绍<br>大致介绍 flink 的全局一致性快照</p>
+</li>
+<li><p>参考文章<br>本文编写过程中参考的文章</p>
 </li>
 </ol>
-<h1 id="2-什么是状态？（了解状态）"><a href="#2-什么是状态？（了解状态）" class="headerlink" title="2.什么是状态？（了解状态）"></a>2.什么是状态？（了解状态）</h1><p>目标：首先想让大家发散思维的去思考状态？我们所理解的状态不仅仅只限于 flink 的状态。让大家了解到状态是一个普遍存在的东西<br>定义：就是当前计算需要依赖到之前计算的结果，那么之前计算的结果就是状态<br>举例：</p>
+<h1 id="什么是状态？（了解状态）"><a href="#什么是状态？（了解状态）" class="headerlink" title="什么是状态？（了解状态）"></a>什么是状态？（了解状态）</h1><h2 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h2><p>首先想让大家发散思维的去思考状态？我们所理解的状态不仅仅只限于 flink 的状态。让大家了解到状态是一个普遍存在的东西</p>
+<h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><p>就是当前计算需要依赖到之前计算的结果，那么之前计算的结果就是状态</p>
+<h2 id="举例"><a href="#举例" class="headerlink" title="举例"></a>举例</h2><ol>
+<li><p>比如生活中的例子：为什么我知道我的面前放着一台电脑，因为眼睛接收到外界的图案，然后我的大脑接收到这个图案后，拿记忆中存储的图案进行对比，匹配得到这是电脑，那么记忆中存储的图案就是状态；还有比如日久生情，为什么感情会越来越深，因为今天的感情 = 今天积累的感情 + 以前积累的感情，以前积累的感情就是状态。这其中都存在状态</p>
+</li>
+<li><p>比如 web server 应用中的状态：打开 github 页面，列表展示了我的归属仓库。其中就是 web client 发了查询我的归属仓库请求，web server 接收到请求之后，然后去存储引擎中进行查询匹配返回。那么存储引擎中存储的内容就是状态<br><img src="/blog-img/apache-flink:state-1/1.png" alt="1"></p>
+</li>
+<li><p>比如 flink 应用中的状态：要做当天 uid 去重，就要存储所有的 uid；要获取当前最大值，那么历史最大值就是状态</p>
+</li>
+</ol>
+<p><img src="/blog-img/apache-flink:state-1/2.jpeg" alt="2"></p>
+<h1 id="什么是全局一致性快照？（了解全局一致性快照）"><a href="#什么是全局一致性快照？（了解全局一致性快照）" class="headerlink" title="什么是全局一致性快照？（了解全局一致性快照）"></a>什么是全局一致性快照？（了解全局一致性快照）</h1><ul>
+<li><strong>全局：代表是一个分布式的</strong></li>
+<li><strong>一致性快照：代表绝对时间的同一时刻的状态</strong></li>
+<li><strong>相当于打开上帝视角，去观察同一时刻的应用所有的状态；这里的快照 = 状态，文章之后我可能会把这两个词混用，大家明白他们的意思一致即可</strong></li>
+</ul>
 <ol>
-<li><p>比如生活中的例子：为什么我知道这个是电脑，因为眼睛接收到外界的图案，然后我的大脑接收到这个图案后，拿记忆中存储的图案进行对比，匹配得到这是电脑。那么记忆中存储的图案就是状态；日久生情等都存在状态</p>
-</li>
-<li><p>比如 web server 应用中的状态：打开 github 页面，列表展示了我的归属仓库。其中就是 web client 发了查询我的归属仓库请求，web server 接收到请求之后，然后去 mysql 中进行查询匹配返回。那么 mysql 中存储的内容就是状态<br><img src="/blog-img/apache-flink:state-1/1.png" alt="1"></p>
-</li>
-<li><p>比如 flink 应用中的状态：要去重，就要存储所有的 key；要获取当前最大值，那么历史最大值就是状态<br><img src="/blog-img/apache-flink:state-1/2.jpeg" alt="2"></p>
-</li>
+<li>比如生活中的例子：比如拍了一个照片，那么照片的内容就是当时的一个全局一致性快照；每一个首脑都是一个进程，所有的进程的状态在同一时刻的组合就是一个全局一致性快照</li>
 </ol>
-<h1 id="3-什么是全局一致性快照？（了解全局一致性快照）"><a href="#3-什么是全局一致性快照？（了解全局一致性快照）" class="headerlink" title="3.什么是全局一致性快照？（了解全局一致性快照）"></a>3.什么是全局一致性快照？（了解全局一致性快照）</h1><p><strong>全局：代表是一个分布式的</strong><br><strong>一致性快照：代表绝对时间的同一时刻的状态</strong><br><strong>相当于打开上帝视角，去观察同一时刻的应用所有的状态</strong><br><strong>其实这里的快照 = 状态，文章之后我可能会把这两个词混用，大家明白他们的意思一致即可</strong></p>
-<ol>
-<li><p>比如生活中的例子：比如拍了一个照片，那么照片的内容就是当时的一个全局一致性快照；每一个首脑都是一个进程，所有的进程的状态在同一时刻的组合就是一个全局一致性快照<br><img src="/blog-img/apache-flink:state-1/3.png" alt="3"></p>
-</li>
-<li><p>比如分布式应用的例子：首先是一个分布式应用，它有多个进程分布在多个服务器上；其次，它在应用内部有自己的处理逻辑和状态；第三，应用间是可以互相通信的；第四，在这种分布式的应用，有内部状态，硬件可以通信的情况下；某一时刻的全局状态，就叫做全局的快照。</p>
-</li>
+<p><img src="/blog-img/apache-flink:state-1/3.png" alt="3"></p>
+<ol start="2">
+<li>比如分布式应用的例子：首先是一个分布式应用，它有多个进程分布在多个服务器上；其次，它在应用内部有自己的处理逻辑和状态；第三，应用间是可以互相通信的；第四，在这种分布式的应用，有内部状态，硬件可以通信的情况下；某一时刻的全局状态，就叫做全局的快照。</li>
 </ol>
-<p><strong>分布式应用某一时刻的全局一致性快照 = 各个 process 的本地状态 + channel 中正在传递的消息</strong><br><img src="/blog-img/apache-flink:state-1/4.png" alt="4"></p>
-<h1 id="4-为什么需要一致性快照？全局一致性快照和-flink-的关系？"><a href="#4-为什么需要一致性快照？全局一致性快照和-flink-的关系？" class="headerlink" title="4.为什么需要一致性快照？全局一致性快照和 flink 的关系？"></a>4.为什么需要一致性快照？全局一致性快照和 flink 的关系？</h1><p><img src="/blog-img/apache-flink:state-1/5.png" alt="5"></p>
-<h2 id="实时案例"><a href="#实时案例" class="headerlink" title="实时案例"></a>实时案例</h2><pre><code>- 做检查点（全局一致性快照）用来故障恢复，重点就在于我们不必要从历史起点开始重跑所有的数据；（1.kafka 不可能存储历史所有数据 2.重跑历史数据的情况下，时效性是达不到要求的）
+<p><strong>分布式应用某一时刻的全局一致性快照 = 各个 process 的本地状态 + channel 中正在传递的消息</strong></p>
+<p><img src="/blog-img/apache-flink:state-1/4.png" alt="4"></p>
+<p>介绍完了几个例子之后，我们来看看我们为什么需要一致性快照？</p>
+<h1 id="为什么需要一致性快照？全局一致性快照和-flink-的关系？"><a href="#为什么需要一致性快照？全局一致性快照和-flink-的关系？" class="headerlink" title="为什么需要一致性快照？全局一致性快照和 flink 的关系？"></a>为什么需要一致性快照？全局一致性快照和 flink 的关系？</h1><br>
 
-- 可以做任务的死锁检测</code></pre><p><img src="/blog-img/apache-flink:state-1/6.png" alt="6"></p>
-<h1 id="6-全局一致性快照的分布式应用案例？"><a href="#6-全局一致性快照的分布式应用案例？" class="headerlink" title="6.全局一致性快照的分布式应用案例？"></a>6.全局一致性快照的分布式应用案例？</h1><p>通过一个简单分布式应用介绍一下全局一致性状态是每时每刻都存在的。时间轴上的每一个时刻都存在一个全局一致性快照（拍照片）。</p>
-<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><p>下面分布式应用的一个示例：<br><img src="/blog-img/apache-flink:state-1/7.jpeg" alt="7"><br><img src="/blog-img/apache-flink:state-1/8.jpeg" alt="8"><br><img src="/blog-img/apache-flink:state-1/9.jpeg" alt="9"><br><img src="/blog-img/apache-flink:state-1/10.jpeg" alt="10"></p>
-<h2 id="每时每刻都存在全局一致性快照"><a href="#每时每刻都存在全局一致性快照" class="headerlink" title="每时每刻都存在全局一致性快照"></a>每时每刻都存在全局一致性快照</h2><p>上面这个只是四个时刻的四个快照，其实应用的每一个时刻都存在一个全局一致性快照。<br><img src="/blog-img/apache-flink:state-1/11.png" alt="11"></p>
-<h1 id="7-全局一致性快照的标准定义"><a href="#7-全局一致性快照的标准定义" class="headerlink" title="7.全局一致性快照的标准定义"></a>7.全局一致性快照的标准定义</h1><h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><p>假如说有两个事件，a和b，在绝对时间下，如果a发生在b之前，且b被包含在快照当中，那么则a也被包含在快照当中。满足这个条件的全局快照，就称为全局一致性快照。<br><img src="/blog-img/apache-flink:state-1/12.png" alt="12"><br><img src="/blog-img/apache-flink:state-1/13.png" alt="13"></p>
+<p><img src="/blog-img/apache-flink:state-1/5.png" alt="5"></p>
+<h2 id="实时案例"><a href="#实时案例" class="headerlink" title="实时案例"></a>实时案例</h2><ol>
+<li>做检查点（全局一致性快照）用来故障恢复，<strong><font color=red>重点！！！重点！！！重点！！！就在于我们不必要从历史起点开始重跑所有的数据（其实这就是我们需要检查点的目的！！！）</font></strong>；因为<ul>
+<li>流式应用的上游存储介质一般都不支持存储历史所有数据（kafka 不可能存储历史所有数据）</li>
+<li>重跑时效性不能满足时效性要求（重跑历史数据的情况下，时效性是达不到要求的）</li>
+</ul>
+</li>
+</ol>
+<ol start="2">
+<li>可以做任务的死锁检测</li>
+</ol>
+<h2 id="全局一致性快照和-flink-的关系"><a href="#全局一致性快照和-flink-的关系" class="headerlink" title="全局一致性快照和 flink 的关系"></a>全局一致性快照和 flink 的关系</h2><p>flink 的 cp 和 sp 实际上就是全局一致性快照在分布式应用中的一个具体实现。</p>
+<p><img src="/blog-img/apache-flink:state-1/6.png" alt="6"></p>
+<h1 id="全局一致性快照的分布式应用案例？"><a href="#全局一致性快照的分布式应用案例？" class="headerlink" title="全局一致性快照的分布式应用案例？"></a>全局一致性快照的分布式应用案例？</h1><p>通过一个简单分布式应用介绍一下全局一致性状态是每时每刻都存在的。时间轴上的每一个时刻都存在一个全局一致性快照（可以用拍照片去类比）。</p>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><p>下面分布式应用的一个示例：</p>
+<p><img src="/blog-img/apache-flink:state-1/7.jpeg" alt="7"><br><img src="/blog-img/apache-flink:state-1/8.jpeg" alt="8"><br><img src="/blog-img/apache-flink:state-1/9.jpeg" alt="9"><br><img src="/blog-img/apache-flink:state-1/10.jpeg" alt="10"></p>
+<h2 id="每时每刻都存在全局一致性快照"><a href="#每时每刻都存在全局一致性快照" class="headerlink" title="每时每刻都存在全局一致性快照"></a>每时每刻都存在全局一致性快照</h2><p>上面这个只是四个时刻的四个快照，其实应用的每一个时刻都存在一个全局一致性快照。</p>
+<p><img src="/blog-img/apache-flink:state-1/11.png" alt="11"></p>
+<h1 id="全局一致性快照的标准定义"><a href="#全局一致性快照的标准定义" class="headerlink" title="全局一致性快照的标准定义"></a>全局一致性快照的标准定义</h1><h2 id="定义-1"><a href="#定义-1" class="headerlink" title="定义"></a>定义</h2><p>假如说有两个事件，a和b，在绝对时间下，如果a发生在b之前，且b被包含在快照当中，那么则a也被包含在快照当中。满足这个条件的全局快照，就称为全局一致性快照。</p>
+<p><img src="/blog-img/apache-flink:state-1/12.png" alt="12"><br><img src="/blog-img/apache-flink:state-1/13.png" alt="13"></p>
 <h2 id="本质"><a href="#本质" class="headerlink" title="本质"></a>本质</h2><p>就是如果将做了绝对时刻 T 的一个快照，那么这个绝对时刻 T 之前发生的所有事件以及其影响都会被包含在这个快照中</p>
-<h1 id="8-怎么实现全局一致性快照？"><a href="#8-怎么实现全局一致性快照？" class="headerlink" title="8.怎么实现全局一致性快照？"></a>8.怎么实现全局一致性快照？</h1><h2 id="同步实现方式"><a href="#同步实现方式" class="headerlink" title="同步实现方式"></a>同步实现方式</h2><p><img src="/blog-img/apache-flink:state-1/14.jpeg" alt="14"></p>
+<h1 id="怎么实现全局一致性快照？"><a href="#怎么实现全局一致性快照？" class="headerlink" title="怎么实现全局一致性快照？"></a>怎么实现全局一致性快照？</h1><h2 id="同步实现方式"><a href="#同步实现方式" class="headerlink" title="同步实现方式"></a>同步实现方式</h2><p><img src="/blog-img/apache-flink:state-1/14.jpeg" alt="14"></p>
 <ul>
-<li>NTP（<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/NTP%E6%9C%8D%E5%8A%A1%E5%99%A8/8633994?fr=aladdin）">https://baike.baidu.com/item/NTP%E6%9C%8D%E5%8A%A1%E5%99%A8/8633994?fr=aladdin）</a>: NTP服务器【Network Time Protocol（NTP）】是用来使计算机时间同步化的一种协议，它可以使计算机对其服务器或时钟源（如石英钟，GPS等等)做同步化，它可以提供高精准度的时间校正（LAN上与标准间差小于1毫秒，WAN上几十毫秒）<br>结论：无法实现</li>
-<li>同步实现方式：Stop-The-World（<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/b210f9db19a3）">https://www.jianshu.com/p/b210f9db19a3）</a></li>
+<li><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/NTP%E6%9C%8D%E5%8A%A1%E5%99%A8/8633994?fr=aladdin">NTP</a>: NTP服务器[Network Time Protocol（NTP）]是用来使计算机时间同步化的一种协议，它可以使计算机对其服务器或时钟源（如石英钟，GPS等等)做同步化，它可以提供高精准度的时间校正（LAN上与标准间差小于1毫秒，WAN上几十毫秒）<br>结论：无法实现</li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/b210f9db19a3">Stop-The-World</a></li>
 </ul>
-<p>结论：不满足需求，无法采用</p>
-<h2 id="异步实现方式"><a href="#异步实现方式" class="headerlink" title="异步实现方式"></a>异步实现方式</h2><p>如果同步实现方式不满足需求，那么能使用异步做到同步相同的快照也是可以满足需求的</p>
-<ul>
-<li>异步实现方式：chandy-lamport<br>论文：<a target="_blank" rel="noopener" href="https://www.microsoft.com/en-us/research/uploads/prod/2016/12/Determining-Global-States-of-a-Distributed-System.pdf?ranMID=24542&amp;ranEAID=J84DHJLQkR4&amp;ranSiteID=J84DHJLQkR4-mVoVymFnAblBx3zwyf98Pw&amp;epi=J84DHJLQkR4-mVoVymFnAblBx3zwyf98Pw&amp;irgwc=1&amp;OCID=AID2000142_aff_7593_1243925&amp;tduid=%28ir__1hs2uuow6wkfq3oxkk0sohzzwm2xpc33lxd0o6g200%29%287593%29%281243925%29%28J84DHJLQkR4-mVoVymFnAblBx3zwyf98Pw%29%28%29&amp;irclickid=_1hs2uuow6wkfq3oxkk0sohzzwm2xpc33lxd0o6g200">https://www.microsoft.com/en-us/research/uploads/prod/2016/12/Determining-Global-States-of-a-Distributed-System.pdf?ranMID=24542&amp;ranEAID=J84DHJLQkR4&amp;ranSiteID=J84DHJLQkR4-mVoVymFnAblBx3zwyf98Pw&amp;epi=J84DHJLQkR4-mVoVymFnAblBx3zwyf98Pw&amp;irgwc=1&amp;OCID=AID2000142_aff_7593_1243925&amp;tduid=%28ir__1hs2uuow6wkfq3oxkk0sohzzwm2xpc33lxd0o6g200%29%287593%29%281243925%29%28J84DHJLQkR4-mVoVymFnAblBx3zwyf98Pw%29%28%29&amp;irclickid=_1hs2uuow6wkfq3oxkk0sohzzwm2xpc33lxd0o6g200</a></li>
+<p><strong>结论：不满足需求，无法采用</strong></p>
+<p><strong><font color=red>如果同步实现方式不满足需求，那么能使用异步方式做到同步相同的快照也是可以满足需求的。</font></strong></p>
+<h2 id="异步实现方式"><a href="#异步实现方式" class="headerlink" title="异步实现方式"></a>异步实现方式</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://www.microsoft.com/en-us/research/uploads/prod/2016/12/Determining-Global-States-of-a-Distributed-System.pdf?ranMID=24542&ranEAID=J84DHJLQkR4&ranSiteID=J84DHJLQkR4-mVoVymFnAblBx3zwyf98Pw&epi=J84DHJLQkR4-mVoVymFnAblBx3zwyf98Pw&irgwc=1&OCID=AID2000142_aff_7593_1243925&tduid=%28ir__1hs2uuow6wkfq3oxkk0sohzzwm2xpc33lxd0o6g200%29%287593%29%281243925%29%28J84DHJLQkR4-mVoVymFnAblBx3zwyf98Pw%29%28%29&irclickid=_1hs2uuow6wkfq3oxkk0sohzzwm2xpc33lxd0o6g200">Chandy-Lamport</a></li>
 </ul>
-<h1 id="9-分布式应用的全局一致性快照其-Process-状态和-Channel状态记录了什么？怎么记录-Channel-的状态？"><a href="#9-分布式应用的全局一致性快照其-Process-状态和-Channel状态记录了什么？怎么记录-Channel-的状态？" class="headerlink" title="9.分布式应用的全局一致性快照其 Process 状态和 Channel状态记录了什么？怎么记录 Channel 的状态？"></a>9.分布式应用的全局一致性快照其 Process 状态和 Channel状态记录了什么？怎么记录 Channel 的状态？</h1><h2 id="分布式应用要记录的状态"><a href="#分布式应用要记录的状态" class="headerlink" title="分布式应用要记录的状态"></a>分布式应用要记录的状态</h2><p>如下图案例 Single-Token conservation，是一个分布式应用，有 p 和 q 两个进程，p 可以通过 Channel pq（记为 Cpq） 向 q 发消息，q 可以通过 Channel qp（记为 Cqp） 向 p 发消息，其中有一个叫 token 的消息，在这个系统中一直不停的流转<br><img src="/blog-img/apache-flink:state-1/15.png" alt="15"></p>
-<p>如之前所述，分布式应用的全局一致性快照包含 Process 状态和 Channel 状态<br>那么上图 Single-Token conservation 示例中的<br>全局一致性快照 S = S(p) + S(Cpq) + S(q) + S(Cqp)<br>其中：</p>
+<p><strong><font color=red>在介绍 Chandy-Lamport 算法之前，我们先介绍一些理论和数学上的概念铺垫铺垫，帮助我们理解 Chandy-Lamport 算法。楼主也是看了很多博客才总结得到了这些条件！！！</font></strong></p>
+<h1 id="分布式应用的全局一致性快照其-Process-状态和-Channel-状态记录了什么？怎么记录-Channel-的状态？"><a href="#分布式应用的全局一致性快照其-Process-状态和-Channel-状态记录了什么？怎么记录-Channel-的状态？" class="headerlink" title="分布式应用的全局一致性快照其 Process 状态和 Channel 状态记录了什么？怎么记录 Channel 的状态？"></a>分布式应用的全局一致性快照其 Process 状态和 Channel 状态记录了什么？怎么记录 Channel 的状态？</h1><h2 id="分布式应用要记录的状态"><a href="#分布式应用要记录的状态" class="headerlink" title="分布式应用要记录的状态"></a>分布式应用要记录的状态</h2><p>如下图案例 <strong>Single-Token conservation</strong>，是一个分布式应用，有 p 和 q 两个进程，p 可以通过 Channel pq（记为 Cpq） 向 q 发消息，q 可以通过 Channel qp（记为 Cqp） 向 p 发消息，其中有一个叫 token 的消息，在这个系统中一直不停的流转<br><img src="/blog-img/apache-flink:state-1/15.png" alt="15"></p>
+<p>如之前所述，分布式应用的全局一致性快照包含 Process 状态和 Channel 状态<br>那么上图 <strong>Single-Token conservation</strong> 示例中的全局一致性快照 <strong><kbd>S = S(p) + S(Cpq) + S(q) + S(Cqp)</kbd></strong></p>
+<p>其中：</p>
 <ul>
-<li>S：全局一致性快照</li>
-<li>S(p)：p 进程的状态</li>
-<li>S(Cpq)：p 进程到 q 进程的 Channel 状态</li>
-<li>S(q)：q 进程的状态</li>
-<li>S(Cqp)：q 进程到 p 进程的 Channel 状态</li>
+<li><kbd>S</kbd>：全局一致性快照</li>
+<li><kbd>S(p)</kbd>：p 进程的状态</li>
+<li><kbd>S(Cpq)</kbd>：p 进程到 q 进程的 Channel 状态</li>
+<li><kbd>S(q)</kbd>：q 进程的状态</li>
+<li><kbd>S(Cqp)</kbd>：q 进程到 p 进程的 Channel 状态</li>
 </ul>
 <p><img src="/blog-img/apache-flink:state-1/15.png" alt="15"></p>
-<p>问题：<br>这里大家可能会提到一个问题：做全局一致性快照时，其中 S(p)，S(q) 好理解，但是 S(Cpq)，S(Cqp) 到底应该记录什么东西？接下来详细讲讲我的理解</p>
+<p><strong><font color=red>问题：</font></strong><br><strong><font color=red>这里就碰到了我们要分析的关键问题：做全局一致性快照时，其中 <kbd>S(p)</kbd>，<kbd>S(q)</kbd> 好理解，但是 <kbd>S(Cpq)</kbd>，<kbd>S(Cqp)</kbd> 到底记录了什么东西？应该记录什么东西？接下来详细讲讲我的理解</font></strong></p>
 <h2 id="Process-状态应该记录什么内容？"><a href="#Process-状态应该记录什么内容？" class="headerlink" title="Process 状态应该记录什么内容？"></a>Process 状态应该记录什么内容？</h2><p>记录和用户业务需求相关的状态内容，用到了关于状态的地方，进行记录就好了<br>举例：uid 去重就存储历史所有的 uid 就可以了</p>
-<h2 id="Channel-状态应该记录什么内容？"><a href="#Channel-状态应该记录什么内容？" class="headerlink" title="Channel 状态应该记录什么内容？"></a>Channel 状态应该记录什么内容？</h2><h3 id="一个全局一致性状态记录的-token-都在相同的地方"><a href="#一个全局一致性状态记录的-token-都在相同的地方" class="headerlink" title="一个全局一致性状态记录的 token 都在相同的地方"></a>一个全局一致性状态记录的 token 都在相同的地方</h3><h4 id="全局一致性快照"><a href="#全局一致性快照" class="headerlink" title="全局一致性快照"></a>全局一致性快照</h4><p>token 在 p 时，对应第一张图，这时的全局一致性快照为：<br>S(token-in-p) = S(p-token-in-p) + S(Cpq-token-in-p) + S(q-token-in-p) + S(Cqp-token-in-p) ；<br>其中：</p>
+<h2 id="Channel-状态应该记录什么内容？"><a href="#Channel-状态应该记录什么内容？" class="headerlink" title="Channel 状态应该记录什么内容？"></a>Channel 状态应该记录什么内容？</h2><h3 id="一个全局一致性状态记录的-token-都在相同的地方"><a href="#一个全局一致性状态记录的-token-都在相同的地方" class="headerlink" title="一个全局一致性状态记录的 token 都在相同的地方"></a>一个全局一致性状态记录的 token 都在相同的地方</h3><h4 id="Single-Token-conservation-的全局一致性快照"><a href="#Single-Token-conservation-的全局一致性快照" class="headerlink" title="Single-Token conservation 的全局一致性快照"></a>Single-Token conservation 的全局一致性快照</h4><p>token 在 p 时（对应第一张图），这时的全局一致性快照为：<br><kbd>S(token-in-p) = S(p-token-in-p) + S(Cpq-token-in-p) + S(q-token-in-p) + S(Cqp-token-in-p) </kbd></p>
+<p>其中：</p>
 <ul>
-<li>S(token-in-p)：token 在 p 时，做的全局一致性快照</li>
-<li>S(p-token-in-p)：token 在 p 时，p 进程的状态</li>
-<li>S(Cpq-token-in-p)：token 在 p 时，p 进程到 q 进程的 Channel 状态</li>
-<li>S(q-token-in-p)：token 在 p 时，q 进程的状态</li>
-<li>S(Cqp-token-in-p)：token 在 p 时，q 进程到 p 进程的 Channel 状态</li>
+<li><kbd>S(token-in-p)</kbd>：token 在 p 时，做的全局一致性快照</li>
+<li><kbd>S(p-token-in-p)</kbd>：token 在 p 时，p 进程的状态</li>
+<li><kbd>S(Cpq-token-in-p)</kbd>：token 在 p 时，p 进程到 q 进程的 Channel 状态</li>
+<li><kbd>S(q-token-in-p)</kbd>：token 在 p 时，q 进程的状态</li>
+<li><kbd>S(Cqp-token-in-p)</kbd>：token 在 p 时，q 进程到 p 进程的 Channel 状态</li>
 </ul>
-<p>注意，上述这个表达式其实是结论，这个结论是很好理解的，但是你有想过站在实际应用的角度去思考怎样才能做一个实际快照时x下面的问题吗？</p>
+<p>注意，上述这个表达式其实是结论，这个结论是很好理解的，但是你有想过站在实际应用的角度去思考怎样才能做一个实际快照时下面的问题吗？</p>
 <ul>
 <li>问题1：为什么第一张图的全局一致性状态是 Process 和 Channel 做的快照都有 token-in-p 呢？<br>根据之前的拍照片的类比，当前这个绝对时刻做快照时，token 在 p；那么所有的 process 和 channel 记录状态时，token 都应该在 p。</li>
 </ul>
-<h3 id="S-Cpq-记录了什么内容？"><a href="#S-Cpq-记录了什么内容？" class="headerlink" title="S(Cpq) 记录了什么内容？"></a>S(Cpq) 记录了什么内容？</h3><h4 id="简单的理解"><a href="#简单的理解" class="headerlink" title="简单的理解"></a>简单的理解</h4><p>这里我们简单先理解下，S(Cpq) 其实就是在 S(p) 和 S(q) 自己的状态做成时，还在 Channel pq 之间发送的那些消息。</p>
+<h3 id="S-Cpq-记录了什么内容？"><a href="#S-Cpq-记录了什么内容？" class="headerlink" title="S(Cpq) 记录了什么内容？"></a><kbd>S(Cpq)</kbd> 记录了什么内容？</h3><h4 id="简单的理解"><a href="#简单的理解" class="headerlink" title="简单的理解"></a>简单的理解</h4><p>这里我们简单先理解下，<kbd>S(Cpq)</kbd> 其实就是在 <kbd>S(p)</kbd> 和 <kbd>S(q)</kbd> 自己的状态做成时，还在 Channel pq 之间发送的那些消息。</p>
 <p>那么我们怎么用数学的方式理解 Cpq 记录的这些消息以及 Process 和 Channel 做状态时需要满足的条件呢？让我们往下看</p>
 <h4 id="变量定义"><a href="#变量定义" class="headerlink" title="变量定义"></a>变量定义</h4><ul>
 <li>n：在 p 的状态记录前，p 记录的 p 发往 Cpq 的 msg 数；</li>
@@ -572,27 +602,40 @@
 <li>m：在 q 的状态记录前，q 记录的 q 从 Cpq 中接收到的 msg 数；</li>
 <li>m′：在 Cpq 的状态记录前，Cpq 记录的 q 从 Cpq 中接收到的 msg 数；</li>
 </ul>
-<h4 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h4><p>Cpq 记录 S(Cpq) 时，必然会有 n = n’ ≥ m = m’；<br>即一个 Channel 要记录的状态是，它 sender 记录自己状态之前它所接收到的 msg 列表，再减去 receiver 记录自己状态之前它已经收到的 msg 列表，减去的之后的数据列表就是还在通道中的数据列表，这个列表是需要 Channel 作为状态记录下来的。<br>而如果 n′=m′，那么 Channel c 中要记录的 msg 列表就是 empty 列表。如果 n′&gt;m′，那么要记录的列表是 (m′+1),…n′ 号消息对应的 msg 列表。</p>
+<h4 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h4><p>Cpq 记录 <kbd>S(Cpq)</kbd> 时，必然会有 n = n’ ≥ m = m’；<br>即一个 Channel 要记录的状态是，它 sender 记录自己状态之前它所接收到的 msg 列表，再减去 receiver 记录自己状态之前它已经收到的 msg 列表，减去的之后的数据列表就是还在通道中的数据列表，这个列表是需要 Channel 作为状态记录下来的。<br>而如果 n′ = m′，那么 Channel c 中要记录的 msg 列表就是 empty 列表。如果 n′ &gt; m′，那么要记录的列表是 (m′+1),…n′ 号消息对应的 msg 列表。</p>
 <h4 id="证明"><a href="#证明" class="headerlink" title="证明"></a>证明</h4><p>首先是 n = n’，利用反证法：如果 n != n’，则会有两种情况：</p>
-<ul>
-<li>n &gt; n’ 时：<br>  ○ 可能会出现 n = 10（p 记录状态前，p 记录 p 发往 Cpq msg 数为 10（msg 编号 1 - 10））；<br>  ○ n’ = 7（Cpq 记录状态前，Cpq 记录 p 发往 Cpq 的 msg 数为 7（msg 编号 1 - 7））；<br>  ○ 那么假设 token 的编号为 9，就会出现 p 记录的状态为 S(p-token-in-Cpq)，Cpq 记录的状态为 S(p-token-in-p)，实际是不可能出现的；</li>
-<li>n &lt; n’ 时：<br>  ○ 可能会出现 n = 7（p 记录状态前，p 记录 p 发往 Cpq msg 数为 7（编号 1 - 7））；<br>  ○ n’ = 10（Cpq 记录状态前，Cpq 记录 p 发往 Cpq 的 msg 数为 10（编号 1 - 10））；<br>  ○ 那么假设 token 的编号为 9，就会出现 p 记录的状态为 S(p-token-in-p)，Cpq 记录的状态为 S(p-token-in-Cpq)，实际是不可能出现的；</li>
-<li>n = n’ 时：保障了无论什么情况下，只要 p 做出 S(p-token-in-p) 的状态时，因为 n = n’，代表 p 没有把 token 发出去，Cpq 也没有接受到 token，就能让 Cpq 也做出 S(Cpq-token-in-p)；</li>
+<ol>
+<li>n &gt; n’ 时：<ul>
+<li>可能会出现 n = 10（p 记录状态前，p 记录 p 发往 Cpq msg 数为 10（msg 编号 1 - 10））；</li>
+<li>n’ = 7（Cpq 记录状态前，Cpq 记录 p 发往 Cpq 的 msg 数为 7（msg 编号 1 - 7））；</li>
+<li>那么假设 token 的编号为 9，就会出现 p 记录的状态为 <kbd>S(p-token-in-Cpq)</kbd>，Cpq 记录的状态为 <kbd>S(p-token-in-p)</kbd>，实际是不可能出现的；</li>
 </ul>
+</li>
+<li>n &lt; n’ 时：<ul>
+<li>可能会出现 n = 7（p 记录状态前，p 记录 p 发往 Cpq msg 数为 7（编号 1 - 7））；</li>
+<li>n’ = 10（Cpq 记录状态前，Cpq 记录 p 发往 Cpq 的 msg 数为 10（编号 1 - 10））；</li>
+<li>那么假设 token 的编号为 9，就会出现 p 记录的状态为 <kbd>S(p-token-in-p)</kbd>，Cpq 记录的状态为 <kbd>S(p-token-in-Cpq)</kbd>，实际是不可能出现的；</li>
+</ul>
+</li>
+<li>n = n’ 时：保障了无论什么情况下，只要 p 做出 <kbd>S(p-token-in-p)</kbd> 的状态时，因为 n = n’，代表 p 没有把 token 发出去，Cpq 也没有接受到 token，就能让 Cpq 也做出 <kbd>S(Cpq-token-in-p)</kbd>；</li>
+</ol>
 <p>然后是 m = m’，同样利用反证法</p>
-<ul>
-<li>m &gt; m’ 时：<br>  ○ 可能会出现 n = n’ = m &gt; m’，q 记录状态前，Cpq 记录 q 从 Cpq 接收到的 msg 数为 10（编号 1 - 10，因为 n = n’ = m 也即 Cpq 记录的 p 发往 Cpq 的那些 msg）；<br>  ○ Cpq记录状态前，Cpq 记录的 q 从 Cpq 接收到的 msg 数为 7（编号 1 - 7）；<br>  ○ 那么假设 token 的编号为 9，就会出现 Cpq 记录的状态为 S(Cpq-token-in-Cpq)，q 记录的状态为 S(q-token-in-p)，实际是不可能出现的；</li>
+<ol>
+<li>m &gt; m’ 时：<ul>
+<li>可能会出现 n = n’ = m &gt; m’，q 记录状态前，Cpq 记录 q 从 Cpq 接收到的 msg 数为 10（编号 1 - 10，因为 n = n’ = m 也即 Cpq 记录的 p 发往 Cpq 的那些 msg）；</li>
+<li>Cpq记录状态前，Cpq 记录的 q 从 Cpq 接收到的 msg 数为 7（编号 1 - 7）；</li>
+<li>那么假设 token 的编号为 9，就会出现 Cpq 记录的状态为 <kbd>S(Cpq-token-in-Cpq)</kbd>，q 记录的状态为 <kbd>S(q-token-in-p)</kbd>，实际是不可能出现的；</li>
 </ul>
-<p>最后是 n′≥m′ and n≥m：在任何一种情况下，做全局一致性快照时，都会有 Cpq 下游接收到的 msg 数不可能超过 p 发送给 Channel 的 msg 条数，即：n′≥m′以及 n≥m（也可使用反证法证明）</p>
+</li>
+</ol>
+<p>最后是 n’ ≥ m’ and n ≥ m：在任何一种情况下，做全局一致性快照时，都会有 Cpq 下游接收到的 msg 数不可能超过 p 发送给 Channel 的 msg 条数，即：n’ ≥ m’ 以及 n ≥ m（也可使用反证法证明）</p>
 <h3 id="来段伪代码描述全局一致快照"><a href="#来段伪代码描述全局一致快照" class="headerlink" title="来段伪代码描述全局一致快照"></a>来段伪代码描述全局一致快照</h3><h4 id="伪代码"><a href="#伪代码" class="headerlink" title="伪代码"></a>伪代码</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// S_all 即全局一致性快照</span></span><br><span class="line">S_all = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 假设总共有 x 个 process</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= x; i++) &#123;</span><br><span class="line">	<span class="comment">// 第 i 个 process 的状态为 S_i，直接按照 += 写，勿喷</span></span><br><span class="line">  S_all += S_i;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 假设总共有 y 个 channel</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= y; i++) &#123;</span><br><span class="line">  <span class="comment">// 1.S_C_out_in_i：第 i 个 channel 的状态，in 代表第 i 个 channel 的输入，out 含义为第 i 个 channel 的输出</span></span><br><span class="line">  <span class="comment">// 2.m_out_in_i 和 n_out_in_i 其实就是上文中的 n 和 m</span></span><br><span class="line">  <span class="comment">// 2.m_out_in_i：第 i 个 channel 做快照前，发往 in process（下游）的消息个数</span></span><br><span class="line">  <span class="comment">// 3.n_out_in_i：第 i 个 channel 做快照前，接受到 out process（上游） 的消息个数</span></span><br><span class="line">  <span class="comment">// 4.需要注意，每一个 channel 的 m_out_in_i 和 n_out_in_i 都可能是不一样的，这里是伪代码所以直接按照下面的方式写了</span></span><br><span class="line">  S_C_out_in_i = Message[m_out_in_i + <span class="number">1</span>] + ... + Message[n_out_in_i];</span><br><span class="line">  </span><br><span class="line">  S_all += S_C_out_in_i;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 状态做完啦~</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="怎样去记录-S-Cpq-？"><a href="#怎样去记录-S-Cpq-？" class="headerlink" title="怎样去记录 S(Cpq)？"></a>怎样去记录 S(Cpq)？</h2><p>通过上面的分析，我们已经讨论得到了 S(Cpq) 都包含了什么内容，并且其之间要满足什么样的数学关系。但是在现实实际生活中，消息在 Channel 上乱飞时，我们是无法记录这些消息作为 Channel 的状态的。但是这些消息终究会到达目的地，我们可以在消息的目的地去记录这些消息作为 Channel 的状态。即我们可以在 q 中记录 Channel pq 的 S(Cpq)，在 p 中记录 Channel pq 的 S(Cqp)。</p>
+<h2 id="怎样去记录-S-Cpq-？"><a href="#怎样去记录-S-Cpq-？" class="headerlink" title="怎样去记录 S(Cpq)？"></a>怎样去记录 <kbd>S(Cpq)</kbd>？</h2><p>通过上面的分析，我们已经讨论得到了 <kbd>S(Cpq)</kbd> 都包含了什么内容，并且其之间要满足什么样的数学关系。但是在现实实际生活中，消息在 Channel 上乱飞时，我们是无法记录这些消息作为 Channel 的状态的。<br><strong><font color=red>但是这些消息终究会到达目的地，我们可以在消息的目的地去记录这些消息作为 Channel 的状态。即我们可以在 q 中记录 Channel pq 的 <kbd>S(Cpq)</kbd>，在 p 中记录 Channel pq 的 <kbd>S(Cqp)</kbd>。</font></strong></p>
 <h3 id="伪代码-1"><a href="#伪代码-1" class="headerlink" title="伪代码"></a>伪代码</h3><p>顺便那么上面那段伪代码就可以简化为下面这样：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// S_all 即全局一致性快照</span></span><br><span class="line">S_all = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 假设总共有 x 个 process</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= x; i++) &#123;</span><br><span class="line">  <span class="comment">// S_i_all：第 i 个 process 要记录的状态</span></span><br><span class="line">  S_i_all = <span class="keyword">null</span>;</span><br><span class="line">  </span><br><span class="line">	<span class="comment">// S_i：第 i 个 process 的状态</span></span><br><span class="line">  S_i_all += S_i; <span class="comment">// 【直接按照 += 写，勿喷】</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 第 i 个 process 总共有 y 个 input channel，即有 y 个上游 process，下文中 j 即指代第 j 个 channel，也代指 j channel 的上游 j process</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j &lt;= y; j++) &#123;</span><br><span class="line">    <span class="comment">// 1.S_C_j_i：第 i 个 channel 的状态</span></span><br><span class="line">    <span class="comment">// 2.m_j_i 和 n_j_i 其实就是上文中的 n 和 m</span></span><br><span class="line">    <span class="comment">// 2.m_j_i：第 j 个 channel 做快照前，发往 i（下游）的消息个数</span></span><br><span class="line">    <span class="comment">// 3.n_j_i：第 j 个 channel 做快照前，接受到 j（上游） 的消息个数</span></span><br><span class="line">    <span class="comment">// 4.需要注意，每一个 channel 的 m_j_i 和 n_j_i 都可能是不一样的，这里是伪代码所以直接按照下面的方式写了</span></span><br><span class="line">    S_C_j_i = Message[m_j_i + <span class="number">1</span>] + ... + Message[n_j_i];</span><br><span class="line"></span><br><span class="line">    S_i_all += S_C_j_i;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  S_all += S_i_all;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 状态做完啦~</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// S_all 即全局一致性快照</span></span><br><span class="line">S_all = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 假设总共有 x 个 process</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= x; i++) &#123;</span><br><span class="line">  <span class="comment">// S_i_all：第 i 个 process 要记录的状态</span></span><br><span class="line">  S_i_all = <span class="keyword">null</span>;</span><br><span class="line">  </span><br><span class="line">	<span class="comment">// S_i：第 i 个 process 的状态</span></span><br><span class="line">  S_i_all += S_i; <span class="comment">// 【直接按照 += 写，勿喷】</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 第 i 个 process 总共有 y 个 input channel，即有 y 个上游 process，下文中 j 即指代第 j 个 channel，也代指 j channel 的上游 j process</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j &lt;= y; j++) &#123;</span><br><span class="line">    <span class="comment">// 1.S_C_j_i：第 i 个 channel 的状态</span></span><br><span class="line">    <span class="comment">// 2.m_j_i 和 n_j_i 其实就是上文中的 n 和 m</span></span><br><span class="line">    <span class="comment">// 2.m_j_i：第 j 个 channel 做快照前，发往 i（下游）的消息个数</span></span><br><span class="line">    <span class="comment">// 3.n_j_i：第 j 个 channel 做快照前，接受到 j（上游） 的消息个数</span></span><br><span class="line">    <span class="comment">// 4.需要注意，每一个 channel 的 m_j_i 和 n_j_i 都可能是不一样的，这里是伪代码所以直接按照下面的方式写了</span></span><br><span class="line">    S_C_j_i = Message[m_j_i + <span class="number">1</span>] + ... + Message[n_j_i];</span><br><span class="line"></span><br><span class="line">    S_i_all += S_C_j_i;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  S_all += S_i_all;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 状态做完啦~</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="记录-S-Cpq-需要满足的条件"><a href="#记录-S-Cpq-需要满足的条件" class="headerlink" title="记录 S(Cpq) 需要满足的条件"></a>记录 S(Cpq) 需要满足的条件</h3><p>重点重点重点！！！<br>分析上面的伪代码后，我们可以发现，要得到 S_all，其中只有一个变量在进程做快照时不知道的，那就是 n_j_i（即第 i 个 channel 做快照前，接受到 j（上游） 的消息个数），别忘了 n = n‘，即也可以定义为 j 做快照前，j 发往 channel 的消息个数。那么实际上这个值 j process 是知道的，就代表 i 进程需要知道 j 告诉他 n_j_i 的值是多少。重点来了，当 i process 做完快照之后，直接发一个 marker 下去，这个 marker 不会对计算有任何影响（即不会对状态产生任何影响），marker 只是一个标识，j process 做完自己的快照之后，直到接收到 marker 之间的消息就是Channel ij 的状态。i 就是通过 marker 来告诉 j process n_j_i 的值是多少的。</p>
-<h3 id="Chandy-Lamport-记录-Channel-状态中内容的方法"><a href="#Chandy-Lamport-记录-Channel-状态中内容的方法" class="headerlink" title="Chandy-Lamport 记录 Channel 状态中内容的方法"></a>Chandy-Lamport 记录 Channel 状态中内容的方法</h3><p>当消息在 Channel 上乱飞时，我们是无法记录这些消息作为 Channel 的状态的，但是这些消息终究会到达目的地，我们可以在消息的目的地去记录这些消息作为 Channel 的状态。<br>那么可以得到一个算子应该记录的状态就是自己的状态和 input Channel 的状态；</p>
-<p>那么具体怎么做的？就是在发送数据中插入一条特殊的数据 —— marker 数据，这条数据不会对计算有任何影响，即不会对应用的状态有任何影响，只是一个标识；<br>q 在没有记录自己的状态时，接收到了 Cpq 传来的 marker，那么 q 就开始记录自己的状态，并且把 Cpq 记录为空；如果 q 已经记录了自己的状态，那么在收到 marker 之前从 Cpq 接收到 msg 列表就是 Cpq 的状态</p>
+<h3 id="记录-S-Cpq-需要满足的条件"><a href="#记录-S-Cpq-需要满足的条件" class="headerlink" title="记录 S(Cpq) 需要满足的条件"></a>记录 <kbd>S(Cpq)</kbd> 需要满足的条件</h3><p><strong><font color=red>重点重点重点！！！</font></strong><br><strong><font color=red>分析上面的伪代码后，我们可以发现，要得到 S_all，其中只有一个变量在进程做快照时不知道的，那就是 n_j_i（即第 i 个 channel 做快照前，接受到 j（上游） 的消息个数），别忘了 n = n‘，即也可以定义为 j 做快照前，j 发往 channel 的消息个数。那么实际上这个值 j process 是知道的，就代表 i 进程需要知道 j 告诉他 n_j_i 的值是多少。重点来了，当 i process 做完快照之后，直接发一个 marker 下去，这个 marker 不会对计算有任何影响（即不会对状态产生任何影响），marker 只是一个标识，j process 做完自己的快照之后，直到接收到 marker 之间的消息就是Channel ij 的状态。i 就是通过 marker 来告诉 j process n_j_i 的值是多少的。（其他的变量为什么都知道就不详细分析了，很容易理解）</font></strong></p>
 <h2 id="分布式应用全局一致性快照方法总结"><a href="#分布式应用全局一致性快照方法总结" class="headerlink" title="分布式应用全局一致性快照方法总结"></a>分布式应用全局一致性快照方法总结</h2><ol>
 <li>有一个 manager process（这个 manager 可以是所有 process 中的任意一个 process，也可以是一个单独的中央管理者）告诉所有的 process 说可以开始做状态了；</li>
 <li>所有 process 就开始记录自己本地的状态（非所有 input channel）了，记录完本地状态，然后发 marker 给下游所有的 channel，然后开始记录上游所有 input channel 的消息（直到接收到上游所有的 marker）；</li>
@@ -600,29 +643,40 @@
 <li>当收到上游所有 marker 之后，这个 process 要记录的状态就全部得到了，然后告诉 manager process 说做完状态了；</li>
 <li>manager process 接收到所有 process 做完的消息之后，就标记所有的状态以及完成了。</li>
 </ol>
-<h1 id="10-Chandy-Lamport-算法流程、示例"><a href="#10-Chandy-Lamport-算法流程、示例" class="headerlink" title="10.Chandy-Lamport 算法流程、示例"></a>10.Chandy-Lamport 算法流程、示例</h1><h2 id="算法流程"><a href="#算法流程" class="headerlink" title="算法流程"></a>算法流程</h2><p><img src="/blog-img/apache-flink:state-1/16.jpeg" alt="16"></p>
-<h3 id="发起快照"><a href="#发起快照" class="headerlink" title="发起快照"></a>发起快照</h3><p><img src="/blog-img/apache-flink:state-1/17.png" alt="17"><br>解读：本次快照的起始点，先把起始点的快照给做了，然后发出 marker（这个 Marker 消息是干啥用的呢？？？），开始记录 input channel</p>
+<h1 id="Chandy-Lamport-算法流程、示例"><a href="#Chandy-Lamport-算法流程、示例" class="headerlink" title="Chandy-Lamport 算法流程、示例"></a>Chandy-Lamport 算法流程、示例</h1><h2 id="算法流程"><a href="#算法流程" class="headerlink" title="算法流程"></a>算法流程</h2><p><img src="/blog-img/apache-flink:state-1/16.jpeg" alt="16"></p>
+<h3 id="发起快照"><a href="#发起快照" class="headerlink" title="发起快照"></a>发起快照</h3><p><img src="/blog-img/apache-flink:state-1/17.png" alt="17"><br>解读：</p>
+<ul>
+<li>本次快照的起始点，先把起始点的快照给做了，然后发出 marker（<strong>这个 marker 消息是干啥用的呢？没错，就是我们之前分析的结论</strong>），开始记录 input channel</li>
+</ul>
 <h3 id="执行快照"><a href="#执行快照" class="headerlink" title="执行快照"></a>执行快照</h3><p><img src="/blog-img/apache-flink:state-1/18.jpeg" alt="18"><br><img src="/blog-img/apache-flink:state-1/19.jpeg" alt="19"><br>解读：</p>
 <ul>
 <li>Pi 记录本地快照，标记 Cki 为空：因为从 Cki 接收到了 marker，这时的状态是 Pk 刚刚做完快照，Pk 做完快照发往 Cki 的消息个数 = Pi 做完快照从 Cki 接收到的消息个数。即 n = n’ = m’ = m；即 Cki = [Empty]；</li>
-<li>Pi 开始向所有 output Channle 发 marker，开始记录除 Cki 之外的 input channel 消息，因为本地快照已经做完了；然后上游还有部分进程没有做完快照，为了记录除 Cki 之外的 input Channel 消息，</li>
+<li>Pi 开始向所有 output channel 发 marker，开始记录除 Cki 之外的 input channel 消息，因为本地快照已经做完了；然后上游还有部分进程没有做完快照，为了记录除 Cki 之外的 input Channel 消息，</li>
 </ul>
-<p>解读：结合前一张图说的开始记录 input channel 消息，Pi 停止记录 Cki 的消息，同时将此前记录所有 Cki 收到的消息作为本次快照中的最终状态；n’ &gt; m’，在 Pi 这里记录了 Cki 的状态，即 Cki = [m‘ + 1, m’ + 2…n]</p>
+<p>解读：</p>
+<ul>
+<li>结合前一张图说的开始记录 input channel 消息，Pi 停止记录 Cki 的消息，同时将此前记录所有 Cki 收到的消息作为本次快照中的最终状态；n’ &gt; m’，在 Pi 这里记录了 Cki 的状态，即 Cki = [m‘ + 1, m’ + 2…n]</li>
+</ul>
 <h3 id="终止快照"><a href="#终止快照" class="headerlink" title="终止快照"></a>终止快照</h3><p><img src="/blog-img/apache-flink:state-1/20.jpeg" alt="20"></p>
 <h2 id="示例-1"><a href="#示例-1" class="headerlink" title="示例"></a>示例</h2><p><img src="/blog-img/apache-flink:state-1/21.png" alt="21"><br><img src="/blog-img/apache-flink:state-1/22.png" alt="22"><br><img src="/blog-img/apache-flink:state-1/23.png" alt="23"><br><img src="/blog-img/apache-flink:state-1/24.png" alt="24"><br><img src="/blog-img/apache-flink:state-1/25.png" alt="25"><br><img src="/blog-img/apache-flink:state-1/26.png" alt="26"><br><img src="/blog-img/apache-flink:state-1/27.png" alt="27"><br><img src="/blog-img/apache-flink:state-1/28.png" alt="28"><br><img src="/blog-img/apache-flink:state-1/29.png" alt="29"></p>
-<h1 id="11-flink-实现的全局一致性快照介绍（flink-容错机制）"><a href="#11-flink-实现的全局一致性快照介绍（flink-容错机制）" class="headerlink" title="11.flink 实现的全局一致性快照介绍（flink 容错机制）"></a>11.flink 实现的全局一致性快照介绍（flink 容错机制）</h1><h2 id="Chandy-Lamport与-Flink之间的关系"><a href="#Chandy-Lamport与-Flink之间的关系" class="headerlink" title="Chandy-Lamport与 Flink之间的关系"></a>Chandy-Lamport与 Flink之间的关系</h2><p>论文：<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1506.08603.pdf">https://arxiv.org/pdf/1506.08603.pdf</a></p>
-<p>Flink 是分布式系统，所以 Flink 会采用全局一致性快照的方式形成检查点，来支持故障恢复。Flink的异步全局一致性快照算法跟Chandy-Lamport算法的区别主要有以下几点：</p>
+<h1 id="flink-实现的全局一致性快照介绍（flink-容错机制）"><a href="#flink-实现的全局一致性快照介绍（flink-容错机制）" class="headerlink" title="flink 实现的全局一致性快照介绍（flink 容错机制）"></a>flink 实现的全局一致性快照介绍（flink 容错机制）</h1><h2 id="Chandy-Lamport-与-Flink之间的关系"><a href="#Chandy-Lamport-与-Flink之间的关系" class="headerlink" title="Chandy-Lamport 与 Flink之间的关系"></a>Chandy-Lamport 与 Flink之间的关系</h2><p><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1506.08603.pdf">flink 全局一致性快照论文</a></p>
+<p>Flink 是分布式系统，所以 Flink 会采用全局一致性快照的方式形成检查点，来支持故障恢复。Flink 的异步全局一致性快照算法跟 Chandy-Lamport 算法的区别主要有以下几点：</p>
 <ul>
-<li>第一，Chandy-Lamput支持强连通图，而 Flink支持弱连通图；</li>
-<li>第二，Flink采用的是裁剪的（Tailored）Chandy-Lamput异步快照算法；</li>
+<li>第一，Chandy-Lamport 支持强连通图，而 Flink支持弱连通图；</li>
+<li>第二，Flink采用的是裁剪的（Tailored）Chandy-Lamport 异步快照算法；</li>
 <li>第三，Flink的异步快照算法在DAG场景下不需要存储 Channel state，从而极大减少快照的存储空间。</li>
 </ul>
 <h2 id="flink-的容错机制"><a href="#flink-的容错机制" class="headerlink" title="flink 的容错机制"></a>flink 的容错机制</h2><p><img src="/blog-img/apache-flink:state-1/30.png" alt="30"></p>
-<h2 id="端到端的Exactly-once"><a href="#端到端的Exactly-once" class="headerlink" title="端到端的Exactly once"></a>端到端的Exactly once</h2><p>Exactly once的意思是，作业结果总是正确的，但是很可能产出多次；所以它的要求是需要有可重放的source。<br>端到端的Exactly once，是指作业结果正确且只会被产出一次，它的要求除了有可重放的source外，还要求有事务型的sink和可以接收幂等的产出结果。</p>
+<h2 id="端到端的Exactly-once"><a href="#端到端的Exactly-once" class="headerlink" title="端到端的Exactly once"></a>端到端的Exactly once</h2><p>Exactly once 的意思是，作业结果总是正确的，但是很可能产出多次；所以它的要求是需要有可重放的 source。<br>端到端的 Exactly once，是指作业结果正确且只会被产出一次，它的要求除了有可重放的 source 外，还要求有事务型的 sink 和可以接收幂等的产出结果。</p>
 <h2 id="flink-的全局一致性快照"><a href="#flink-的全局一致性快照" class="headerlink" title="flink 的全局一致性快照"></a>flink 的全局一致性快照</h2><p><img src="/blog-img/apache-flink:state-1/31.png" alt="31"><br><img src="/blog-img/apache-flink:state-1/32.png" alt="32"><br><img src="/blog-img/apache-flink:state-1/33.png" alt="33"></p>
 <h2 id="Barrier-对齐"><a href="#Barrier-对齐" class="headerlink" title="Barrier 对齐"></a>Barrier 对齐</h2><p><img src="/blog-img/apache-flink:state-1/34.png" alt="34"><br><img src="/blog-img/apache-flink:state-1/35.png" alt="35"><br><img src="/blog-img/apache-flink:state-1/36.png" alt="36"></p>
-<h2 id="状态后端"><a href="#状态后端" class="headerlink" title="状态后端"></a>状态后端</h2><h3 id="JVM-Heap"><a href="#JVM-Heap" class="headerlink" title="JVM Heap"></a>JVM Heap</h3><p><img src="/blog-img/apache-flink:state-1/37.png" alt="37"><br>第一种，JVM Heap，它里面的数据是以Java对象形式存在的，读写也是以对象形式去完成的，所以速度很快。但是也存在两个弊端：第一个弊端，以对象方式存储所需的空间是磁盘上序列化压缩后的数据大小的很多倍，所以占用的内存空间很大；第二个弊端，虽然读写不用做序列化，但是在形成snapshot时需要做序列化，所以它的异步snapshot过程会比较慢。</p>
-<h3 id="RocksDB"><a href="#RocksDB" class="headerlink" title="RocksDB"></a>RocksDB</h3><p><img src="/blog-img/apache-flink:state-1/38.png" alt="38"><br>第二种，RocksDB，这个类型在读写时就需要做序列化，所以它读写的速度比较慢。但是它有一个好处，基于LSM的数据结构在快照之后会形成sst文件，它的异步checkpoint过程就是文件拷贝的过程，CPU消耗会比较低。</p>
+<h2 id="状态后端"><a href="#状态后端" class="headerlink" title="状态后端"></a>状态后端</h2><h3 id="JVM-Heap"><a href="#JVM-Heap" class="headerlink" title="JVM Heap"></a>JVM Heap</h3><p><img src="/blog-img/apache-flink:state-1/37.png" alt="37"><br>第一种，JVM Heap，它里面的数据是以Java对象形式存在的，读写也是以对象形式去完成的，所以速度很快。但是也存在两个弊端：第一个弊端，以对象方式存储所需的空间是磁盘上序列化压缩后的数据大小的很多倍，所以占用的内存空间很大；第二个弊端，虽然读写不用做序列化，但是在形成 snapshot 时需要做序列化，所以它的异步 snapshot 过程会比较慢。</p>
+<h3 id="RocksDB"><a href="#RocksDB" class="headerlink" title="RocksDB"></a>RocksDB</h3><p><img src="/blog-img/apache-flink:state-1/38.png" alt="38"><br>第二种，RocksDB，这个类型在读写时就需要做序列化，所以它读写的速度比较慢。但是它有一个好处，基于LSM的数据结构在快照之后会形成 sst 文件，它的异步 checkpoint 过程就是文件拷贝的过程，CPU 消耗会比较低。</p>
+<h1 id="参考的文章"><a href="#参考的文章" class="headerlink" title="参考的文章"></a>参考的文章</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/667562">https://developer.aliyun.com/article/667562</a></li>
+<li><a target="_blank" rel="noopener" href="https://matt33.com/2019/10/27/paper-chandy-lamport/">https://matt33.com/2019/10/27/paper-chandy-lamport/</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/448900">https://developer.aliyun.com/article/448900</a></li>
+</ul>
 
       
     </div>
@@ -821,8 +875,30 @@
           
 
           
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yangyichao-mango" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:1048262223@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
 
           
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
           
 
           
@@ -843,7 +919,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E7%9B%AE%E5%BD%95"><span class="nav-text">1.目录</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E4%BB%80%E4%B9%88%E6%98%AF%E7%8A%B6%E6%80%81%EF%BC%9F%EF%BC%88%E4%BA%86%E8%A7%A3%E7%8A%B6%E6%80%81%EF%BC%89"><span class="nav-text">2.什么是状态？（了解状态）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E4%BB%80%E4%B9%88%E6%98%AF%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%EF%BC%9F%EF%BC%88%E4%BA%86%E8%A7%A3%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%EF%BC%89"><span class="nav-text">3.什么是全局一致性快照？（了解全局一致性快照）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%EF%BC%9F%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%E5%92%8C-flink-%E7%9A%84%E5%85%B3%E7%B3%BB%EF%BC%9F"><span class="nav-text">4.为什么需要一致性快照？全局一致性快照和 flink 的关系？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E6%97%B6%E6%A1%88%E4%BE%8B"><span class="nav-text">实时案例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E6%A1%88%E4%BE%8B%EF%BC%9F"><span class="nav-text">6.全局一致性快照的分布式应用案例？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B"><span class="nav-text">示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AF%8F%E6%97%B6%E6%AF%8F%E5%88%BB%E9%83%BD%E5%AD%98%E5%9C%A8%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7"><span class="nav-text">每时每刻都存在全局一致性快照</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%E7%9A%84%E6%A0%87%E5%87%86%E5%AE%9A%E4%B9%89"><span class="nav-text">7.全局一致性快照的标准定义</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89"><span class="nav-text">定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%AC%E8%B4%A8"><span class="nav-text">本质</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%EF%BC%9F"><span class="nav-text">8.怎么实现全局一致性快照？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8C%E6%AD%A5%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="nav-text">同步实现方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%82%E6%AD%A5%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="nav-text">异步实现方式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%9A%84%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%E5%85%B6-Process-%E7%8A%B6%E6%80%81%E5%92%8C-Channel%E7%8A%B6%E6%80%81%E8%AE%B0%E5%BD%95%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F%E6%80%8E%E4%B9%88%E8%AE%B0%E5%BD%95-Channel-%E7%9A%84%E7%8A%B6%E6%80%81%EF%BC%9F"><span class="nav-text">9.分布式应用的全局一致性快照其 Process 状态和 Channel状态记录了什么？怎么记录 Channel 的状态？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E8%A6%81%E8%AE%B0%E5%BD%95%E7%9A%84%E7%8A%B6%E6%80%81"><span class="nav-text">分布式应用要记录的状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Process-%E7%8A%B6%E6%80%81%E5%BA%94%E8%AF%A5%E8%AE%B0%E5%BD%95%E4%BB%80%E4%B9%88%E5%86%85%E5%AE%B9%EF%BC%9F"><span class="nav-text">Process 状态应该记录什么内容？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Channel-%E7%8A%B6%E6%80%81%E5%BA%94%E8%AF%A5%E8%AE%B0%E5%BD%95%E4%BB%80%E4%B9%88%E5%86%85%E5%AE%B9%EF%BC%9F"><span class="nav-text">Channel 状态应该记录什么内容？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E7%8A%B6%E6%80%81%E8%AE%B0%E5%BD%95%E7%9A%84-token-%E9%83%BD%E5%9C%A8%E7%9B%B8%E5%90%8C%E7%9A%84%E5%9C%B0%E6%96%B9"><span class="nav-text">一个全局一致性状态记录的 token 都在相同的地方</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7"><span class="nav-text">全局一致性快照</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#S-Cpq-%E8%AE%B0%E5%BD%95%E4%BA%86%E4%BB%80%E4%B9%88%E5%86%85%E5%AE%B9%EF%BC%9F"><span class="nav-text">S(Cpq) 记录了什么内容？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%9A%84%E7%90%86%E8%A7%A3"><span class="nav-text">简单的理解</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%98%E9%87%8F%E5%AE%9A%E4%B9%89"><span class="nav-text">变量定义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-text">结论</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%81%E6%98%8E"><span class="nav-text">证明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9D%A5%E6%AE%B5%E4%BC%AA%E4%BB%A3%E7%A0%81%E6%8F%8F%E8%BF%B0%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E5%BF%AB%E7%85%A7"><span class="nav-text">来段伪代码描述全局一致快照</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%AA%E4%BB%A3%E7%A0%81"><span class="nav-text">伪代码</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%8E%E6%A0%B7%E5%8E%BB%E8%AE%B0%E5%BD%95-S-Cpq-%EF%BC%9F"><span class="nav-text">怎样去记录 S(Cpq)？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%AA%E4%BB%A3%E7%A0%81-1"><span class="nav-text">伪代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%B0%E5%BD%95-S-Cpq-%E9%9C%80%E8%A6%81%E6%BB%A1%E8%B6%B3%E7%9A%84%E6%9D%A1%E4%BB%B6"><span class="nav-text">记录 S(Cpq) 需要满足的条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Chandy-Lamport-%E8%AE%B0%E5%BD%95-Channel-%E7%8A%B6%E6%80%81%E4%B8%AD%E5%86%85%E5%AE%B9%E7%9A%84%E6%96%B9%E6%B3%95"><span class="nav-text">Chandy-Lamport 记录 Channel 状态中内容的方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%E6%96%B9%E6%B3%95%E6%80%BB%E7%BB%93"><span class="nav-text">分布式应用全局一致性快照方法总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-Chandy-Lamport-%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B%E3%80%81%E7%A4%BA%E4%BE%8B"><span class="nav-text">10.Chandy-Lamport 算法流程、示例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B"><span class="nav-text">算法流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%91%E8%B5%B7%E5%BF%AB%E7%85%A7"><span class="nav-text">发起快照</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E5%BF%AB%E7%85%A7"><span class="nav-text">执行快照</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%88%E6%AD%A2%E5%BF%AB%E7%85%A7"><span class="nav-text">终止快照</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B-1"><span class="nav-text">示例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#11-flink-%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%E4%BB%8B%E7%BB%8D%EF%BC%88flink-%E5%AE%B9%E9%94%99%E6%9C%BA%E5%88%B6%EF%BC%89"><span class="nav-text">11.flink 实现的全局一致性快照介绍（flink 容错机制）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Chandy-Lamport%E4%B8%8E-Flink%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-text">Chandy-Lamport与 Flink之间的关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#flink-%E7%9A%84%E5%AE%B9%E9%94%99%E6%9C%BA%E5%88%B6"><span class="nav-text">flink 的容错机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84Exactly-once"><span class="nav-text">端到端的Exactly once</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#flink-%E7%9A%84%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7"><span class="nav-text">flink 的全局一致性快照</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Barrier-%E5%AF%B9%E9%BD%90"><span class="nav-text">Barrier 对齐</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8A%B6%E6%80%81%E5%90%8E%E7%AB%AF"><span class="nav-text">状态后端</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JVM-Heap"><span class="nav-text">JVM Heap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RocksDB"><span class="nav-text">RocksDB</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95"><span class="nav-number">1.</span> <span class="nav-text">目录</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E7%8A%B6%E6%80%81%EF%BC%9F%EF%BC%88%E4%BA%86%E8%A7%A3%E7%8A%B6%E6%80%81%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">什么是状态？（了解状态）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E6%A0%87"><span class="nav-number">2.1.</span> <span class="nav-text">目标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89"><span class="nav-number">2.2.</span> <span class="nav-text">定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BE%E4%BE%8B"><span class="nav-number">2.3.</span> <span class="nav-text">举例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%EF%BC%9F%EF%BC%88%E4%BA%86%E8%A7%A3%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">什么是全局一致性快照？（了解全局一致性快照）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%EF%BC%9F%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%E5%92%8C-flink-%E7%9A%84%E5%85%B3%E7%B3%BB%EF%BC%9F"><span class="nav-number">4.</span> <span class="nav-text">为什么需要一致性快照？全局一致性快照和 flink 的关系？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E6%97%B6%E6%A1%88%E4%BE%8B"><span class="nav-number">4.1.</span> <span class="nav-text">实时案例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%E5%92%8C-flink-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-number">4.2.</span> <span class="nav-text">全局一致性快照和 flink 的关系</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E6%A1%88%E4%BE%8B%EF%BC%9F"><span class="nav-number">5.</span> <span class="nav-text">全局一致性快照的分布式应用案例？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B"><span class="nav-number">5.1.</span> <span class="nav-text">示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AF%8F%E6%97%B6%E6%AF%8F%E5%88%BB%E9%83%BD%E5%AD%98%E5%9C%A8%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7"><span class="nav-number">5.2.</span> <span class="nav-text">每时每刻都存在全局一致性快照</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%E7%9A%84%E6%A0%87%E5%87%86%E5%AE%9A%E4%B9%89"><span class="nav-number">6.</span> <span class="nav-text">全局一致性快照的标准定义</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89-1"><span class="nav-number">6.1.</span> <span class="nav-text">定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%AC%E8%B4%A8"><span class="nav-number">6.2.</span> <span class="nav-text">本质</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%EF%BC%9F"><span class="nav-number">7.</span> <span class="nav-text">怎么实现全局一致性快照？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8C%E6%AD%A5%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="nav-number">7.1.</span> <span class="nav-text">同步实现方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%82%E6%AD%A5%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="nav-number">7.2.</span> <span class="nav-text">异步实现方式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E7%9A%84%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%E5%85%B6-Process-%E7%8A%B6%E6%80%81%E5%92%8C-Channel-%E7%8A%B6%E6%80%81%E8%AE%B0%E5%BD%95%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F%E6%80%8E%E4%B9%88%E8%AE%B0%E5%BD%95-Channel-%E7%9A%84%E7%8A%B6%E6%80%81%EF%BC%9F"><span class="nav-number">8.</span> <span class="nav-text">分布式应用的全局一致性快照其 Process 状态和 Channel 状态记录了什么？怎么记录 Channel 的状态？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E8%A6%81%E8%AE%B0%E5%BD%95%E7%9A%84%E7%8A%B6%E6%80%81"><span class="nav-number">8.1.</span> <span class="nav-text">分布式应用要记录的状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Process-%E7%8A%B6%E6%80%81%E5%BA%94%E8%AF%A5%E8%AE%B0%E5%BD%95%E4%BB%80%E4%B9%88%E5%86%85%E5%AE%B9%EF%BC%9F"><span class="nav-number">8.2.</span> <span class="nav-text">Process 状态应该记录什么内容？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Channel-%E7%8A%B6%E6%80%81%E5%BA%94%E8%AF%A5%E8%AE%B0%E5%BD%95%E4%BB%80%E4%B9%88%E5%86%85%E5%AE%B9%EF%BC%9F"><span class="nav-number">8.3.</span> <span class="nav-text">Channel 状态应该记录什么内容？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E7%8A%B6%E6%80%81%E8%AE%B0%E5%BD%95%E7%9A%84-token-%E9%83%BD%E5%9C%A8%E7%9B%B8%E5%90%8C%E7%9A%84%E5%9C%B0%E6%96%B9"><span class="nav-number">8.3.1.</span> <span class="nav-text">一个全局一致性状态记录的 token 都在相同的地方</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Single-Token-conservation-%E7%9A%84%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7"><span class="nav-number">8.3.1.1.</span> <span class="nav-text">Single-Token conservation 的全局一致性快照</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#S-Cpq-%E8%AE%B0%E5%BD%95%E4%BA%86%E4%BB%80%E4%B9%88%E5%86%85%E5%AE%B9%EF%BC%9F"><span class="nav-number">8.3.2.</span> <span class="nav-text">S(Cpq) 记录了什么内容？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%9A%84%E7%90%86%E8%A7%A3"><span class="nav-number">8.3.2.1.</span> <span class="nav-text">简单的理解</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%98%E9%87%8F%E5%AE%9A%E4%B9%89"><span class="nav-number">8.3.2.2.</span> <span class="nav-text">变量定义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">8.3.2.3.</span> <span class="nav-text">结论</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%81%E6%98%8E"><span class="nav-number">8.3.2.4.</span> <span class="nav-text">证明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9D%A5%E6%AE%B5%E4%BC%AA%E4%BB%A3%E7%A0%81%E6%8F%8F%E8%BF%B0%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E5%BF%AB%E7%85%A7"><span class="nav-number">8.3.3.</span> <span class="nav-text">来段伪代码描述全局一致快照</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%AA%E4%BB%A3%E7%A0%81"><span class="nav-number">8.3.3.1.</span> <span class="nav-text">伪代码</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%8E%E6%A0%B7%E5%8E%BB%E8%AE%B0%E5%BD%95-S-Cpq-%EF%BC%9F"><span class="nav-number">8.4.</span> <span class="nav-text">怎样去记录 S(Cpq)？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%AA%E4%BB%A3%E7%A0%81-1"><span class="nav-number">8.4.1.</span> <span class="nav-text">伪代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%B0%E5%BD%95-S-Cpq-%E9%9C%80%E8%A6%81%E6%BB%A1%E8%B6%B3%E7%9A%84%E6%9D%A1%E4%BB%B6"><span class="nav-number">8.4.2.</span> <span class="nav-text">记录 S(Cpq) 需要满足的条件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%BA%94%E7%94%A8%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%E6%96%B9%E6%B3%95%E6%80%BB%E7%BB%93"><span class="nav-number">8.5.</span> <span class="nav-text">分布式应用全局一致性快照方法总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Chandy-Lamport-%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B%E3%80%81%E7%A4%BA%E4%BE%8B"><span class="nav-number">9.</span> <span class="nav-text">Chandy-Lamport 算法流程、示例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B"><span class="nav-number">9.1.</span> <span class="nav-text">算法流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%91%E8%B5%B7%E5%BF%AB%E7%85%A7"><span class="nav-number">9.1.1.</span> <span class="nav-text">发起快照</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E5%BF%AB%E7%85%A7"><span class="nav-number">9.1.2.</span> <span class="nav-text">执行快照</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%88%E6%AD%A2%E5%BF%AB%E7%85%A7"><span class="nav-number">9.1.3.</span> <span class="nav-text">终止快照</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B-1"><span class="nav-number">9.2.</span> <span class="nav-text">示例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#flink-%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7%E4%BB%8B%E7%BB%8D%EF%BC%88flink-%E5%AE%B9%E9%94%99%E6%9C%BA%E5%88%B6%EF%BC%89"><span class="nav-number">10.</span> <span class="nav-text">flink 实现的全局一致性快照介绍（flink 容错机制）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Chandy-Lamport-%E4%B8%8E-Flink%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-number">10.1.</span> <span class="nav-text">Chandy-Lamport 与 Flink之间的关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#flink-%E7%9A%84%E5%AE%B9%E9%94%99%E6%9C%BA%E5%88%B6"><span class="nav-number">10.2.</span> <span class="nav-text">flink 的容错机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84Exactly-once"><span class="nav-number">10.3.</span> <span class="nav-text">端到端的Exactly once</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#flink-%E7%9A%84%E5%85%A8%E5%B1%80%E4%B8%80%E8%87%B4%E6%80%A7%E5%BF%AB%E7%85%A7"><span class="nav-number">10.4.</span> <span class="nav-text">flink 的全局一致性快照</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Barrier-%E5%AF%B9%E9%BD%90"><span class="nav-number">10.5.</span> <span class="nav-text">Barrier 对齐</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8A%B6%E6%80%81%E5%90%8E%E7%AB%AF"><span class="nav-number">10.6.</span> <span class="nav-text">状态后端</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JVM-Heap"><span class="nav-number">10.6.1.</span> <span class="nav-text">JVM Heap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RocksDB"><span class="nav-number">10.6.2.</span> <span class="nav-text">RocksDB</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E7%9A%84%E6%96%87%E7%AB%A0"><span class="nav-number">11.</span> <span class="nav-text">参考的文章</span></a></li></ol></div>
             
 
           </div>
@@ -863,7 +939,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2021</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
@@ -1009,7 +1085,7 @@
   
 
     
-      <script id="dsq-count-scr" src="https://antigeneral.disqus.com/count.js" async></script>
+      <script id="dsq-count-scr" src="https://true.disqus.com/count.js" async></script>
     
 
     
@@ -1017,10 +1093,10 @@
         var disqus_config = function () {
           this.page.url = 'https://yangyichao-mango.github.io/2021/03/12/wechat-blog/apache-flink:state-1/';
           this.page.identifier = '2021/03/12/wechat-blog/apache-flink:state-1/';
-          this.page.title = '深入浅出 | 全局一致性快照（一）';
+          this.page.title = '深入浅出 | flink 全局一致性快照（一）';
         };
         var d = document, s = d.createElement('script');
-        s.src = 'https://antigeneral.disqus.com/embed.js';
+        s.src = 'https://true.disqus.com/embed.js';
         s.setAttribute('data-timestamp', '' + +new Date());
         (d.head || d.body).appendChild(s);
       </script>
