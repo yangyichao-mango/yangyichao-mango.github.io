@@ -662,11 +662,6 @@
       </tags>
   </entry>
   <entry>
-    <title>apache-flink:study-allowedLateness-and-maxOutOfOrderness</title>
-    <url>/2019/11/11/apache-flink:study-allowedLateness-and-maxOutOfOrderness/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
     <title>Apache Flink 学习：BoundedOutOfOrdernessTimestampExtractor</title>
     <url>/2019/11/02/apache-flink:study-BoundedOutOfOrdernessTimestampExtractor/</url>
     <content><![CDATA[<p>Apache Flink 学习：BoundedOutOfOrdernessTimestampExtractor</p>
@@ -687,6 +682,11 @@
       <tags>
         <tag>Apache Flink</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>apache-flink:study-allowedLateness-and-maxOutOfOrderness</title>
+    <url>/2019/11/11/apache-flink:study-allowedLateness-and-maxOutOfOrderness/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Apache Flink 学习：异步IO之RichAsyncFunction</title>
@@ -999,6 +999,22 @@
       </tags>
   </entry>
   <entry>
+    <title>Apache Flink 学习：Jobs 和 Scheduling</title>
+    <url>/2019/11/20/apache-flink:study-flink-jobs-and-scheduling/</url>
+    <content><![CDATA[<p>Apache Flink 学习：Jobs 和 Scheduling</p>
+<span id="more"></span>
+
+<h1 id="Scheduling"><a href="#Scheduling" class="headerlink" title="Scheduling"></a><strong>Scheduling</strong></h1><p>Flink中的执行资源是通过 Task Slots 定义的。每个 TaskManager 都有一个或多个 Task Slots，每个 Slot 可以运行一个并行任务流。<br>并行任务流由多个连续的任务组成，例如 MapFunction 的第n个并行实例和 ReduceFunction 的第n个并行实例。请注意，Flink 经常并发地执行连续的任务：对于流式程序，基本上都会使用并行任务，对于批处理程序，也会经常使用并行任务。</p>
+<p>下图说明了这一点。一个具有数据源、MapFunction 和 ReduceFunction 的程序。源函数和 MapFunction 的并行度为4，而 ReduceFunction 的并行度为3。流由 Source - Map - Reduce 组成。<br>在这个集群中，有两个 TaskManager，每个 TaskManager 有三个 slot，则程序将按如下所述执行。</p>
+]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Apache Flink 学习：slot和parallelism设置的关系</title>
     <url>/2019/11/08/apache-flink:study-flink-slot-parallelism/</url>
     <content><![CDATA[<p>Apache Flink 学习：slot和parallelism设置的关系</p>
@@ -1037,22 +1053,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Apache Flink 学习：Jobs 和 Scheduling</title>
-    <url>/2019/11/20/apache-flink:study-flink-jobs-and-scheduling/</url>
-    <content><![CDATA[<p>Apache Flink 学习：Jobs 和 Scheduling</p>
-<span id="more"></span>
-
-<h1 id="Scheduling"><a href="#Scheduling" class="headerlink" title="Scheduling"></a><strong>Scheduling</strong></h1><p>Flink中的执行资源是通过 Task Slots 定义的。每个 TaskManager 都有一个或多个 Task Slots，每个 Slot 可以运行一个并行任务流。<br>并行任务流由多个连续的任务组成，例如 MapFunction 的第n个并行实例和 ReduceFunction 的第n个并行实例。请注意，Flink 经常并发地执行连续的任务：对于流式程序，基本上都会使用并行任务，对于批处理程序，也会经常使用并行任务。</p>
-<p>下图说明了这一点。一个具有数据源、MapFunction 和 ReduceFunction 的程序。源函数和 MapFunction 的并行度为4，而 ReduceFunction 的并行度为3。流由 Source - Map - Reduce 组成。<br>在这个集群中，有两个 TaskManager，每个 TaskManager 有三个 slot，则程序将按如下所述执行。</p>
-]]></content>
-      <categories>
-        <category>Apache Flink</category>
-      </categories>
-      <tags>
-        <tag>Apache Flink</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Apache Flink 学习：Table Api &amp; SQL</title>
     <url>/2019/11/12/apache-flink:study-flink-table-api-and-sql/</url>
     <content><![CDATA[<p>Apache Flink 学习：Table Api &amp; SQL</p>
@@ -1063,13 +1063,6 @@
       <tags>
         <tag>Apache Flink</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>apache-flink:study-flink</title>
-    <url>/2019/11/22/apache-flink:study-flink/</url>
-    <content><![CDATA[<p>所有operator中的初始化如果写在构造函数当中就会出错，问题是序列化时的问题<br>flink从jobmanager序列化到各个 taskmanager时可能会出问题</p>
-<p>split组件功能可以减少多个flatmap的性能损失<br>多个flatmap数据每个都是使用全部的流进行filter<br>split一个就可以满足</p>
-]]></content>
   </entry>
   <entry>
     <title>Apache Flink 学习：hbase作为sink</title>
@@ -1103,6 +1096,13 @@
         <tag>Apache Flink</tag>
         <tag>Apache HBase</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>apache-flink:study-flink</title>
+    <url>/2019/11/22/apache-flink:study-flink/</url>
+    <content><![CDATA[<p>所有operator中的初始化如果写在构造函数当中就会出错，问题是序列化时的问题<br>flink从jobmanager序列化到各个 taskmanager时可能会出问题</p>
+<p>split组件功能可以减少多个flatmap的性能损失<br>多个flatmap数据每个都是使用全部的流进行filter<br>split一个就可以满足</p>
+]]></content>
   </entry>
   <entry>
     <title>Apache Flink 学习：hdfs作为sink</title>
@@ -1285,30 +1285,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Apache Hadoop错误：Unable to load native-hadoop library for your platform</title>
-    <url>/2019/10/17/apache-hadoop:error-unable-to-load-native-hadoop-library-from-you-platform/</url>
-    <content><![CDATA[<p>Apache Hadoop错误：Unable to load native-hadoop library for your platform</p>
-<span id="more"></span>
-
-
-<h3 id="错误场景详情"><a href="#错误场景详情" class="headerlink" title="错误场景详情"></a><strong>错误场景详情</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hadoop fs -ls /</span><br><span class="line">WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using builtin-java classes <span class="built_in">where</span> applicable</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="错误原因"><a href="#错误原因" class="headerlink" title="错误原因"></a><strong>错误原因</strong></h3><p>Hadoop是使用Java语言开发的,但是有一些需求和操作并不适合使用java所以会引入了本地库（Native Libraries）的概念，通过本地库，Hadoop可以更加高效地执行某一些操作.<br>当我们在linux 输入 hdoop fs -ls / 去查看 hdfs 文件系统上的资源时会出现下面错误</p>
-<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a><strong>解决方案</strong></h3><h4 id="解决方案1"><a href="#解决方案1" class="headerlink" title="解决方案1"></a>解决方案1</h4><p>在Hadoop的配置文件core-site.xml中可以设置是否使用本地库：（Hadoop默认的配置为启用本地库）</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>hadoop.native.lib<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">value</span>&gt;</span>false<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">description</span>&gt;</span>Should native hadoop libraries, if present, be used.<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="解决方案2"><a href="#解决方案2" class="headerlink" title="解决方案2"></a>解决方案2</h4><p>有博客说可以直接下载编译好的位包，替换原来的native包<br>由于在我本地安装的Apache Hadoop 3.2.1版本中没有找到lib文件夹，所以在3.2.1版本中暂时不能使用此种方法</p>
-<p>执行查看文件命令</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hadoop fs -ls /</span><br><span class="line">2019-10-17 11:33:09,369 WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using builtin-java classes <span class="built_in">where</span> applicable</span><br><span class="line">Found 1 items</span><br><span class="line">drwxr-xr-x   - xxx supergroup          0 2019-10-17 11:23 /tmp</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Apache Hadoop</category>
-      </categories>
-      <tags>
-        <tag>Apache Hadoop</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Mac安装Apache Hadoop-3.2.1</title>
     <url>/2019/10/17/apache-hadoop:3.2.1-mac-install/</url>
     <content><![CDATA[<p>Mac安装Apache hadoop-3.2.1教程</p>
@@ -1389,6 +1365,30 @@
       </tags>
   </entry>
   <entry>
+    <title>Apache Hadoop错误：Unable to load native-hadoop library for your platform</title>
+    <url>/2019/10/17/apache-hadoop:error-unable-to-load-native-hadoop-library-from-you-platform/</url>
+    <content><![CDATA[<p>Apache Hadoop错误：Unable to load native-hadoop library for your platform</p>
+<span id="more"></span>
+
+
+<h3 id="错误场景详情"><a href="#错误场景详情" class="headerlink" title="错误场景详情"></a><strong>错误场景详情</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hadoop fs -ls /</span><br><span class="line">WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using builtin-java classes <span class="built_in">where</span> applicable</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="错误原因"><a href="#错误原因" class="headerlink" title="错误原因"></a><strong>错误原因</strong></h3><p>Hadoop是使用Java语言开发的,但是有一些需求和操作并不适合使用java所以会引入了本地库（Native Libraries）的概念，通过本地库，Hadoop可以更加高效地执行某一些操作.<br>当我们在linux 输入 hdoop fs -ls / 去查看 hdfs 文件系统上的资源时会出现下面错误</p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a><strong>解决方案</strong></h3><h4 id="解决方案1"><a href="#解决方案1" class="headerlink" title="解决方案1"></a>解决方案1</h4><p>在Hadoop的配置文件core-site.xml中可以设置是否使用本地库：（Hadoop默认的配置为启用本地库）</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>hadoop.native.lib<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">value</span>&gt;</span>false<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">description</span>&gt;</span>Should native hadoop libraries, if present, be used.<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="解决方案2"><a href="#解决方案2" class="headerlink" title="解决方案2"></a>解决方案2</h4><p>有博客说可以直接下载编译好的位包，替换原来的native包<br>由于在我本地安装的Apache Hadoop 3.2.1版本中没有找到lib文件夹，所以在3.2.1版本中暂时不能使用此种方法</p>
+<p>执行查看文件命令</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hadoop fs -ls /</span><br><span class="line">2019-10-17 11:33:09,369 WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using builtin-java classes <span class="built_in">where</span> applicable</span><br><span class="line">Found 1 items</span><br><span class="line">drwxr-xr-x   - xxx supergroup          0 2019-10-17 11:23 /tmp</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Apache Hadoop</category>
+      </categories>
+      <tags>
+        <tag>Apache Hadoop</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Apache Hadoop 学习：hdfs shell 命令</title>
     <url>/2019/10/30/apache-hadoop:study-hdfs-shell/</url>
     <content><![CDATA[<p>Apache Hadoop 学习：hdfs shell 命令</p>
@@ -1406,6 +1406,56 @@
       <tags>
         <tag>Apache Hadoop</tag>
         <tag>Hdfs</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Mac安装Apache HBase-1.3.5</title>
+    <url>/2019/10/18/apache-hbase:1.3.5-mac-install/</url>
+    <content><![CDATA[<p>Mac安装Apache HBase-1.3.5教程</p>
+<span id="more"></span>
+
+<h3 id="HBase安装"><a href="#HBase安装" class="headerlink" title="HBase安装"></a><strong>HBase安装</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ brew install hbase</span><br></pre></td></tr></table></figure>
+<p>安装在<font color=red><strong>/usr/local/Cellar/hbase/1.3.5</strong></font></p>
+<h3 id="HBase配置"><a href="#HBase配置" class="headerlink" title="HBase配置"></a><strong>HBase配置</strong></h3><h4 id="hbase-env-sh"><a href="#hbase-env-sh" class="headerlink" title="hbase-env.sh"></a>hbase-env.sh</h4><p>在<font color=red>conf/hbase-env.sh设置JAVA_HOME</font></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> /usr/<span class="built_in">local</span>/Cellar/hbase/1.3.5/libexec/conf</span><br><span class="line">$ vim hbase-env.sh</span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=<span class="string">&quot;<span class="subst">$(/usr/libexec/java_home --version 1.8)</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>Apache HBase-1.3.5中JAVA_HOME已经默认被配置好了<br>如果JAVA_HOME没有配置好，则需要设置JAVA_HOME，可以通过下面的命令查看JAVA_HOME</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ /usr/libexec/java_home</span><br><span class="line">/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home</span><br></pre></td></tr></table></figure>
+
+<h4 id="hbase-site-xml"><a href="#hbase-site-xml" class="headerlink" title="hbase-site.xml"></a>hbase-site.xml</h4><p>在<font color=red>conf/hbase-site.xml</font>设置HBase的核心配置</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ vim hbase-site.xml</span><br><span class="line"></span><br><span class="line">&lt;configuration&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">    &lt;name&gt;hbase.rootdir&lt;/name&gt;</span><br><span class="line">    // 这里设置让HBase存储文件的地方</span><br><span class="line">    &lt;value&gt;file:///usr/<span class="built_in">local</span>/Cellar/hbase/tmp/hbase&lt;/value&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">      &lt;name&gt;hbase.zookeeper.property.dataDir&lt;/name&gt;</span><br><span class="line">      // 这里设置让HBase存储内建zookeeper文件的地方</span><br><span class="line">      &lt;value&gt;/usr/<span class="built_in">local</span>/Cellar/hbase/tmp/zookeeper&lt;/value&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure>
+
+<h4 id="启动HBase"><a href="#启动HBase" class="headerlink" title="启动HBase"></a>启动HBase</h4><p><font color=red>/usr/local/Cellar/hbase/1.3.5/bin/start-hbase.sh</font>提供HBase的启动</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./start-hbase.sh</span><br><span class="line">starting master, logging to /usr/<span class="built_in">local</span>/var/<span class="built_in">log</span>/hbase/hbase-xxx-master-xxx.local.out</span><br></pre></td></tr></table></figure>
+
+<h4 id="验证是否安装成功"><a href="#验证是否安装成功" class="headerlink" title="验证是否安装成功"></a>验证是否安装成功</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ jps</span><br><span class="line">722 Launcher</span><br><span class="line">1142 HMaster</span><br><span class="line">726 Launcher</span><br><span class="line">1256 Jps</span><br></pre></td></tr></table></figure>
+
+<h4 id="启动HBase-Shell"><a href="#启动HBase-Shell" class="headerlink" title="启动HBase Shell"></a>启动HBase Shell</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./hbase shell</span><br><span class="line">2019-10-19 11:58:34,879 WARN  [main] util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using builtin-java classes <span class="built_in">where</span> applicable</span><br><span class="line">HBase Shell; enter <span class="string">&#x27;help&lt;RETURN&gt;&#x27;</span> <span class="keyword">for</span> list of supported commands.</span><br><span class="line">Type <span class="string">&quot;exit&lt;RETURN&gt;&quot;</span> to leave the HBase Shell</span><br><span class="line">Version 1.3.5, rb59afe7b1dc650ff3a86034477b563734e8799a9, Wed Jun  5 15:57:14 PDT 2019</span><br><span class="line"></span><br><span class="line">hbase(main):001:0&gt;</span><br></pre></td></tr></table></figure>
+
+<h4 id="停止HBase运行"><a href="#停止HBase运行" class="headerlink" title="停止HBase运行"></a>停止HBase运行</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./stop-hbase.sh</span><br><span class="line">stopping hbase...............</span><br></pre></td></tr></table></figure>
+
+<h3 id="伪分布式模式"><a href="#伪分布式模式" class="headerlink" title="伪分布式模式"></a><strong>伪分布式模式</strong></h3><p>必须先关闭HBase</p>
+<h4 id="修改hbase-env-sh"><a href="#修改hbase-env-sh" class="headerlink" title="修改hbase-env.sh"></a>修改hbase-env.sh</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">HBASE_MANAGE_ZK = <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="修改hbase-site-xml"><a href="#修改hbase-site-xml" class="headerlink" title="修改hbase-site.xml"></a>修改hbase-site.xml</h4><p>设置HBase使用分布式模式运行</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>hbase.rootdir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    // Here you have to set the path where you want HBase to store its files.</span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://localhost:9000/hbase<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>hbase.cluster.distributed<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><font color=red><strong>hbase.rootdir路径一定要跟hadoop中core-site.xml中fs.default.name相同</strong></font></p>
+<p>change the hbase.rootdir from the local filesystem to the address of your HDFS instance —offical quick start</p>
+<p>如何两处设置不同会引起ERROR: <font color=red>Can’t get master address from ZooKeeper; znode data == null错误错误</font></p>
+<p>在启动HBase之前, 请先启动Hadoop, 使之运行</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./start-hbase.sh</span><br><span class="line">localhost: starting zookeeper, logging to /usr/<span class="built_in">local</span>/var/<span class="built_in">log</span>/hbase/hbase-xxx-zookeeper-xxx.local.out</span><br><span class="line">starting master, logging to /usr/<span class="built_in">local</span>/var/<span class="built_in">log</span>/hbase/hbase-xxx-master-xxx.local.out</span><br><span class="line">starting regionserver, logging to /usr/<span class="built_in">local</span>/var/<span class="built_in">log</span>/hbase/hbase-xxx-1-regionserver-xxx.local.out</span><br><span class="line"></span><br><span class="line">$ jps  <span class="comment">#验证是否启动成功, 包含HMaster和HRegionServer说明启动成功</span></span><br><span class="line">5614 HRegionServer</span><br><span class="line">2222 NameNode</span><br><span class="line">722 Launcher</span><br><span class="line">2323 DataNode</span><br><span class="line">5461 HMaster</span><br><span class="line">726 Launcher</span><br><span class="line">2650 ResourceManager</span><br><span class="line">2747 NodeManager</span><br><span class="line">2459 SecondaryNameNode</span><br><span class="line">5405 HQuorumPeer</span><br><span class="line">285</span><br><span class="line">5726 Jps</span><br></pre></td></tr></table></figure>
+
+<p>查看hdfs中文件夹</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./hdfs dfs -ls /</span><br><span class="line">2019-10-19 12:39:03,895 WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using builtin-java classes <span class="built_in">where</span> applicable</span><br><span class="line">Found 3 items</span><br><span class="line">drwxr-xr-x   - xxx supergroup          0 2019-10-19 12:38 /hbase</span><br><span class="line">drwxrwxr-x   - xxx supergroup          0 2019-10-17 14:41 /tmp</span><br><span class="line">drwxr-xr-x   - xxx supergroup          0 2019-10-17 11:44 /user</span><br></pre></td></tr></table></figure>
+
+<h3 id="HBase-Shell"><a href="#HBase-Shell" class="headerlink" title="HBase Shell"></a><strong>HBase Shell</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hbase shell  <span class="comment">#启动HBase Shell</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建表</span></span><br><span class="line">&gt; create <span class="string">&#x27;student&#x27;</span>, <span class="string">&#x27;description&#x27;</span>, <span class="string">&#x27;course&#x27;</span>  <span class="comment">#创建表名为student的表, 指明两个列名, 分别为description和course</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 信息明细</span></span><br><span class="line">&gt; list <span class="string">&#x27;student&#x27;</span>  <span class="comment">#列出list表信息</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 插入数据</span></span><br><span class="line"><span class="comment"># 意思为在student表row1处插入description:age的数据为18</span></span><br><span class="line"><span class="comment"># rowKey为row1，columnFamilyName为description，columnName为age</span></span><br><span class="line">&gt; put <span class="string">&#x27;student&#x27;</span>, <span class="string">&#x27;row1&#x27;</span>, <span class="string">&#x27;description:age&#x27;</span>, <span class="string">&#x27;18&#x27;</span></span><br><span class="line">&gt; put <span class="string">&#x27;student&#x27;</span>, <span class="string">&#x27;row1&#x27;</span>, <span class="string">&#x27;description:name&#x27;</span>, <span class="string">&#x27;liu&#x27;</span></span><br><span class="line">&gt; put <span class="string">&#x27;student&#x27;</span>, <span class="string">&#x27;row1&#x27;</span>, <span class="string">&#x27;course:chinese&#x27;</span>, <span class="string">&#x27;100&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 一次扫描所有数据</span></span><br><span class="line">&gt; scan <span class="string">&#x27;student&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 使表失效 / 有效</span></span><br><span class="line">&gt; <span class="built_in">disable</span> <span class="string">&#x27;student&#x27;</span></span><br><span class="line">&gt; <span class="built_in">enable</span> <span class="string">&#x27;student&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除表(要先disable)</span></span><br><span class="line">&gt;  drop <span class="string">&#x27;student&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 退出shell</span></span><br><span class="line">&gt; quit</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Apache HBase</category>
+      </categories>
+      <tags>
+        <tag>Apache HBase</tag>
+        <tag>Mac安装</tag>
       </tags>
   </entry>
   <entry>
@@ -1473,56 +1523,6 @@
       </categories>
       <tags>
         <tag>Apache Hive</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Mac安装Apache HBase-1.3.5</title>
-    <url>/2019/10/18/apache-hbase:1.3.5-mac-install/</url>
-    <content><![CDATA[<p>Mac安装Apache HBase-1.3.5教程</p>
-<span id="more"></span>
-
-<h3 id="HBase安装"><a href="#HBase安装" class="headerlink" title="HBase安装"></a><strong>HBase安装</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ brew install hbase</span><br></pre></td></tr></table></figure>
-<p>安装在<font color=red><strong>/usr/local/Cellar/hbase/1.3.5</strong></font></p>
-<h3 id="HBase配置"><a href="#HBase配置" class="headerlink" title="HBase配置"></a><strong>HBase配置</strong></h3><h4 id="hbase-env-sh"><a href="#hbase-env-sh" class="headerlink" title="hbase-env.sh"></a>hbase-env.sh</h4><p>在<font color=red>conf/hbase-env.sh设置JAVA_HOME</font></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> /usr/<span class="built_in">local</span>/Cellar/hbase/1.3.5/libexec/conf</span><br><span class="line">$ vim hbase-env.sh</span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=<span class="string">&quot;<span class="subst">$(/usr/libexec/java_home --version 1.8)</span>&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>Apache HBase-1.3.5中JAVA_HOME已经默认被配置好了<br>如果JAVA_HOME没有配置好，则需要设置JAVA_HOME，可以通过下面的命令查看JAVA_HOME</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ /usr/libexec/java_home</span><br><span class="line">/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home</span><br></pre></td></tr></table></figure>
-
-<h4 id="hbase-site-xml"><a href="#hbase-site-xml" class="headerlink" title="hbase-site.xml"></a>hbase-site.xml</h4><p>在<font color=red>conf/hbase-site.xml</font>设置HBase的核心配置</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ vim hbase-site.xml</span><br><span class="line"></span><br><span class="line">&lt;configuration&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">    &lt;name&gt;hbase.rootdir&lt;/name&gt;</span><br><span class="line">    // 这里设置让HBase存储文件的地方</span><br><span class="line">    &lt;value&gt;file:///usr/<span class="built_in">local</span>/Cellar/hbase/tmp/hbase&lt;/value&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">      &lt;name&gt;hbase.zookeeper.property.dataDir&lt;/name&gt;</span><br><span class="line">      // 这里设置让HBase存储内建zookeeper文件的地方</span><br><span class="line">      &lt;value&gt;/usr/<span class="built_in">local</span>/Cellar/hbase/tmp/zookeeper&lt;/value&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure>
-
-<h4 id="启动HBase"><a href="#启动HBase" class="headerlink" title="启动HBase"></a>启动HBase</h4><p><font color=red>/usr/local/Cellar/hbase/1.3.5/bin/start-hbase.sh</font>提供HBase的启动</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./start-hbase.sh</span><br><span class="line">starting master, logging to /usr/<span class="built_in">local</span>/var/<span class="built_in">log</span>/hbase/hbase-xxx-master-xxx.local.out</span><br></pre></td></tr></table></figure>
-
-<h4 id="验证是否安装成功"><a href="#验证是否安装成功" class="headerlink" title="验证是否安装成功"></a>验证是否安装成功</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ jps</span><br><span class="line">722 Launcher</span><br><span class="line">1142 HMaster</span><br><span class="line">726 Launcher</span><br><span class="line">1256 Jps</span><br></pre></td></tr></table></figure>
-
-<h4 id="启动HBase-Shell"><a href="#启动HBase-Shell" class="headerlink" title="启动HBase Shell"></a>启动HBase Shell</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./hbase shell</span><br><span class="line">2019-10-19 11:58:34,879 WARN  [main] util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using builtin-java classes <span class="built_in">where</span> applicable</span><br><span class="line">HBase Shell; enter <span class="string">&#x27;help&lt;RETURN&gt;&#x27;</span> <span class="keyword">for</span> list of supported commands.</span><br><span class="line">Type <span class="string">&quot;exit&lt;RETURN&gt;&quot;</span> to leave the HBase Shell</span><br><span class="line">Version 1.3.5, rb59afe7b1dc650ff3a86034477b563734e8799a9, Wed Jun  5 15:57:14 PDT 2019</span><br><span class="line"></span><br><span class="line">hbase(main):001:0&gt;</span><br></pre></td></tr></table></figure>
-
-<h4 id="停止HBase运行"><a href="#停止HBase运行" class="headerlink" title="停止HBase运行"></a>停止HBase运行</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./stop-hbase.sh</span><br><span class="line">stopping hbase...............</span><br></pre></td></tr></table></figure>
-
-<h3 id="伪分布式模式"><a href="#伪分布式模式" class="headerlink" title="伪分布式模式"></a><strong>伪分布式模式</strong></h3><p>必须先关闭HBase</p>
-<h4 id="修改hbase-env-sh"><a href="#修改hbase-env-sh" class="headerlink" title="修改hbase-env.sh"></a>修改hbase-env.sh</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">HBASE_MANAGE_ZK = <span class="literal">true</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="修改hbase-site-xml"><a href="#修改hbase-site-xml" class="headerlink" title="修改hbase-site.xml"></a>修改hbase-site.xml</h4><p>设置HBase使用分布式模式运行</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>hbase.rootdir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    // Here you have to set the path where you want HBase to store its files.</span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://localhost:9000/hbase<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>hbase.cluster.distributed<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p><font color=red><strong>hbase.rootdir路径一定要跟hadoop中core-site.xml中fs.default.name相同</strong></font></p>
-<p>change the hbase.rootdir from the local filesystem to the address of your HDFS instance —offical quick start</p>
-<p>如何两处设置不同会引起ERROR: <font color=red>Can’t get master address from ZooKeeper; znode data == null错误错误</font></p>
-<p>在启动HBase之前, 请先启动Hadoop, 使之运行</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./start-hbase.sh</span><br><span class="line">localhost: starting zookeeper, logging to /usr/<span class="built_in">local</span>/var/<span class="built_in">log</span>/hbase/hbase-xxx-zookeeper-xxx.local.out</span><br><span class="line">starting master, logging to /usr/<span class="built_in">local</span>/var/<span class="built_in">log</span>/hbase/hbase-xxx-master-xxx.local.out</span><br><span class="line">starting regionserver, logging to /usr/<span class="built_in">local</span>/var/<span class="built_in">log</span>/hbase/hbase-xxx-1-regionserver-xxx.local.out</span><br><span class="line"></span><br><span class="line">$ jps  <span class="comment">#验证是否启动成功, 包含HMaster和HRegionServer说明启动成功</span></span><br><span class="line">5614 HRegionServer</span><br><span class="line">2222 NameNode</span><br><span class="line">722 Launcher</span><br><span class="line">2323 DataNode</span><br><span class="line">5461 HMaster</span><br><span class="line">726 Launcher</span><br><span class="line">2650 ResourceManager</span><br><span class="line">2747 NodeManager</span><br><span class="line">2459 SecondaryNameNode</span><br><span class="line">5405 HQuorumPeer</span><br><span class="line">285</span><br><span class="line">5726 Jps</span><br></pre></td></tr></table></figure>
-
-<p>查看hdfs中文件夹</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./hdfs dfs -ls /</span><br><span class="line">2019-10-19 12:39:03,895 WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using builtin-java classes <span class="built_in">where</span> applicable</span><br><span class="line">Found 3 items</span><br><span class="line">drwxr-xr-x   - xxx supergroup          0 2019-10-19 12:38 /hbase</span><br><span class="line">drwxrwxr-x   - xxx supergroup          0 2019-10-17 14:41 /tmp</span><br><span class="line">drwxr-xr-x   - xxx supergroup          0 2019-10-17 11:44 /user</span><br></pre></td></tr></table></figure>
-
-<h3 id="HBase-Shell"><a href="#HBase-Shell" class="headerlink" title="HBase Shell"></a><strong>HBase Shell</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hbase shell  <span class="comment">#启动HBase Shell</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建表</span></span><br><span class="line">&gt; create <span class="string">&#x27;student&#x27;</span>, <span class="string">&#x27;description&#x27;</span>, <span class="string">&#x27;course&#x27;</span>  <span class="comment">#创建表名为student的表, 指明两个列名, 分别为description和course</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 信息明细</span></span><br><span class="line">&gt; list <span class="string">&#x27;student&#x27;</span>  <span class="comment">#列出list表信息</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 插入数据</span></span><br><span class="line"><span class="comment"># 意思为在student表row1处插入description:age的数据为18</span></span><br><span class="line"><span class="comment"># rowKey为row1，columnFamilyName为description，columnName为age</span></span><br><span class="line">&gt; put <span class="string">&#x27;student&#x27;</span>, <span class="string">&#x27;row1&#x27;</span>, <span class="string">&#x27;description:age&#x27;</span>, <span class="string">&#x27;18&#x27;</span></span><br><span class="line">&gt; put <span class="string">&#x27;student&#x27;</span>, <span class="string">&#x27;row1&#x27;</span>, <span class="string">&#x27;description:name&#x27;</span>, <span class="string">&#x27;liu&#x27;</span></span><br><span class="line">&gt; put <span class="string">&#x27;student&#x27;</span>, <span class="string">&#x27;row1&#x27;</span>, <span class="string">&#x27;course:chinese&#x27;</span>, <span class="string">&#x27;100&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 一次扫描所有数据</span></span><br><span class="line">&gt; scan <span class="string">&#x27;student&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 使表失效 / 有效</span></span><br><span class="line">&gt; <span class="built_in">disable</span> <span class="string">&#x27;student&#x27;</span></span><br><span class="line">&gt; <span class="built_in">enable</span> <span class="string">&#x27;student&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除表(要先disable)</span></span><br><span class="line">&gt;  drop <span class="string">&#x27;student&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 退出shell</span></span><br><span class="line">&gt; quit</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Apache HBase</category>
-      </categories>
-      <tags>
-        <tag>Apache HBase</tag>
-        <tag>Mac安装</tag>
       </tags>
   </entry>
   <entry>
@@ -1604,43 +1604,6 @@
       </categories>
       <tags>
         <tag>Apache Kafka</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Maven学习：使用maven-shade-plugin解决依赖包冲突</title>
-    <url>/2019/10/25/apache-maven:study-maven-shade-resolve-jar-conflicts/</url>
-    <content><![CDATA[<p>java 依赖包冲突，使用maven-shade-plugin解决</p>
-<span id="more"></span>
-
-<h3 id="错误场景详情"><a href="#错误场景详情" class="headerlink" title="错误场景详情"></a><strong>错误场景详情</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">java.lang.NoSuchMethodError: com.google.common.util.concurrent.MoreExecutors.directExecutor()Ljava/util/concurrent/Executor;</span><br></pre></td></tr></table></figure>
-
-<h3 id="错误原因"><a href="#错误原因" class="headerlink" title="错误原因"></a><strong>错误原因</strong></h3><p>出现这样的错误详情一般是由于有下面这样的包依赖情况</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">A - B - C(guava version 18)</span><br><span class="line">  \ D - C(guava version 23.6-jre)</span><br></pre></td></tr></table></figure>
-
-<p><em>A</em>：代表我们所开发的当前项目<br><em>B和D</em>：代表当前项目所依赖的项目<br><em>C</em>：代表当前项目依赖的项目所依赖的项目</p>
-<p>由于我们当前所开发的项目A依赖了B和D，B和D又依赖了项目C<br>我们打包运行项目时，maven只会将一个版本C(guava)打进包内（maven打包遇到相同依赖，最短路径优先，在路径相同时先在pom中声明优先）<br>比如此时打进包的版本是C(guava version 23.6-jre)，那么很有可能在运行B中的一个方法时，调用C的一个方法，这个方法是C(guava version 18)中的一个方法，在C(guava version 23.6-jre)中并不存在，这时候就会报出java.lang.NoSuchMethodError</p>
-<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a><strong>解决方案</strong></h3><p>使用maven-shade-plugin将所有B项目依赖的包全部打进B.jar中，并且给guava包的路径重命名为我们的自定义路径\</p>
-<h4 id="maven-shade-plugin基本功能"><a href="#maven-shade-plugin基本功能" class="headerlink" title="maven-shade-plugin基本功能"></a>maven-shade-plugin基本功能</h4><p>maven-shade-plugin提供了两大基本功能：</p>
-<p>1、将依赖的jar包打包到当前jar包（常规打包是不会将所依赖jar包打进来的）<br>2、对依赖的jar包进行重命名（用于类的隔离，解决包冲突就是使用了这个功能）</p>
-<h4 id="解决示例"><a href="#解决示例" class="headerlink" title="解决示例"></a>解决示例</h4><p>如下例，就可以在B项目中使用C(guava version 18)，只不过import路径变成了我们自定的路径</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0&quot;</span> <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">modelVersion</span>&gt;</span>4.0.0<span class="tag">&lt;/<span class="name">modelVersion</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>RpcModule<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>RpcModule<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">packaging</span>&gt;</span>jar<span class="tag">&lt;/<span class="name">packaging</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>RpcModule<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">project.build.sourceEncoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">project.build.sourceEncoding</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">guava.version</span>&gt;</span>18<span class="tag">&lt;/<span class="name">guava.version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.12<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.google.guava<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>guava<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;guava.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-compiler-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">source</span>&gt;</span>8<span class="tag">&lt;/<span class="name">source</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">target</span>&gt;</span>8<span class="tag">&lt;/<span class="name">target</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line"></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-shade-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.4.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">createDependencyReducedPom</span>&gt;</span>false<span class="tag">&lt;/<span class="name">createDependencyReducedPom</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">goal</span>&gt;</span>shade<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">                        <span class="comment">&lt;!-- 给guava包的路径重命名为我们的自定义路径 --&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">relocations</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;<span class="name">relocation</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">pattern</span>&gt;</span>com.google.guava<span class="tag">&lt;/<span class="name">pattern</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">shadedPattern</span>&gt;</span>shade.com.google.guava<span class="tag">&lt;/<span class="name">shadedPattern</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;/<span class="name">relocation</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;<span class="name">relocation</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">pattern</span>&gt;</span>org.joda<span class="tag">&lt;/<span class="name">pattern</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">shadedPattern</span>&gt;</span>shade.com.google.joda<span class="tag">&lt;/<span class="name">shadedPattern</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;/<span class="name">relocation</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;<span class="name">relocation</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">pattern</span>&gt;</span>com.google.common<span class="tag">&lt;/<span class="name">pattern</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">shadedPattern</span>&gt;</span>shade.com.google.common<span class="tag">&lt;/<span class="name">shadedPattern</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;/<span class="name">relocation</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;/<span class="name">relocations</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">transformers</span>&gt;</span></span><br><span class="line">                                &lt;transformer</span><br><span class="line">                                        implementation=&quot;org.apache.maven.plugins.shade.resource.ManifestResourceTransformer&quot;/&gt;</span><br><span class="line">                            <span class="tag">&lt;/<span class="name">transformers</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>使用maven-shade-plugin之前</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Entity.Request;</span><br><span class="line"><span class="keyword">import</span> Entity.Response;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.net.Socket;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.google.common.collect.ImmutableMap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SocketClient</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>使用maven-shade-plugin之后编译后反编译结果</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Entity.Request;</span><br><span class="line"><span class="keyword">import</span> Entity.Response;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.net.Socket;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> shade.com.google.common.collect.ImmutableMap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SocketClient</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>最后将打好的包上传至我们的maven仓库，然后再在当前项目A中依赖，就没有依赖冲突了</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">A - B - C(guava version 18, shade.com.google.common.collect.ImmutableMap)</span><br><span class="line">  \ D - C(guava version 23.6-jre, com.google.common.collect.ImmutableMap)</span><br></pre></td></tr></table></figure>
-
-<p>这样就可以做到将两个不同版本的包都引入使用，由于引入包路径不同，因此也没有冲突</p>
-]]></content>
-      <categories>
-        <category>Apache Maven</category>
-      </categories>
-      <tags>
-        <tag>Apache Maven</tag>
       </tags>
   </entry>
   <entry>
@@ -1759,6 +1722,43 @@
 
 <p>More info: <a href="https://hexo.io/docs/deployment.html">Deployment</a></p>
 ]]></content>
+  </entry>
+  <entry>
+    <title>Maven学习：使用maven-shade-plugin解决依赖包冲突</title>
+    <url>/2019/10/25/apache-maven:study-maven-shade-resolve-jar-conflicts/</url>
+    <content><![CDATA[<p>java 依赖包冲突，使用maven-shade-plugin解决</p>
+<span id="more"></span>
+
+<h3 id="错误场景详情"><a href="#错误场景详情" class="headerlink" title="错误场景详情"></a><strong>错误场景详情</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">java.lang.NoSuchMethodError: com.google.common.util.concurrent.MoreExecutors.directExecutor()Ljava/util/concurrent/Executor;</span><br></pre></td></tr></table></figure>
+
+<h3 id="错误原因"><a href="#错误原因" class="headerlink" title="错误原因"></a><strong>错误原因</strong></h3><p>出现这样的错误详情一般是由于有下面这样的包依赖情况</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">A - B - C(guava version 18)</span><br><span class="line">  \ D - C(guava version 23.6-jre)</span><br></pre></td></tr></table></figure>
+
+<p><em>A</em>：代表我们所开发的当前项目<br><em>B和D</em>：代表当前项目所依赖的项目<br><em>C</em>：代表当前项目依赖的项目所依赖的项目</p>
+<p>由于我们当前所开发的项目A依赖了B和D，B和D又依赖了项目C<br>我们打包运行项目时，maven只会将一个版本C(guava)打进包内（maven打包遇到相同依赖，最短路径优先，在路径相同时先在pom中声明优先）<br>比如此时打进包的版本是C(guava version 23.6-jre)，那么很有可能在运行B中的一个方法时，调用C的一个方法，这个方法是C(guava version 18)中的一个方法，在C(guava version 23.6-jre)中并不存在，这时候就会报出java.lang.NoSuchMethodError</p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a><strong>解决方案</strong></h3><p>使用maven-shade-plugin将所有B项目依赖的包全部打进B.jar中，并且给guava包的路径重命名为我们的自定义路径\</p>
+<h4 id="maven-shade-plugin基本功能"><a href="#maven-shade-plugin基本功能" class="headerlink" title="maven-shade-plugin基本功能"></a>maven-shade-plugin基本功能</h4><p>maven-shade-plugin提供了两大基本功能：</p>
+<p>1、将依赖的jar包打包到当前jar包（常规打包是不会将所依赖jar包打进来的）<br>2、对依赖的jar包进行重命名（用于类的隔离，解决包冲突就是使用了这个功能）</p>
+<h4 id="解决示例"><a href="#解决示例" class="headerlink" title="解决示例"></a>解决示例</h4><p>如下例，就可以在B项目中使用C(guava version 18)，只不过import路径变成了我们自定的路径</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0&quot;</span> <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">modelVersion</span>&gt;</span>4.0.0<span class="tag">&lt;/<span class="name">modelVersion</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>RpcModule<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>RpcModule<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">packaging</span>&gt;</span>jar<span class="tag">&lt;/<span class="name">packaging</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>RpcModule<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">project.build.sourceEncoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">project.build.sourceEncoding</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">guava.version</span>&gt;</span>18<span class="tag">&lt;/<span class="name">guava.version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.12<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.google.guava<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>guava<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;guava.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-compiler-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">source</span>&gt;</span>8<span class="tag">&lt;/<span class="name">source</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">target</span>&gt;</span>8<span class="tag">&lt;/<span class="name">target</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line"></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-shade-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.4.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">createDependencyReducedPom</span>&gt;</span>false<span class="tag">&lt;/<span class="name">createDependencyReducedPom</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">goal</span>&gt;</span>shade<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">                        <span class="comment">&lt;!-- 给guava包的路径重命名为我们的自定义路径 --&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">relocations</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;<span class="name">relocation</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">pattern</span>&gt;</span>com.google.guava<span class="tag">&lt;/<span class="name">pattern</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">shadedPattern</span>&gt;</span>shade.com.google.guava<span class="tag">&lt;/<span class="name">shadedPattern</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;/<span class="name">relocation</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;<span class="name">relocation</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">pattern</span>&gt;</span>org.joda<span class="tag">&lt;/<span class="name">pattern</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">shadedPattern</span>&gt;</span>shade.com.google.joda<span class="tag">&lt;/<span class="name">shadedPattern</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;/<span class="name">relocation</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;<span class="name">relocation</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">pattern</span>&gt;</span>com.google.common<span class="tag">&lt;/<span class="name">pattern</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">shadedPattern</span>&gt;</span>shade.com.google.common<span class="tag">&lt;/<span class="name">shadedPattern</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;/<span class="name">relocation</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;/<span class="name">relocations</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">transformers</span>&gt;</span></span><br><span class="line">                                &lt;transformer</span><br><span class="line">                                        implementation=&quot;org.apache.maven.plugins.shade.resource.ManifestResourceTransformer&quot;/&gt;</span><br><span class="line">                            <span class="tag">&lt;/<span class="name">transformers</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>使用maven-shade-plugin之前</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Entity.Request;</span><br><span class="line"><span class="keyword">import</span> Entity.Response;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.net.Socket;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.google.common.collect.ImmutableMap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SocketClient</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用maven-shade-plugin之后编译后反编译结果</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Entity.Request;</span><br><span class="line"><span class="keyword">import</span> Entity.Response;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.net.Socket;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> shade.com.google.common.collect.ImmutableMap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SocketClient</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后将打好的包上传至我们的maven仓库，然后再在当前项目A中依赖，就没有依赖冲突了</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">A - B - C(guava version 18, shade.com.google.common.collect.ImmutableMap)</span><br><span class="line">  \ D - C(guava version 23.6-jre, com.google.common.collect.ImmutableMap)</span><br></pre></td></tr></table></figure>
+
+<p>这样就可以做到将两个不同版本的包都引入使用，由于引入包路径不同，因此也没有冲突</p>
+]]></content>
+      <categories>
+        <category>Apache Maven</category>
+      </categories>
+      <tags>
+        <tag>Apache Maven</tag>
+      </tags>
   </entry>
   <entry>
     <title>IntelliJ IDEA 中如何查看一个类的所有继承关系</title>
@@ -2733,59 +2733,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Tips | Flink sink schema 字段设计小技巧</title>
-    <url>/2020/09/12/wechat-blog/apache-flink:realtime-tips-1/</url>
-    <content><![CDATA[<h1 id="Tips-Flink-sink-schema-字段设计小技巧"><a href="#Tips-Flink-sink-schema-字段设计小技巧" class="headerlink" title="Tips | Flink sink schema 字段设计小技巧"></a>Tips | Flink sink schema 字段设计小技巧</h1><blockquote>
-<p>本系列每篇文章都比较短小，不定期更新，从一些实际的 case 出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍 Flink sink schema 字段设计小技巧，阅读时长大概 2 分钟，话不多说，直接进入正文！</p>
-</blockquote>
-<h2 id="sink-schema-中添加-version-版本字段"><a href="#sink-schema-中添加-version-版本字段" class="headerlink" title="sink schema 中添加 version 版本字段"></a>sink schema 中添加 version 版本字段</h2><p>如 title，直接上实践案例和使用方式。</p>
-<h3 id="实践案例及使用方式"><a href="#实践案例及使用方式" class="headerlink" title="实践案例及使用方式"></a>实践案例及使用方式</h3><ul>
-<li><strong>非故障场景下产出的每条记录的 version 字段值为 1</strong></li>
-<li><strong>故障场景下，可以在同一 sink 中产出 version &gt; 1（非 1）的数据，代表故障修复数据提供给下游消费</strong></li>
-</ul>
-<h3 id="可应对的故障场景"><a href="#可应对的故障场景" class="headerlink" title="可应对的故障场景"></a>可应对的故障场景</h3><p>上游 flink 任务 A 发生故障导致产出脏数据至 kafka X，并且下游消费方可以按照下面两类进行划分：</p>
-<ul>
-<li><strong>下游为 flink 任务</strong>：flink 任务 B 消费 kafka X 中的脏数据，结果计算并产出错误数据</li>
-<li><strong>下游为 OLAP 引擎以及 BI 看板</strong>：结果导致看板展示数据异常</li>
-</ul>
-<p>首先介绍下避免以及处理上述问题的整体思路：</p>
-<ul>
-<li><strong>1.优化逻辑，保障上游任务稳定性</strong>：首先通过一些优化手段，尽可能保证上游 flink 任务 A 不出现故障</li>
-<li><strong>2.配置作业监控报警</strong>：针对整条链路配置对应的监控报警等，以及时发现和定位问题</li>
-<li><strong>3.制定故障处理、修复预案</strong>：需要制定对应的故障处理、修复预案，一旦出现故障，需要有可处理故障的能力</li>
-<li><strong>4.下游针对数据源特性改进消费和处理方式</strong>：保障即使消费了脏数据也不会对业务逻辑产生影响</li>
-</ul>
-<p>下文主要介绍<strong>第 2 点</strong>，出现上述故障时修复的方案，针对以上场景，目前有如下 3 种可选方案修复数据：</p>
-<ul>
-<li><strong>方案 1 - 离线方式修复</strong>：通过离线方式产出修复数据，对脏数据进行覆盖操作。缺点是故障修复延迟较高，需要切换离线、实时数据源，人工操作成本较高</li>
-<li><strong>方案 2 - 实时方式修复</strong>：重跑修数逻辑，产出修复数据至 kafka X-fix，下游 flink 任务 B 重新从 kafka X-fix 中的指定 offset 开始消费，计算并产出正确的数据。此方案对下游 flink 任务 B 来说，需要改动代码逻辑，存在修数 topic 和原 topic 切换逻辑，修复逻辑较为复杂</li>
-<li><strong>方案 3 - 实时方式修复（本小节 version 字段方案）</strong>：为避免下游产生数据源切换操作带来的高成本操作，可在原有 kafka topic 中产出修复数据，通过 version 字段区分正常产出数据以及修复数据，相对方案 1 和 2 的优点在于，不存在数据源切换逻辑，下游通过控制 version 字段值就可消费到对应的修复数据，明显降低人工操作成本，且修复逻辑相对简单</li>
-</ul>
-<blockquote>
-<p>Note: 方案 3 需要对 Kafka X 预留一定的 buffer，否则在产出修复数据时，由于写入或读出 Kafka X 的 QPS 过高，会影响正常产出数据的任务。</p>
-</blockquote>
-<h2 id="sink-schema-中添加时间戳字段"><a href="#sink-schema-中添加时间戳字段" class="headerlink" title="sink schema 中添加时间戳字段"></a>sink schema 中添加时间戳字段</h2><h3 id="实践案例及使用方式-1"><a href="#实践案例及使用方式-1" class="headerlink" title="实践案例及使用方式"></a>实践案例及使用方式</h3><p>有窗口场景中，sink schema 中可添加以下字段：</p>
-<ul>
-<li><strong>flink_process_start_time(long)：代表 flink 窗口开始逻辑处理的时间戳</strong></li>
-<li><strong>flink_process_end_time(long)：代表 flink 窗口结束逻辑处理的时间戳</strong></li>
-<li><strong>window_start(long)：代表 flink 窗口开始时间戳</strong></li>
-<li><strong>window_end(long)：代表 flink 窗口结束时间戳</strong></li>
-</ul>
-<h3 id="生产实践案例"><a href="#生产实践案例" class="headerlink" title="生产实践案例"></a>生产实践案例</h3><ul>
-<li><strong>flink_process_start_time，flink_process_end_time 在开发、测试、验数阶段可帮助用户定位数据偏差原因</strong></li>
-<li><strong>window_start，window_end 可以帮助用户定位每个窗口处理是否有丢数，及每个窗口处理的具体数据</strong></li>
-</ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文主要介绍了在 sink schema 中添加 version（版本），时间戳扩展字段的小技巧，以帮助用户在生产环境中提升实时数据故障修复效率以及可用性。</p>
-<p><img src="/blog-img/gzh/wechat.png" alt="公众号"></p>
-]]></content>
-      <categories>
-        <category>Apache Flink</category>
-      </categories>
-      <tags>
-        <tag>Apache Flink</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Tips | Flink 使用 union 代替 join、cogroup</title>
     <url>/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/</url>
     <content><![CDATA[<h1 id="Tips-Flink-使用-union-代替-join、cogroup"><a href="#Tips-Flink-使用-union-代替-join、cogroup" class="headerlink" title="Tips | Flink 使用 union 代替 join、cogroup"></a>Tips | Flink 使用 union 代替 join、cogroup</h1><blockquote>
@@ -2839,6 +2786,59 @@
 <p>可以发现，无论上游数据源怎样进行变化，上述 union 方案中始终可以保持只有一个窗口算子处理和计算数据，则可以解决之前列举的数据延迟以及 flink 任务算子过多的问题。</p>
 <p>在数据源的 schema 相同（或者不同但经过处理之后可以 format 成相同格式）的情况下，或者处理逻辑相同的话，可以使用 union 进行逻辑简化。</p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文首先介绍了我们的需求场景，第二部分分析了使用 cogroup（案例代码）是如何解决此需求场景，再分析了此实现方案可能会存在一些问题，并引出了 union 解决方案的逆推和设计思路。<br>在第三部分针对此场景使用 union 代替 cogroup 进行了一定程度上的优化。如果针对此场景，大佬们有更好的优化方案的话，期待留言喔。</p>
+<p><img src="/blog-img/gzh/wechat.png" alt="公众号"></p>
+]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Tips | Flink sink schema 字段设计小技巧</title>
+    <url>/2020/09/12/wechat-blog/apache-flink:realtime-tips-1/</url>
+    <content><![CDATA[<h1 id="Tips-Flink-sink-schema-字段设计小技巧"><a href="#Tips-Flink-sink-schema-字段设计小技巧" class="headerlink" title="Tips | Flink sink schema 字段设计小技巧"></a>Tips | Flink sink schema 字段设计小技巧</h1><blockquote>
+<p>本系列每篇文章都比较短小，不定期更新，从一些实际的 case 出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍 Flink sink schema 字段设计小技巧，阅读时长大概 2 分钟，话不多说，直接进入正文！</p>
+</blockquote>
+<h2 id="sink-schema-中添加-version-版本字段"><a href="#sink-schema-中添加-version-版本字段" class="headerlink" title="sink schema 中添加 version 版本字段"></a>sink schema 中添加 version 版本字段</h2><p>如 title，直接上实践案例和使用方式。</p>
+<h3 id="实践案例及使用方式"><a href="#实践案例及使用方式" class="headerlink" title="实践案例及使用方式"></a>实践案例及使用方式</h3><ul>
+<li><strong>非故障场景下产出的每条记录的 version 字段值为 1</strong></li>
+<li><strong>故障场景下，可以在同一 sink 中产出 version &gt; 1（非 1）的数据，代表故障修复数据提供给下游消费</strong></li>
+</ul>
+<h3 id="可应对的故障场景"><a href="#可应对的故障场景" class="headerlink" title="可应对的故障场景"></a>可应对的故障场景</h3><p>上游 flink 任务 A 发生故障导致产出脏数据至 kafka X，并且下游消费方可以按照下面两类进行划分：</p>
+<ul>
+<li><strong>下游为 flink 任务</strong>：flink 任务 B 消费 kafka X 中的脏数据，结果计算并产出错误数据</li>
+<li><strong>下游为 OLAP 引擎以及 BI 看板</strong>：结果导致看板展示数据异常</li>
+</ul>
+<p>首先介绍下避免以及处理上述问题的整体思路：</p>
+<ul>
+<li><strong>1.优化逻辑，保障上游任务稳定性</strong>：首先通过一些优化手段，尽可能保证上游 flink 任务 A 不出现故障</li>
+<li><strong>2.配置作业监控报警</strong>：针对整条链路配置对应的监控报警等，以及时发现和定位问题</li>
+<li><strong>3.制定故障处理、修复预案</strong>：需要制定对应的故障处理、修复预案，一旦出现故障，需要有可处理故障的能力</li>
+<li><strong>4.下游针对数据源特性改进消费和处理方式</strong>：保障即使消费了脏数据也不会对业务逻辑产生影响</li>
+</ul>
+<p>下文主要介绍<strong>第 2 点</strong>，出现上述故障时修复的方案，针对以上场景，目前有如下 3 种可选方案修复数据：</p>
+<ul>
+<li><strong>方案 1 - 离线方式修复</strong>：通过离线方式产出修复数据，对脏数据进行覆盖操作。缺点是故障修复延迟较高，需要切换离线、实时数据源，人工操作成本较高</li>
+<li><strong>方案 2 - 实时方式修复</strong>：重跑修数逻辑，产出修复数据至 kafka X-fix，下游 flink 任务 B 重新从 kafka X-fix 中的指定 offset 开始消费，计算并产出正确的数据。此方案对下游 flink 任务 B 来说，需要改动代码逻辑，存在修数 topic 和原 topic 切换逻辑，修复逻辑较为复杂</li>
+<li><strong>方案 3 - 实时方式修复（本小节 version 字段方案）</strong>：为避免下游产生数据源切换操作带来的高成本操作，可在原有 kafka topic 中产出修复数据，通过 version 字段区分正常产出数据以及修复数据，相对方案 1 和 2 的优点在于，不存在数据源切换逻辑，下游通过控制 version 字段值就可消费到对应的修复数据，明显降低人工操作成本，且修复逻辑相对简单</li>
+</ul>
+<blockquote>
+<p>Note: 方案 3 需要对 Kafka X 预留一定的 buffer，否则在产出修复数据时，由于写入或读出 Kafka X 的 QPS 过高，会影响正常产出数据的任务。</p>
+</blockquote>
+<h2 id="sink-schema-中添加时间戳字段"><a href="#sink-schema-中添加时间戳字段" class="headerlink" title="sink schema 中添加时间戳字段"></a>sink schema 中添加时间戳字段</h2><h3 id="实践案例及使用方式-1"><a href="#实践案例及使用方式-1" class="headerlink" title="实践案例及使用方式"></a>实践案例及使用方式</h3><p>有窗口场景中，sink schema 中可添加以下字段：</p>
+<ul>
+<li><strong>flink_process_start_time(long)：代表 flink 窗口开始逻辑处理的时间戳</strong></li>
+<li><strong>flink_process_end_time(long)：代表 flink 窗口结束逻辑处理的时间戳</strong></li>
+<li><strong>window_start(long)：代表 flink 窗口开始时间戳</strong></li>
+<li><strong>window_end(long)：代表 flink 窗口结束时间戳</strong></li>
+</ul>
+<h3 id="生产实践案例"><a href="#生产实践案例" class="headerlink" title="生产实践案例"></a>生产实践案例</h3><ul>
+<li><strong>flink_process_start_time，flink_process_end_time 在开发、测试、验数阶段可帮助用户定位数据偏差原因</strong></li>
+<li><strong>window_start，window_end 可以帮助用户定位每个窗口处理是否有丢数，及每个窗口处理的具体数据</strong></li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文主要介绍了在 sink schema 中添加 version（版本），时间戳扩展字段的小技巧，以帮助用户在生产环境中提升实时数据故障修复效率以及可用性。</p>
 <p><img src="/blog-img/gzh/wechat.png" alt="公众号"></p>
 ]]></content>
       <categories>
@@ -2979,6 +2979,22 @@
   </entry>
   <entry>
     <title>项目经验 | 一定要多思考，过脑子</title>
+    <url>/2020/09/01/wechat-blog/work:thinker/</url>
+    <content><![CDATA[<blockquote>
+<p>本系列每篇文章都比较短小，不定期更新，从一些实际的经历出发抛砖引玉，希望给小伙伴一些启发。<br>本文介绍了博主从做数据到玩数据的整个思考过程的转变，阅读时长大概 2 分钟，话不多说，直接进入正文！</p>
+</blockquote>
+<p>项目经验 | 怎么从做数据转变到玩数据？</p>
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>是不是还一直是在<br>执行工作<br>而不是<br>真正的去思考工作？</p>
+]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>项目经验 | 一定要多思考，过脑子</title>
     <url>/2020/09/01/wechat-blog/work:life-cycle/</url>
     <content><![CDATA[<p>项目经验 | 一定要多思考，过脑子</p>
 <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>老妹是一个数据开发同学，最近在参与一个中台项目的实时数据建设，这也是她第一次完全的投入到一个项目体系当中（之前都是在某一个项目中负责一小块）。<br>就在做这个项目的过程中，遇到了一些问题。</p>
@@ -3046,22 +3062,6 @@
 <p>5.所有的东西不能都以 mock 的形式进行，比如为了赶排期，复杂项目的联调全部使用 mock 数据就会存在问题</p>
 <h1 id="开发"><a href="#开发" class="headerlink" title="开发"></a>开发</h1><p>1.开发过程中最需要注意的就是单测的编写，一定要记得编写单测，保证每个单元的代码都是正确的</p>
 <p>2.数据开发完成后需要验数，验数过程是很重要的</p>
-]]></content>
-      <categories>
-        <category>Apache Flink</category>
-      </categories>
-      <tags>
-        <tag>Apache Flink</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>项目经验 | 一定要多思考，过脑子</title>
-    <url>/2020/09/01/wechat-blog/work:thinker/</url>
-    <content><![CDATA[<blockquote>
-<p>本系列每篇文章都比较短小，不定期更新，从一些实际的经历出发抛砖引玉，希望给小伙伴一些启发。<br>本文介绍了博主从做数据到玩数据的整个思考过程的转变，阅读时长大概 2 分钟，话不多说，直接进入正文！</p>
-</blockquote>
-<p>项目经验 | 怎么从做数据转变到玩数据？</p>
-<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>是不是还一直是在<br>执行工作<br>而不是<br>真正的去思考工作？</p>
 ]]></content>
       <categories>
         <category>Apache Flink</category>
