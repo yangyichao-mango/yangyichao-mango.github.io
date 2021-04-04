@@ -331,7 +331,7 @@
 
       
         <p>为什么hashmap的数组初始化大小都是2的次方大小时，hashmap的效率最高</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">indexFor</span><span class="params">(<span class="keyword">int</span> hashcode, <span class="keyword">int</span> length)</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">return</span> hashcode &amp; (length-<span class="number">1</span>);  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -340,14 +340,11 @@
 <p>看下图，左边两组是数组长度为16（2的4次方），右边两组是数组长度为15。两组的hashcode均为8和9，但是很明显，当它们和1110“与”的时候，产生了相同的结果，也就是说它们会定位到数组中的同一个位置上去，这就产生了碰撞，8和9会被放到同一个链表上，那么查询的时候就需要遍历这个链表，得到8或者9，这样就降低了查询的效率。同时，我们也可以发现，当数组长度为15的时候，hashcode的值会与14（1110）进行“与”，那么最后一位永远是0，而0001，0011，0101，1001，1011，0111，1101这几个位置永远都不能存放元素了，空间浪费相当大，更糟的是这种情况中，数组可以使用的位置比数组长度小了很多，这意味着进一步增加了碰撞的几率，减慢了查询的效率！<br><img src="/blog-img/java:study-hashmap/hashmap-index-for.jpg" alt="hashmap-index"></p>
 <p>1.假设key的hashcode为h，数组长度为length，为了将数据打散，使hashmap中的数组下标对应的Entry链表都有数据，首先想到的就是对length取模，计算方法如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">indexFor</span><span class="params">(<span class="keyword">int</span> h, <span class="keyword">int</span> length)</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">return</span> h % length;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
 <p>因此确定了hashmap的indexFor函数的计算方式。</p>
 <h1 id="怎样确定hashmap数组的length"><a href="#怎样确定hashmap数组的length" class="headerlink" title="怎样确定hashmap数组的length"></a>怎样确定hashmap数组的length</h1><p>“模”运算的消耗还是比较大的，能不能找一种更快速，消耗更小的方式？我们发现做位运算的消耗是很小的，所以尝试将取模运算转换成位预算，由此发现length为2的n次方时会有</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">indexFor</span><span class="params">(<span class="keyword">int</span> h, <span class="keyword">int</span> length)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> h % length; <span class="comment">// 等价于 h &amp; (length - 1);</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
 <p>由于 &amp; 运算符计算效率大大高于 % 运算符，所以上述计算转换为：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">indexFor</span><span class="params">(<span class="keyword">int</span> h, <span class="keyword">int</span> length)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> h &amp; (length - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
 <p>也规定了 length 必须是2的n次方（n&gt;0）<br>除此之外，我们也可以发现，当数组长度为15的时候，hashcode的值会与14（1110）进行“与”，那么最后一位永远是0，而0001，0011，0101，1001，1011，0111，1101这几个位置永远都不能存放元素了，空间浪费相当大，更糟的是这种情况中，数组可以使用的位置比数组长度小了很多，这意味着进一步增加了碰撞的几率，减慢了查询的效率！ </p>
 
       
@@ -468,7 +465,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">62</span>
+                  <span class="site-state-item-count">63</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>

@@ -329,7 +329,7 @@
 
       
         <p>Apache Druid 学习：组件以及查询类型</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <h2 id="OLAP"><a href="#OLAP" class="headerlink" title="OLAP"></a><strong>OLAP</strong></h2><h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><p>维度(Dimension): 指的是观察数据的一个角度，是考虑问题的一类属性，这些属性的集合统称为一个维。<br>维的级别(Level): 对数据的观察还存在细节程度的不同，在druid中一般表示为时间的粒度(granularity)，比如一秒，一分钟，一小时，一天…… <br>度量(Measure): 度量是用来聚合分析计算的数字信息，在druid中称为”metrics”，它可以是存储在数据库中，也可以是通过策略计算得出的。比如一篇文章的点击数、或者是根据评论数、点击数、转发数计算出的热点值</p>
 <h3 id="对于数据处理"><a href="#对于数据处理" class="headerlink" title="对于数据处理"></a>对于数据处理</h3><p>向下钻取(Drill-down)/上卷(Roll-up): <strong>改变维的层次和级别，变换分析的粒度</strong>。Roll-up在于提升维的级别（或者称粒度）或者减少维度来聚合数据，展现总览，Drill-down反之，降低维的级别(或者称粒度)或增加维度来查看细节<br>切片(slice)和切块(dice): 当维度为两个时，我们对获取数据(查询)的操作称之为切片，当维度的数量大于两个时，我们称之为切块<br>旋转(Pivoting): 变换维的方向，例如表格中的行列互换</p>
@@ -554,7 +554,7 @@
 <p>context：</p>
 <p>1.grandTotal</p>
 <p>2.零填充<br>如果时间范围内没有值，则会填充0<br>时间序列查询通常用零填充空的内部时间段。例如，如果您对间隔2012-01-01 / 2012-01-04发出“天”粒度时间序列查询，而2012-01-02没有数据存在，您将收到：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="string">"timestamp"</span>: <span class="string">"2012-01-01T00:00:00.000Z"</span>,</span><br><span class="line">    <span class="string">"result"</span>: &#123; <span class="string">"sample_name1"</span>: &lt;some_value&gt; &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">   <span class="string">"timestamp"</span>: <span class="string">"2012-01-02T00:00:00.000Z"</span>,</span><br><span class="line">   <span class="string">"result"</span>: &#123; <span class="string">"sample_name1"</span>: 0 &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="string">"timestamp"</span>: <span class="string">"2012-01-03T00:00:00.000Z"</span>,</span><br><span class="line">    <span class="string">"result"</span>: &#123; <span class="string">"sample_name1"</span>: &lt;some_value&gt; &#125;</span><br><span class="line">  &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="string">&quot;timestamp&quot;</span>: <span class="string">&quot;2012-01-01T00:00:00.000Z&quot;</span>,</span><br><span class="line">    <span class="string">&quot;result&quot;</span>: &#123; <span class="string">&quot;sample_name1&quot;</span>: &lt;some_value&gt; &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">   <span class="string">&quot;timestamp&quot;</span>: <span class="string">&quot;2012-01-02T00:00:00.000Z&quot;</span>,</span><br><span class="line">   <span class="string">&quot;result&quot;</span>: &#123; <span class="string">&quot;sample_name1&quot;</span>: 0 &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="string">&quot;timestamp&quot;</span>: <span class="string">&quot;2012-01-03T00:00:00.000Z&quot;</span>,</span><br><span class="line">    <span class="string">&quot;result&quot;</span>: &#123; <span class="string">&quot;sample_name1&quot;</span>: &lt;some_value&gt; &#125;</span><br><span class="line">  &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
 
 <h4 id="topN"><a href="#topN" class="headerlink" title="topN"></a>topN</h4><p>在时间点的基础上，又增加了一个维度(OLAP的概念算两个维度)，进而对源数据进行切片，切片之后分别上卷，最后返回一个聚合集，你可以指定某个指标作为排序的依据。官方文档称这对比单个druid dimension 的groupBy 更高效。适合看某个维度下的时间趋势，（比如美国和中国十年内GDP的增长趋势比对，在这里除了时间外国家就是另外一个维度）</p>
 <table>
@@ -997,7 +997,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">62</span>
+                  <span class="site-state-item-count">63</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>

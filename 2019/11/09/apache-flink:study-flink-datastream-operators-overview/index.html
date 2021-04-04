@@ -331,7 +331,7 @@
 
       
         <p>描述了基本 Operators 的 Transformations，应用这些转换后如何进行 physical partitioning（物理分区），以及对Flink算子链的深入了解。</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <h1 id="DataStream-Transformations"><a href="#DataStream-Transformations" class="headerlink" title="DataStream Transformations"></a><strong>DataStream Transformations</strong></h1><h1 id="Physical-partitioning"><a href="#Physical-partitioning" class="headerlink" title="Physical partitioning"></a><strong>Physical partitioning</strong></h1><table>
     <thead>
@@ -344,7 +344,7 @@
         <tr>
             <td style="text-align: center;">Custom partitioning<br>
                 DataStream → DataStream<br>
-                <strong>CustomPartitionerWrapper<<t>k, T></t></strong>
+                <strong>CustomPartitionerWrapper<<T>k, T></strong>
             </td>
             <td>使用自定义的 partitioner 为每一条 record 选择下一个 task<br>
                 <strong>dataStream.partitionCustom(partitioner, "someKey");</strong><br>
@@ -354,7 +354,7 @@
         <tr>
             <td style="text-align: center;">Random partitioning<br>
                 DataStream → DataStream<br>
-                <strong>ShufflePartitioner<<t>T></t></strong>
+                <strong>ShufflePartitioner<<T>T></strong>
             </td>
             <td>按随机均匀划分元素<br>
                 <strong>dataStream.shuffle();</strong>
@@ -363,7 +363,7 @@
         <tr>
             <td style="text-align: center;">Rebalancing (Round-robin partitioning)<br>
                 DataStream → DataStream<br>
-                <strong>RebalancePartitioner<<t>T></t></strong>
+                <strong>RebalancePartitioner<<T>T></strong>
             </td>
             <td>分区循环划分元素，为每个下游创建相等的负载。对于存在数据倾斜的性能优化非常有用。<br>
                 <strong>dataStream.rebalance();</strong>
@@ -372,7 +372,7 @@
         <tr>
             <td style="text-align: center;">Rescaling<br>
                 DataStream → DataStream<br>
-                <strong>RescalePartitioner<<t>T></t></strong>
+                <strong>RescalePartitioner<<T>T></strong>
             </td>
             <td>将元素循环（round robin）分配到下游 operator 的子集。如果你的 pipeline 是一下的情况，那么这种方式会非常有用。<br>
                 例如，将并行数据源的每个实例的数据传输到的下游多个算子（operators）一个子集以分配负载。但不希望 full rebalance，则这非常有用。<br>
@@ -384,7 +384,7 @@
                 <figure>
                     <div class="img-lightbox">
                         <div class="overlay"></div>
-                        <img src="/blog-img/apache-flink:study-flink-datastream-operators-overview/rescale_partition.svg" alt="rescale_partition" title>
+                        <img src="/blog-img/apache-flink:study-flink-datastream-operators-overview/rescale_partition.svg" alt="rescale_partition" title="">
                     </div>
                 </figure>
                 <strong>dataStream.rescale();</strong>
@@ -393,7 +393,7 @@
         <tr>
             <td style="text-align: center;">Broadcasting<br>
                 DataStream → DataStream<br>
-                <strong>BroadcastPartitioner<<t>T></t></strong>
+                <strong>BroadcastPartitioner<<T>T></strong>
             </td>
             <td>广播数据到下游的每个partition。<br>
                 <strong>dataStream.broadcast();</strong>
@@ -402,7 +402,7 @@
         <tr>
             <td style="text-align: center;">Local Forward<br>
                 DataStream → DataStream<br>
-                <strong>ForwardPartitioner<<t>T></t></strong>
+                <strong>ForwardPartitioner<<T>T></strong>
             </td>
             <td>数据传输到本地的下游算子。<br>
                 <strong>dataStream.forward();</strong>
@@ -411,7 +411,7 @@
         <tr>
             <td style="text-align: center;">GlobalPartitioner<br>
                 DataStream → DataStream<br>
-                <strong>GlobalPartitioner<<t>T></t></strong>
+                <strong>GlobalPartitioner<<T>T></strong>
             </td>
             <td>数据传输到下游子任务id为0的task中。<br>
                 <strong>dataStream.forward();</strong>
@@ -420,7 +420,7 @@
         <tr>
             <td style="text-align: center;">Key Groups<br>
                 DataStream → DataStream<br>
-                <strong>KeyGroupStreamPartitioner<<t>T, K></t></strong>
+                <strong>KeyGroupStreamPartitioner<<T>T, K></strong>
             </td>
             <td>相同key的值会传输到同一个下游。类似于Rescaling，但是不用再api中指定，再使用keyBy时会自动指定此方法。<br>
                 <strong>dataStream.keyBy();</strong>
@@ -550,7 +550,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">62</span>
+                  <span class="site-state-item-count">63</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>

@@ -329,13 +329,13 @@
 
       
         <p>Apache Hive环境搭建错误：com.mysql.jdbc.Driver was not found in the CLASSPATH</p>
-<a id="more"></a>
+<span id="more"></span>
 
 
 <h3 id="错误场景详情"><a href="#错误场景详情" class="headerlink" title="错误场景详情"></a><strong>错误场景详情</strong></h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="variable">$HIVE_HOME</span>/bin/schematool -dbType mysql -initSchema</span><br><span class="line">SLF4J: Class path contains multiple SLF4J bindings.</span><br><span class="line">SLF4J: Found binding <span class="keyword">in</span> [jar:file:/usr/<span class="built_in">local</span>/Cellar/hive/3.1.2/libexec/lib/log4j-slf4j-impl-2.10.0.jar!/org/slf4j/impl/StaticLoggerBinder.class]</span><br><span class="line">SLF4J: Found binding <span class="keyword">in</span> [jar:file:/usr/<span class="built_in">local</span>/Cellar/hadoop/3.2.1/libexec/share/hadoop/common/lib/slf4j-log4j12-1.7.25.jar!/org/slf4j/impl/StaticLoggerBinder.class]</span><br><span class="line">SLF4J: See http://www.slf4j.org/codes.html<span class="comment">#multiple_bindings for an explanation.</span></span><br><span class="line">SLF4J: Actual binding is of <span class="built_in">type</span> [org.apache.logging.slf4j.Log4jLoggerFactory]</span><br><span class="line">Metastore connection URL:	 jdbc:mysql://localhost:3306/hive?characterEncoding=UTF-8</span><br><span class="line">Metastore Connection Driver :	 com.mysql.jdbc.Driver</span><br><span class="line">Metastore connection User:	 hadoop</span><br><span class="line">org.apache.hadoop.hive.metastore.HiveMetaException: Failed to load driver</span><br><span class="line">Underlying cause: java.lang.ClassNotFoundException : com.mysql.jdbc.Driver</span><br><span class="line">Use --verbose <span class="keyword">for</span> detailed stacktrace.</span><br><span class="line">*** schemaTool failed ***</span><br></pre></td></tr></table></figure>
 
 <h3 id="错误原因"><a href="#错误原因" class="headerlink" title="错误原因"></a><strong>错误原因</strong></h3><p>在配置hive-site.xml文件时配置了mysql驱动，而hive/lib目录下没有mysql驱动包。</p>
-<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a><strong>解决方案</strong></h3><p>官网下载mysql驱动下载地址 (<a href="https://dev.mysql.com/downloads/connector/j/" target="_blank" rel="noopener">https://dev.mysql.com/downloads/connector/j/</a>)<br>把下载好的压缩包（mysql-connector-java-8.0.18.zip）进行解压<br>unzip mysql-connector-java-8.0.18.zip<br>复制到hive/lib下<br>cp mysql-connector-java-8.0.18/mysql-connector-java-8.0.18.jar hive/lib</p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a><strong>解决方案</strong></h3><p>官网下载mysql驱动下载地址 (<a target="_blank" rel="noopener" href="https://dev.mysql.com/downloads/connector/j/">https://dev.mysql.com/downloads/connector/j/</a>)<br>把下载好的压缩包（mysql-connector-java-8.0.18.zip）进行解压<br>unzip mysql-connector-java-8.0.18.zip<br>复制到hive/lib下<br>cp mysql-connector-java-8.0.18/mysql-connector-java-8.0.18.jar hive/lib</p>
 
       
     </div>
@@ -455,7 +455,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">62</span>
+                  <span class="site-state-item-count">63</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>

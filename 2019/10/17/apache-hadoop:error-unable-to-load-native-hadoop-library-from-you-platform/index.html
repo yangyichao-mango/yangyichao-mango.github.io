@@ -329,10 +329,11 @@
 
       
         <p>Apache Hadoop错误：Unable to load native-hadoop library for your platform</p>
-<a id="more"></a>
+<span id="more"></span>
 
 
-<h3 id="错误场景详情"><a href="#错误场景详情" class="headerlink" title="错误场景详情"></a><strong>错误场景详情</strong></h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ hadoop fs -ls /</span><br><span class="line">WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using <span class="built_in">builtin</span>-java classes <span class="built_in">where</span> applicable</span><br></pre></td></tr></table></figure>
+<h3 id="错误场景详情"><a href="#错误场景详情" class="headerlink" title="错误场景详情"></a><strong>错误场景详情</strong></h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ hadoop fs -ls /</span><br><span class="line">WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using builtin-java classes <span class="built_in">where</span> applicable</span><br></pre></td></tr></table></figure>
+
 
 <h3 id="错误原因"><a href="#错误原因" class="headerlink" title="错误原因"></a><strong>错误原因</strong></h3><p>Hadoop是使用Java语言开发的,但是有一些需求和操作并不适合使用java所以会引入了本地库（Native Libraries）的概念，通过本地库，Hadoop可以更加高效地执行某一些操作.<br>当我们在linux 输入 hdoop fs -ls / 去查看 hdfs 文件系统上的资源时会出现下面错误</p>
 <h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a><strong>解决方案</strong></h3><h4 id="解决方案1"><a href="#解决方案1" class="headerlink" title="解决方案1"></a>解决方案1</h4><p>在Hadoop的配置文件core-site.xml中可以设置是否使用本地库：（Hadoop默认的配置为启用本地库）</p>
@@ -340,7 +341,7 @@
 
 <h4 id="解决方案2"><a href="#解决方案2" class="headerlink" title="解决方案2"></a>解决方案2</h4><p>有博客说可以直接下载编译好的位包，替换原来的native包<br>由于在我本地安装的Apache Hadoop 3.2.1版本中没有找到lib文件夹，所以在3.2.1版本中暂时不能使用此种方法</p>
 <p>执行查看文件命令</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ hadoop fs -ls /</span><br><span class="line">2019-10-17 11:33:09,369 WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using <span class="built_in">builtin</span>-java classes <span class="built_in">where</span> applicable</span><br><span class="line">Found 1 items</span><br><span class="line">drwxr-xr-x   - xxx supergroup          0 2019-10-17 11:23 /tmp</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ hadoop fs -ls /</span><br><span class="line">2019-10-17 11:33:09,369 WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using builtin-java classes <span class="built_in">where</span> applicable</span><br><span class="line">Found 1 items</span><br><span class="line">drwxr-xr-x   - xxx supergroup          0 2019-10-17 11:23 /tmp</span><br></pre></td></tr></table></figure>
       
     </div>
     
@@ -459,7 +460,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">62</span>
+                  <span class="site-state-item-count">63</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>

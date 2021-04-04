@@ -329,7 +329,7 @@
 
       
         <p>Apache Kafka 学习：kafka在数据处理中的应用的一些个人理解。</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <h1 id="离线数据处理"><a href="#离线数据处理" class="headerlink" title="离线数据处理"></a><strong>离线数据处理</strong></h1><h2 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h2><p>在离线数据处理的过程中。<br>如果不使用消息队列，在并发量很小的情况下，所有的客户端数据日志直接向hdfs写数据暂时不会产生什么问题。<br>如果不使用消息队列，在并发量很大的情况下，向 hdfs 写数据就会出现问题，首先，向hdfs写数据会有锁竞争的情况，可能会导致大部分写请求很长时间得不到锁，导致大量请求延迟或者超时，这是不能接受的；并且 hdfs 作为文件系统不能承受太大的并发量，在并发很高的情况下，集群可能会崩溃。</p>
 <h2 id="问题原因总结"><a href="#问题原因总结" class="headerlink" title="问题原因总结"></a>问题原因总结</h2><p>总的来说，在这种情况下，问题的根本在于高并发情况下，hdfs 作为文件系统不能承受高并发请求的问题。</p>
@@ -458,7 +458,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">62</span>
+                  <span class="site-state-item-count">63</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>

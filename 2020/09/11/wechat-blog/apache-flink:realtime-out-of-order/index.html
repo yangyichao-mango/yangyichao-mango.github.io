@@ -371,7 +371,7 @@
 <li>2.<strong>flink 任务 B</strong> 消费上游乱序丢数故障，解决方案在下文介绍</li>
 </ul>
 <h2 id="解决方案以及原理"><a href="#解决方案以及原理" class="headerlink" title="解决方案以及原理"></a>解决方案以及原理</h2><h3 id="丢数故障解决方案"><a href="#丢数故障解决方案" class="headerlink" title="丢数故障解决方案"></a>丢数故障解决方案</h3><p>解决方案是以下游 <strong>flink 任务 B</strong> 作为切入点，直接给出 <strong>flink 任务 B</strong> 的 sql 代码解决方案，java code 也可以按照这个方案实现，其本质原理相同。下文进行原理解释。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  to_unix_timestamp(server_timestamp / <span class="keyword">bucket</span>) <span class="keyword">AS</span> <span class="built_in">timestamp</span>, <span class="comment">-- format 成原有的事件时间戳</span></span><br><span class="line">  <span class="keyword">count</span>(<span class="keyword">id</span>) <span class="keyword">as</span> id_cnt,</span><br><span class="line">  <span class="keyword">sum</span>(<span class="keyword">duration</span>) <span class="keyword">as</span> duration_sum</span><br><span class="line"><span class="keyword">FROM</span></span><br><span class="line">  source_table</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">  TUMBLE(proctime, <span class="built_in">INTERVAL</span> <span class="string">'1'</span> <span class="keyword">MINUTE</span>),</span><br><span class="line">  server_timestamp / <span class="keyword">bucket</span> <span class="comment">-- 根据事件时间分桶计算，将相同范围（比如 1 分钟）事件时间的数据分到一个桶内</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  to_unix_timestamp(server_timestamp <span class="operator">/</span> bucket) <span class="keyword">AS</span> <span class="type">timestamp</span>, <span class="comment">-- format 成原有的事件时间戳</span></span><br><span class="line">  <span class="built_in">count</span>(id) <span class="keyword">as</span> id_cnt,</span><br><span class="line">  <span class="built_in">sum</span>(duration) <span class="keyword">as</span> duration_sum</span><br><span class="line"><span class="keyword">FROM</span></span><br><span class="line">  source_table</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">  TUMBLE(proctime, <span class="type">INTERVAL</span> <span class="string">&#x27;1&#x27;</span> <span class="keyword">MINUTE</span>),</span><br><span class="line">  server_timestamp <span class="operator">/</span> bucket <span class="comment">-- 根据事件时间分桶计算，将相同范围（比如 1 分钟）事件时间的数据分到一个桶内</span></span><br></pre></td></tr></table></figure>
 
 <h3 id="解决方案原理"><a href="#解决方案原理" class="headerlink" title="解决方案原理"></a>解决方案原理</h3><p>首先明确一个无法避免的问题，在不考虑 watermark 允许延迟设置特别大的情况下，只要上游使用到了处理时间语义，下游使用事件时间语义，一旦上游发生故障重启并在短时间内消费大量数据，就不可避免的会出现上述错误以及故障。</p>
 <p>在下游消费方仍然需要将对应事件时间戳的数据展示在 BI 平台报表中、并且全链路时间语义都为处理时间保障不丢数的前提下。解决方案就是在聚合并最终产出对应事件时间戳的数据。</p>
@@ -447,9 +447,9 @@
 <li><strong>以 sql 代码给出了丢数故障解决方案样例</strong></li>
 </ul>
 <h2 id="学习资料"><a href="#学习资料" class="headerlink" title="学习资料"></a>学习资料</h2><h3 id="flink"><a href="#flink" class="headerlink" title="flink"></a>flink</h3><ul>
-<li><a href="https://github.com/flink-china/flink-training-course/blob/master/README.md" target="_blank" rel="noopener">https://github.com/flink-china/flink-training-course/blob/master/README.md</a></li>
-<li><a href="https://ververica.cn/developers-resources/" target="_blank" rel="noopener">https://ververica.cn/developers-resources/</a></li>
-<li><a href="https://space.bilibili.com/33807709" target="_blank" rel="noopener">https://space.bilibili.com/33807709</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/flink-china/flink-training-course/blob/master/README.md">https://github.com/flink-china/flink-training-course/blob/master/README.md</a></li>
+<li><a target="_blank" rel="noopener" href="https://ververica.cn/developers-resources/">https://ververica.cn/developers-resources/</a></li>
+<li><a target="_blank" rel="noopener" href="https://space.bilibili.com/33807709">https://space.bilibili.com/33807709</a></li>
 </ul>
 <p><img src="/blog-img/gzh/wechat.png" alt="公众号"></p>
 
@@ -571,7 +571,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">62</span>
+                  <span class="site-state-item-count">63</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>

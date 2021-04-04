@@ -329,9 +329,9 @@
 
       
         <p>Apache Flink 学习：系统特性学习</p>
-<a id="more"></a>
+<span id="more"></span>
 
-<p><a href="https://github.com/flink-china/flink-training-course" target="_blank" rel="noopener">教程</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/flink-china/flink-training-course">教程</a></p>
 <h2 id="window窗口"><a href="#window窗口" class="headerlink" title="window窗口"></a><strong>window窗口</strong></h2><h3 id="窗口大小"><a href="#窗口大小" class="headerlink" title="窗口大小"></a>窗口大小</h3><p>窗口大小是用户自己设定的，但是窗口的起始和结束时间点是系统根据窗口大小和自然数进行设定的，不会出现设置了一分钟的窗口，统计的数据是2:30到3:30的数据</p>
 <p>[window_start_time, window_end_time)根据窗口大小和自然数进行设定</p>
 <p>如果window大小是3秒，那么1分钟内会把window划分为如下的形式:</p>
@@ -341,7 +341,6 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[00:00:00,00:00:10)</span><br><span class="line">[00:00:10,00:00:20)</span><br><span class="line">...</span><br><span class="line">[00:00:50,00:01:00)</span><br></pre></td></tr></table></figure>
 
 <h3 id="watermark"><a href="#watermark" class="headerlink" title="watermark"></a>watermark</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Watermark <span class="title">getCurrentWatermark</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// this guarantees that the watermark never goes backwards.</span></span><br><span class="line">    <span class="keyword">long</span> potentialWM = currentMaxTimestamp - maxOutOfOrderness;</span><br><span class="line">    <span class="keyword">if</span> (potentialWM &gt;= lastEmittedWatermark) &#123;</span><br><span class="line">        lastEmittedWatermark = potentialWM;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Watermark(lastEmittedWatermark);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
 <p><strong>watermark = max( [当前已到达的时间戳最新的数据(currentMaxTimestamp)] - [最大乱序等待时间(maxOutOfOrderness)], watermark )</strong></p>
 <h3 id="触发窗口运算条件"><a href="#触发窗口运算条件" class="headerlink" title="触发窗口运算条件"></a>触发窗口运算条件</h3><p>1.当前最新数据到达进行判断：当前到达event的time(timestamp) ＜ watermark则触发，表示数据是超过了最大等待时间，已经延迟到达的，则会触发</p>
 <p>2.当前最新数据到达进行判断：最新的watermark &gt;= window_end_time（对于out-of-order以及正常的数据而言），在[window_start_time, window_end_time)中有数据存在</p>
@@ -493,7 +492,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">62</span>
+                  <span class="site-state-item-count">63</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>

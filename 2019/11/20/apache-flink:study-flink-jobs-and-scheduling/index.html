@@ -329,7 +329,7 @@
 
       
         <p>Apache Flink 学习：Jobs 和 Scheduling</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <h1 id="Scheduling"><a href="#Scheduling" class="headerlink" title="Scheduling"></a><strong>Scheduling</strong></h1><p>Flink中的执行资源是通过 Task Slots 定义的。每个 TaskManager 都有一个或多个 Task Slots，每个 Slot 可以运行一个并行任务流。<br>并行任务流由多个连续的任务组成，例如 MapFunction 的第n个并行实例和 ReduceFunction 的第n个并行实例。请注意，Flink 经常并发地执行连续的任务：对于流式程序，基本上都会使用并行任务，对于批处理程序，也会经常使用并行任务。</p>
 <p>下图说明了这一点。一个具有数据源、MapFunction 和 ReduceFunction 的程序。源函数和 MapFunction 的并行度为4，而 ReduceFunction 的并行度为3。流由 Source - Map - Reduce 组成。<br>在这个集群中，有两个 TaskManager，每个 TaskManager 有三个 slot，则程序将按如下所述执行。</p>
@@ -452,7 +452,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">62</span>
+                  <span class="site-state-item-count">63</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
