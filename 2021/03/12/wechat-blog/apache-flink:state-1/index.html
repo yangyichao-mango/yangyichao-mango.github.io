@@ -81,12 +81,12 @@
 
 
 
-<meta name="description" content="本系列每篇文章都是从实际生产触发，从 5W 角度帮助大家理解全局一致性快照，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 10 分钟，话不多说，直接进入正文！">
+<meta name="description" content="本系列每篇文章都是从实际生产触发，从 5W 角度帮助大家理解全局一致性快照，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
 <meta property="og:type" content="article">
 <meta property="og:title" content="深入浅出 | 全局一致性快照（一）">
 <meta property="og:url" content="https://yangyichao-mango.github.io/2021/03/12/wechat-blog/apache-flink:state-1/index.html">
 <meta property="og:site_name" content="antigeneral&#39;s blog">
-<meta property="og:description" content="本系列每篇文章都是从实际生产触发，从 5W 角度帮助大家理解全局一致性快照，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 10 分钟，话不多说，直接进入正文！">
+<meta property="og:description" content="本系列每篇文章都是从实际生产触发，从 5W 角度帮助大家理解全局一致性快照，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
 <meta property="og:locale">
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/1.png">
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/2.jpeg">
@@ -128,7 +128,7 @@
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/37.png">
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/38.png">
 <meta property="article:published_time" content="2021-03-12T06:21:53.000Z">
-<meta property="article:modified_time" content="2021-04-04T11:40:49.714Z">
+<meta property="article:modified_time" content="2021-04-04T12:18:10.181Z">
 <meta property="article:author" content="yangyichao-mango">
 <meta property="article:tag" content="Apache Flink">
 <meta name="twitter:card" content="summary">
@@ -433,10 +433,41 @@
           
 
           
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  5.5k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  20
+                </span>
+              
+            </div>
+          
 
           
               <div class="post-description">
-                  本系列每篇文章都是从实际生产触发，从 5W 角度帮助大家理解全局一致性快照，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 10 分钟，话不多说，直接进入正文！
+                  本系列每篇文章都是从实际生产触发，从 5W 角度帮助大家理解全局一致性快照，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
               </div>
           
 
@@ -839,6 +870,15 @@
   <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
 
   
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">71.3k</span>
+  
 </div>
 
 
@@ -1019,7 +1059,7 @@
     var isfetched = false;
     var isXml = true;
     // Search DB path;
-    var search_path = "";
+    var search_path = "search.xml";
     if (search_path.length === 0) {
       search_path = "search.xml";
     } else if (/json$/i.test(search_path)) {
@@ -1308,47 +1348,4 @@
       });
     }
 
-    // handle and trigger popup window;
-    $('.popup-trigger').click(function(e) {
-      e.stopPropagation();
-      if (isfetched === false) {
-        searchFunc(path, 'local-search-input', 'local-search-result');
-      } else {
-        proceedsearch();
-      };
-    });
-
-    $('.popup-btn-close').click(onPopupClose);
-    $('.popup').click(function(e){
-      e.stopPropagation();
-    });
-    $(document).on('keyup', function (event) {
-      var shouldDismissSearchPopup = event.which === 27 &&
-        $('.search-popup').is(':visible');
-      if (shouldDismissSearchPopup) {
-        onPopupClose();
-      }
-    });
-  </script>
-
-
-
-
-
-  
-
-  
-
-  
-
-  
-  
-
-  
-
-  
-
-  
-
-</body>
-</html>
+    // handle and trigg
