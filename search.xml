@@ -662,11 +662,6 @@
       </tags>
   </entry>
   <entry>
-    <title>apache-flink:study-allowedLateness-and-maxOutOfOrderness</title>
-    <url>/2019/11/11/apache-flink:study-allowedLateness-and-maxOutOfOrderness/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
     <title>Apache Flink 学习：BoundedOutOfOrdernessTimestampExtractor</title>
     <url>/2019/11/02/apache-flink:study-BoundedOutOfOrdernessTimestampExtractor/</url>
     <content><![CDATA[<p>Apache Flink 学习：BoundedOutOfOrdernessTimestampExtractor</p>
@@ -687,6 +682,11 @@
       <tags>
         <tag>Apache Flink</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>apache-flink:study-allowedLateness-and-maxOutOfOrderness</title>
+    <url>/2019/11/11/apache-flink:study-allowedLateness-and-maxOutOfOrderness/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Apache Flink 学习：异步IO之RichAsyncFunction</title>
@@ -822,6 +822,39 @@
       </tags>
   </entry>
   <entry>
+    <title>Apache Flink 学习：DataStream Api 中 Operators（算子）——Joining</title>
+    <url>/2019/11/11/apache-flink:study-flink-datastream-operators-joining/</url>
+    <content><![CDATA[<p>Apache Flink 学习：DataStream Api 中 Operators（算子）——Joining</p>
+<span id="more"></span>
+
+<h1 id="Window-Join"><a href="#Window-Join" class="headerlink" title="Window Join"></a><strong>Window Join</strong></h1><p>Window Join 可以将两个流中相同key并且在同一个窗口中的元素进行链接。窗口可以使用 Window Assigner 进行定义，并且对来自不同的流的元素进行计算。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">stream.join(otherStream)</span><br><span class="line">    .where(&lt;KeySelector&gt;)</span><br><span class="line">    .equalTo(&lt;KeySelector&gt;)</span><br><span class="line">    .window(&lt;WindowAssigner&gt;)</span><br><span class="line">    .apply(&lt;JoinFunction&gt;)</span><br></pre></td></tr></table></figure>
+
+<p>关于一些语义的解释：<br>1.两个流的成对组合的过程类似于 Inner Join，意味着如果一个流中的元素没有另一个流的元素要与之连接，则不会发出这些元素。</p>
+<p>2.那些被连接的元素的时间戳是位于相应窗口中的最大时间戳。例如，以[5，10)为边界的窗口，则进行连接的元素的时间戳为9。</p>
+<h2 id="Tumbling-Window-Join"><a href="#Tumbling-Window-Join" class="headerlink" title="Tumbling Window Join"></a>Tumbling Window Join</h2><p>执行 Tumbling Window Join，在相同 key，相同时间窗口内的元素会进行笛卡尔积组合，这种组合类似于 inner join，如果一个流的对应流的同一窗口中没有元素，则这个流的当前窗口数据不会发出去。</p>
+<p><img src="/blog-img/apache-flink:study-flink-datastream-operators-joining/tumbling-window-join.svg" alt="tumbling-window-join"></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.flink.api.java.functions.KeySelector;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.windowing.time.Time;</span><br><span class="line"> </span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">DataStream&lt;Integer&gt; orangeStream = ...</span><br><span class="line">DataStream&lt;Integer&gt; greenStream = ...</span><br><span class="line"></span><br><span class="line">orangeStream.join(greenStream)</span><br><span class="line">    .where(&lt;KeySelector&gt;)</span><br><span class="line">    .equalTo(&lt;KeySelector&gt;)</span><br><span class="line">    .window(TumblingEventTimeWindows.of(Time.milliseconds(<span class="number">2</span>)))</span><br><span class="line">    .apply (<span class="keyword">new</span> JoinFunction&lt;Integer, Integer, String&gt; ()&#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> String <span class="title">join</span><span class="params">(Integer first, Integer second)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> first + <span class="string">&quot;,&quot;</span> + second;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="Sliding-Window-Join"><a href="#Sliding-Window-Join" class="headerlink" title="Sliding Window Join"></a>Sliding Window Join</h2><p>执行 Sliding Window Join，具有公共 key 和公共滑动窗口的所有元素都作为成对组合进行连接，并传递给 JoinFunction 或 FlatJoinFunction。也是 inner join，当前流窗口匹配不到对应流窗口的元素则不会发送数据到下游！请注意，某些元素可能在一个滑动窗口中连接，在另一个滑动窗口中不会进行连接！</p>
+<p><img src="/blog-img/apache-flink:study-flink-datastream-operators-joining/sliding-window-join.svg" alt="sliding-window-join"></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.flink.api.java.functions.KeySelector;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.windowing.time.Time;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">DataStream&lt;Integer&gt; orangeStream = ...</span><br><span class="line">DataStream&lt;Integer&gt; greenStream = ...</span><br><span class="line"></span><br><span class="line">orangeStream.join(greenStream)</span><br><span class="line">    .where(&lt;KeySelector&gt;)</span><br><span class="line">    .equalTo(&lt;KeySelector&gt;)</span><br><span class="line">    .window(SlidingEventTimeWindows.of(Time.milliseconds(<span class="number">2</span>) <span class="comment">/* size */</span>, Time.milliseconds(<span class="number">1</span>) <span class="comment">/* slide */</span>))</span><br><span class="line">    .apply (<span class="keyword">new</span> JoinFunction&lt;Integer, Integer, String&gt; ()&#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> String <span class="title">join</span><span class="params">(Integer first, Integer second)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> first + <span class="string">&quot;,&quot;</span> + second;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="Session-Window-Join"><a href="#Session-Window-Join" class="headerlink" title="Session Window Join"></a>Session Window Join</h2><p>执行 Session Window Join，具有相同 key 的所有元素（当“组合”满足会话条件时）将以成对组合联接，并传递给JoinFunction或FlatJoinFunction。同样，也是 inner join，当前流窗口匹配不到对应流窗口的元素则不会发送数据到下游！</p>
+<p><img src="/blog-img/apache-flink:study-flink-datastream-operators-joining/session-window-join.svg" alt="session-window-join"></p>
+<h1 id="Interval-Join"><a href="#Interval-Join" class="headerlink" title="Interval Join"></a><strong>Interval Join</strong></h1><p>interval join 用一个公共 key 连接两个流的元素（流A和流B），其中流B的元素具有与流A中元素的时间戳相对时间间隔内的时间戳，那么这个时间间隔内两个流的元素就会 join。</p>
+<p>即：<strong>b.timestamp ∈ [a.timestamp + lowerBound; a.timestamp + upperBound] or a.timestamp + lowerBound &lt;= b.timestamp &lt;= a.timestamp + upperBound</strong></p>
+<p>其中 lowerBound 和 upperBound 可正可负，只要 lowerBound &lt;= upperBound。</p>
+<p><img src="/blog-img/apache-flink:study-flink-datastream-operators-joining/interval-join.svg" alt="interval-join"></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.flink.api.java.functions.KeySelector;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.functions.co.ProcessJoinFunction;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.windowing.time.Time;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">DataStream&lt;Integer&gt; orangeStream = ...</span><br><span class="line">DataStream&lt;Integer&gt; greenStream = ...</span><br><span class="line"></span><br><span class="line">orangeStream</span><br><span class="line">    .keyBy(&lt;KeySelector&gt;)</span><br><span class="line">    .intervalJoin(greenStream.keyBy(&lt;KeySelector&gt;))</span><br><span class="line">    .between(Time.milliseconds(-<span class="number">2</span>), Time.milliseconds(<span class="number">1</span>))</span><br><span class="line">    .process (<span class="keyword">new</span> ProcessJoinFunction&lt;Integer, Integer, String()&#123;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processElement</span><span class="params">(Integer left, Integer right, Context ctx, Collector&lt;String&gt; out)</span> </span>&#123;</span><br><span class="line">            out.collect(first + <span class="string">&quot;,&quot;</span> + second);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Apache Flink 学习：DataStream Api 中 Operators（算子）——概览</title>
     <url>/2019/11/09/apache-flink:study-flink-datastream-operators-overview/</url>
     <content><![CDATA[<p>描述了基本 Operators 的 Transformations，应用这些转换后如何进行 physical partitioning（物理分区），以及对Flink算子链的深入了解。</p>
@@ -934,39 +967,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Apache Flink 学习：DataStream Api 中 Operators（算子）——Joining</title>
-    <url>/2019/11/11/apache-flink:study-flink-datastream-operators-joining/</url>
-    <content><![CDATA[<p>Apache Flink 学习：DataStream Api 中 Operators（算子）——Joining</p>
-<span id="more"></span>
-
-<h1 id="Window-Join"><a href="#Window-Join" class="headerlink" title="Window Join"></a><strong>Window Join</strong></h1><p>Window Join 可以将两个流中相同key并且在同一个窗口中的元素进行链接。窗口可以使用 Window Assigner 进行定义，并且对来自不同的流的元素进行计算。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">stream.join(otherStream)</span><br><span class="line">    .where(&lt;KeySelector&gt;)</span><br><span class="line">    .equalTo(&lt;KeySelector&gt;)</span><br><span class="line">    .window(&lt;WindowAssigner&gt;)</span><br><span class="line">    .apply(&lt;JoinFunction&gt;)</span><br></pre></td></tr></table></figure>
-
-<p>关于一些语义的解释：<br>1.两个流的成对组合的过程类似于 Inner Join，意味着如果一个流中的元素没有另一个流的元素要与之连接，则不会发出这些元素。</p>
-<p>2.那些被连接的元素的时间戳是位于相应窗口中的最大时间戳。例如，以[5，10)为边界的窗口，则进行连接的元素的时间戳为9。</p>
-<h2 id="Tumbling-Window-Join"><a href="#Tumbling-Window-Join" class="headerlink" title="Tumbling Window Join"></a>Tumbling Window Join</h2><p>执行 Tumbling Window Join，在相同 key，相同时间窗口内的元素会进行笛卡尔积组合，这种组合类似于 inner join，如果一个流的对应流的同一窗口中没有元素，则这个流的当前窗口数据不会发出去。</p>
-<p><img src="/blog-img/apache-flink:study-flink-datastream-operators-joining/tumbling-window-join.svg" alt="tumbling-window-join"></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.flink.api.java.functions.KeySelector;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.windowing.time.Time;</span><br><span class="line"> </span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">DataStream&lt;Integer&gt; orangeStream = ...</span><br><span class="line">DataStream&lt;Integer&gt; greenStream = ...</span><br><span class="line"></span><br><span class="line">orangeStream.join(greenStream)</span><br><span class="line">    .where(&lt;KeySelector&gt;)</span><br><span class="line">    .equalTo(&lt;KeySelector&gt;)</span><br><span class="line">    .window(TumblingEventTimeWindows.of(Time.milliseconds(<span class="number">2</span>)))</span><br><span class="line">    .apply (<span class="keyword">new</span> JoinFunction&lt;Integer, Integer, String&gt; ()&#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> String <span class="title">join</span><span class="params">(Integer first, Integer second)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> first + <span class="string">&quot;,&quot;</span> + second;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br></pre></td></tr></table></figure>
-
-<h2 id="Sliding-Window-Join"><a href="#Sliding-Window-Join" class="headerlink" title="Sliding Window Join"></a>Sliding Window Join</h2><p>执行 Sliding Window Join，具有公共 key 和公共滑动窗口的所有元素都作为成对组合进行连接，并传递给 JoinFunction 或 FlatJoinFunction。也是 inner join，当前流窗口匹配不到对应流窗口的元素则不会发送数据到下游！请注意，某些元素可能在一个滑动窗口中连接，在另一个滑动窗口中不会进行连接！</p>
-<p><img src="/blog-img/apache-flink:study-flink-datastream-operators-joining/sliding-window-join.svg" alt="sliding-window-join"></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.flink.api.java.functions.KeySelector;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.windowing.time.Time;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">DataStream&lt;Integer&gt; orangeStream = ...</span><br><span class="line">DataStream&lt;Integer&gt; greenStream = ...</span><br><span class="line"></span><br><span class="line">orangeStream.join(greenStream)</span><br><span class="line">    .where(&lt;KeySelector&gt;)</span><br><span class="line">    .equalTo(&lt;KeySelector&gt;)</span><br><span class="line">    .window(SlidingEventTimeWindows.of(Time.milliseconds(<span class="number">2</span>) <span class="comment">/* size */</span>, Time.milliseconds(<span class="number">1</span>) <span class="comment">/* slide */</span>))</span><br><span class="line">    .apply (<span class="keyword">new</span> JoinFunction&lt;Integer, Integer, String&gt; ()&#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> String <span class="title">join</span><span class="params">(Integer first, Integer second)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> first + <span class="string">&quot;,&quot;</span> + second;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br></pre></td></tr></table></figure>
-
-<h2 id="Session-Window-Join"><a href="#Session-Window-Join" class="headerlink" title="Session Window Join"></a>Session Window Join</h2><p>执行 Session Window Join，具有相同 key 的所有元素（当“组合”满足会话条件时）将以成对组合联接，并传递给JoinFunction或FlatJoinFunction。同样，也是 inner join，当前流窗口匹配不到对应流窗口的元素则不会发送数据到下游！</p>
-<p><img src="/blog-img/apache-flink:study-flink-datastream-operators-joining/session-window-join.svg" alt="session-window-join"></p>
-<h1 id="Interval-Join"><a href="#Interval-Join" class="headerlink" title="Interval Join"></a><strong>Interval Join</strong></h1><p>interval join 用一个公共 key 连接两个流的元素（流A和流B），其中流B的元素具有与流A中元素的时间戳相对时间间隔内的时间戳，那么这个时间间隔内两个流的元素就会 join。</p>
-<p>即：<strong>b.timestamp ∈ [a.timestamp + lowerBound; a.timestamp + upperBound] or a.timestamp + lowerBound &lt;= b.timestamp &lt;= a.timestamp + upperBound</strong></p>
-<p>其中 lowerBound 和 upperBound 可正可负，只要 lowerBound &lt;= upperBound。</p>
-<p><img src="/blog-img/apache-flink:study-flink-datastream-operators-joining/interval-join.svg" alt="interval-join"></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.flink.api.java.functions.KeySelector;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.functions.co.ProcessJoinFunction;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.windowing.time.Time;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">DataStream&lt;Integer&gt; orangeStream = ...</span><br><span class="line">DataStream&lt;Integer&gt; greenStream = ...</span><br><span class="line"></span><br><span class="line">orangeStream</span><br><span class="line">    .keyBy(&lt;KeySelector&gt;)</span><br><span class="line">    .intervalJoin(greenStream.keyBy(&lt;KeySelector&gt;))</span><br><span class="line">    .between(Time.milliseconds(-<span class="number">2</span>), Time.milliseconds(<span class="number">1</span>))</span><br><span class="line">    .process (<span class="keyword">new</span> ProcessJoinFunction&lt;Integer, Integer, String()&#123;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processElement</span><span class="params">(Integer left, Integer right, Context ctx, Collector&lt;String&gt; out)</span> </span>&#123;</span><br><span class="line">            out.collect(first + <span class="string">&quot;,&quot;</span> + second);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Apache Flink</category>
-      </categories>
-      <tags>
-        <tag>Apache Flink</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Apache Flink 学习：DataStream Api 中 State 和容错——State 的使用</title>
     <url>/2019/11/19/apache-flink:study-flink-datastream-state-and-fault-tolerance-working-with-state/</url>
     <content><![CDATA[<p>flink有两种基本的state，分别是Keyed State以及Operator State(non-keyed state)；其中Keyed State只能在KeyedStream上的functions及operators上使用；每个operator state会跟parallel operator中的一个实例绑定；Operator State支持parallelism变更时进行redistributing<br>Keyed State及Operator State都分别有managed及raw两种形式，managed由flink runtime来管理，由runtime负责encode及写入checkpoint；raw形式的state由operators自己管理，flink runtime无法了解该state的数据结构，将其视为raw bytes；所有的datastream function都可以使用managed state，而raw state一般仅限于自己实现operators来使用<br>stateful function可以通过CheckpointedFunction接口或者ListCheckpointed接口来使用managed operator state；CheckpointedFunction定义了snapshotState、initializeState两个方法；每当checkpoint执行的时候，snapshotState会被调用；而initializeState方法在每次用户定义的function初始化的时候(第一次初始化或者从前一次checkpoint recover的时候)被调用，该方法不仅可以用来初始化state，还可以用于处理state recovery的逻辑<br>对于manageed operator state，目前仅仅支持list-style的形式，即要求state是serializable objects的List结构，方便在rescale的时候进行redistributed；关于redistribution schemes的模式目前有两种，分别是Even-split redistribution(在restore/redistribution的时候每个operator仅仅得到整个state的sublist)及Union redistribution(在restore/redistribution的时候每个operator得到整个state的完整list)<br>FunctionSnapshotContext继承了ManagedSnapshotContext接口，它定义了getCheckpointId、getCheckpointTimestamp方法；FunctionInitializationContext继承了ManagedInitializationContext接口，它定义了isRestored、getOperatorStateStore、getKeyedStateStore方法，可以用来判断是否是在前一次execution的snapshot中restored，以及获取OperatorStateStore、KeyedStateStore对象</p>
@@ -1015,18 +1015,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Apache Flink 学习：Table Api &amp; SQL</title>
-    <url>/2019/11/12/apache-flink:study-flink-table-api-and-sql/</url>
-    <content><![CDATA[<p>Apache Flink 学习：Table Api &amp; SQL</p>
-<span id="more"></span>]]></content>
-      <categories>
-        <category>Apache Flink</category>
-      </categories>
-      <tags>
-        <tag>Apache Flink</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Apache Flink 学习：slot和parallelism设置的关系</title>
     <url>/2019/11/08/apache-flink:study-flink-slot-parallelism/</url>
     <content><![CDATA[<p>Apache Flink 学习：slot和parallelism设置的关系</p>
@@ -1057,6 +1045,18 @@
 <p>那么再看上面的图片，source/map/keyby/window/apply 最大可以有 6 个并行度，sink 只用了 1 个并行。</p>
 <p>每个 Flink TaskManager 在集群中提供 slot。 slot 的数量通常与每个 TaskManager 的可用 CPU 内核数成比例。一般情况下你的 slot 数是你每个 TaskManager 的 cpu 的核数</p>
 ]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Apache Flink 学习：Table Api &amp; SQL</title>
+    <url>/2019/11/12/apache-flink:study-flink-table-api-and-sql/</url>
+    <content><![CDATA[<p>Apache Flink 学习：Table Api &amp; SQL</p>
+<span id="more"></span>]]></content>
       <categories>
         <category>Apache Flink</category>
       </categories>
@@ -1344,27 +1344,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Apache Hadoop 学习：hdfs架构</title>
-    <url>/2019/11/13/apache-hadoop:study-hadoop-hdfs-design/</url>
-    <content><![CDATA[<p>Apache Hadoop 学习：hdfs架构</p>
-<span id="more"></span>
-
-
-
-
-<h1 id="文件系统-Namespace"><a href="#文件系统-Namespace" class="headerlink" title="文件系统 Namespace"></a><strong>文件系统 Namespace</strong></h1><p><img src="/blog-img/apache-hadoop:study-hadoop-hdfs-design/hdfs%E6%9E%B6%E6%9E%84.png" alt="hdfs架构"></p>
-<p>HDFS支持传统的分层文件组织。用户或应用程序可以在这些目录中创建目录并存储文件。文件系统命名空间层次结构与大多数其他现有文件系统相似；可以创建和删除文件，将文件从一个目录移动到另一个目录，或者重命名文件。HDFS支持用户配额和访问权限。HDFS不支持硬链接或软链接。然而，HDFS体系结构并不排除实现这些特性。</p>
-<p>虽然HDFS遵循文件系统的命名约定，但某些路径和名称（例如/.reserved和.snapshot）是保留的。透明加密和快照等功能使用保留路径。</p>
-<p>NameNode维护文件系统名称空间。对文件系统命名空间或其属性的任何更改都由NameNode记录。应用程序可以指定HDFS应该维护的文件副本的数量。文件的副本数称为该文件的复制因子。此信息由NameNode存储。</p>
-]]></content>
-      <categories>
-        <category>Apache Hadoop</category>
-      </categories>
-      <tags>
-        <tag>Apache Hadoop</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Apache Hadoop错误：Unable to load native-hadoop library for your platform</title>
     <url>/2019/10/17/apache-hadoop:error-unable-to-load-native-hadoop-library-from-you-platform/</url>
     <content><![CDATA[<p>Apache Hadoop错误：Unable to load native-hadoop library for your platform</p>
@@ -1381,6 +1360,27 @@
 <h4 id="解决方案2"><a href="#解决方案2" class="headerlink" title="解决方案2"></a>解决方案2</h4><p>有博客说可以直接下载编译好的位包，替换原来的native包<br>由于在我本地安装的Apache Hadoop 3.2.1版本中没有找到lib文件夹，所以在3.2.1版本中暂时不能使用此种方法</p>
 <p>执行查看文件命令</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hadoop fs -ls /</span><br><span class="line">2019-10-17 11:33:09,369 WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using builtin-java classes <span class="built_in">where</span> applicable</span><br><span class="line">Found 1 items</span><br><span class="line">drwxr-xr-x   - xxx supergroup          0 2019-10-17 11:23 /tmp</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Apache Hadoop</category>
+      </categories>
+      <tags>
+        <tag>Apache Hadoop</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Apache Hadoop 学习：hdfs架构</title>
+    <url>/2019/11/13/apache-hadoop:study-hadoop-hdfs-design/</url>
+    <content><![CDATA[<p>Apache Hadoop 学习：hdfs架构</p>
+<span id="more"></span>
+
+
+
+
+<h1 id="文件系统-Namespace"><a href="#文件系统-Namespace" class="headerlink" title="文件系统 Namespace"></a><strong>文件系统 Namespace</strong></h1><p><img src="/blog-img/apache-hadoop:study-hadoop-hdfs-design/hdfs%E6%9E%B6%E6%9E%84.png" alt="hdfs架构"></p>
+<p>HDFS支持传统的分层文件组织。用户或应用程序可以在这些目录中创建目录并存储文件。文件系统命名空间层次结构与大多数其他现有文件系统相似；可以创建和删除文件，将文件从一个目录移动到另一个目录，或者重命名文件。HDFS支持用户配额和访问权限。HDFS不支持硬链接或软链接。然而，HDFS体系结构并不排除实现这些特性。</p>
+<p>虽然HDFS遵循文件系统的命名约定，但某些路径和名称（例如/.reserved和.snapshot）是保留的。透明加密和快照等功能使用保留路径。</p>
+<p>NameNode维护文件系统名称空间。对文件系统命名空间或其属性的任何更改都由NameNode记录。应用程序可以指定HDFS应该维护的文件副本的数量。文件的副本数称为该文件的复制因子。此信息由NameNode存储。</p>
+]]></content>
       <categories>
         <category>Apache Hadoop</category>
       </categories>
@@ -1459,25 +1459,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Apache Hive环境搭建错误：com.mysql.jdbc.Driver was not found in the CLASSPATH</title>
-    <url>/2019/10/17/apache-hive:error-ClassNotFoundException:com.mysql.jdbc.driver/</url>
-    <content><![CDATA[<p>Apache Hive环境搭建错误：com.mysql.jdbc.Driver was not found in the CLASSPATH</p>
-<span id="more"></span>
-
-
-<h3 id="错误场景详情"><a href="#错误场景详情" class="headerlink" title="错误场景详情"></a><strong>错误场景详情</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ <span class="variable">$HIVE_HOME</span>/bin/schematool -dbType mysql -initSchema</span><br><span class="line">SLF4J: Class path contains multiple SLF4J bindings.</span><br><span class="line">SLF4J: Found binding <span class="keyword">in</span> [jar:file:/usr/<span class="built_in">local</span>/Cellar/hive/3.1.2/libexec/lib/log4j-slf4j-impl-2.10.0.jar!/org/slf4j/impl/StaticLoggerBinder.class]</span><br><span class="line">SLF4J: Found binding <span class="keyword">in</span> [jar:file:/usr/<span class="built_in">local</span>/Cellar/hadoop/3.2.1/libexec/share/hadoop/common/lib/slf4j-log4j12-1.7.25.jar!/org/slf4j/impl/StaticLoggerBinder.class]</span><br><span class="line">SLF4J: See http://www.slf4j.org/codes.html<span class="comment">#multiple_bindings for an explanation.</span></span><br><span class="line">SLF4J: Actual binding is of <span class="built_in">type</span> [org.apache.logging.slf4j.Log4jLoggerFactory]</span><br><span class="line">Metastore connection URL:	 jdbc:mysql://localhost:3306/hive?characterEncoding=UTF-8</span><br><span class="line">Metastore Connection Driver :	 com.mysql.jdbc.Driver</span><br><span class="line">Metastore connection User:	 hadoop</span><br><span class="line">org.apache.hadoop.hive.metastore.HiveMetaException: Failed to load driver</span><br><span class="line">Underlying cause: java.lang.ClassNotFoundException : com.mysql.jdbc.Driver</span><br><span class="line">Use --verbose <span class="keyword">for</span> detailed stacktrace.</span><br><span class="line">*** schemaTool failed ***</span><br></pre></td></tr></table></figure>
-
-<h3 id="错误原因"><a href="#错误原因" class="headerlink" title="错误原因"></a><strong>错误原因</strong></h3><p>在配置hive-site.xml文件时配置了mysql驱动，而hive/lib目录下没有mysql驱动包。</p>
-<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a><strong>解决方案</strong></h3><p>官网下载mysql驱动下载地址 (<a href="https://dev.mysql.com/downloads/connector/j/">https://dev.mysql.com/downloads/connector/j/</a>)<br>把下载好的压缩包（mysql-connector-java-8.0.18.zip）进行解压<br>unzip mysql-connector-java-8.0.18.zip<br>复制到hive/lib下<br>cp mysql-connector-java-8.0.18/mysql-connector-java-8.0.18.jar hive/lib</p>
-]]></content>
-      <categories>
-        <category>Apache Hive</category>
-      </categories>
-      <tags>
-        <tag>Apache Hive</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Mac安装Apache Hive-3.2.1</title>
     <url>/2019/10/17/apache-hive:3.1.2-mac-install/</url>
     <content><![CDATA[<p>Mac安装Apache Hive-3.2.1教程</p>
@@ -1526,6 +1507,25 @@
       </tags>
   </entry>
   <entry>
+    <title>Apache Hive环境搭建错误：com.mysql.jdbc.Driver was not found in the CLASSPATH</title>
+    <url>/2019/10/17/apache-hive:error-ClassNotFoundException:com.mysql.jdbc.driver/</url>
+    <content><![CDATA[<p>Apache Hive环境搭建错误：com.mysql.jdbc.Driver was not found in the CLASSPATH</p>
+<span id="more"></span>
+
+
+<h3 id="错误场景详情"><a href="#错误场景详情" class="headerlink" title="错误场景详情"></a><strong>错误场景详情</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ <span class="variable">$HIVE_HOME</span>/bin/schematool -dbType mysql -initSchema</span><br><span class="line">SLF4J: Class path contains multiple SLF4J bindings.</span><br><span class="line">SLF4J: Found binding <span class="keyword">in</span> [jar:file:/usr/<span class="built_in">local</span>/Cellar/hive/3.1.2/libexec/lib/log4j-slf4j-impl-2.10.0.jar!/org/slf4j/impl/StaticLoggerBinder.class]</span><br><span class="line">SLF4J: Found binding <span class="keyword">in</span> [jar:file:/usr/<span class="built_in">local</span>/Cellar/hadoop/3.2.1/libexec/share/hadoop/common/lib/slf4j-log4j12-1.7.25.jar!/org/slf4j/impl/StaticLoggerBinder.class]</span><br><span class="line">SLF4J: See http://www.slf4j.org/codes.html<span class="comment">#multiple_bindings for an explanation.</span></span><br><span class="line">SLF4J: Actual binding is of <span class="built_in">type</span> [org.apache.logging.slf4j.Log4jLoggerFactory]</span><br><span class="line">Metastore connection URL:	 jdbc:mysql://localhost:3306/hive?characterEncoding=UTF-8</span><br><span class="line">Metastore Connection Driver :	 com.mysql.jdbc.Driver</span><br><span class="line">Metastore connection User:	 hadoop</span><br><span class="line">org.apache.hadoop.hive.metastore.HiveMetaException: Failed to load driver</span><br><span class="line">Underlying cause: java.lang.ClassNotFoundException : com.mysql.jdbc.Driver</span><br><span class="line">Use --verbose <span class="keyword">for</span> detailed stacktrace.</span><br><span class="line">*** schemaTool failed ***</span><br></pre></td></tr></table></figure>
+
+<h3 id="错误原因"><a href="#错误原因" class="headerlink" title="错误原因"></a><strong>错误原因</strong></h3><p>在配置hive-site.xml文件时配置了mysql驱动，而hive/lib目录下没有mysql驱动包。</p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a><strong>解决方案</strong></h3><p>官网下载mysql驱动下载地址 (<a href="https://dev.mysql.com/downloads/connector/j/">https://dev.mysql.com/downloads/connector/j/</a>)<br>把下载好的压缩包（mysql-connector-java-8.0.18.zip）进行解压<br>unzip mysql-connector-java-8.0.18.zip<br>复制到hive/lib下<br>cp mysql-connector-java-8.0.18/mysql-connector-java-8.0.18.jar hive/lib</p>
+]]></content>
+      <categories>
+        <category>Apache Hive</category>
+      </categories>
+      <tags>
+        <tag>Apache Hive</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Apache Hive环境搭建错误：java.lang.NoSuchMethodError: com.google.common...</title>
     <url>/2019/10/17/apache-hive:error-NoSuchMethodError:com.google.common.base.Preconditions.checkArgument/</url>
     <content><![CDATA[<p>Apache Hive环境搭建错误：java.lang.NoSuchMethodError: com.google.common.base.Preconditions.checkArgument</p>
@@ -1566,22 +1566,6 @@
       </categories>
       <tags>
         <tag>Apache Hive</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>apache-kafka:study-features</title>
-    <url>/2019/11/06/apache-kafka:study-features/</url>
-    <content><![CDATA[<h2 id="如何为Kafka集群选择合适的Partitions数量"><a href="#如何为Kafka集群选择合适的Partitions数量" class="headerlink" title="如何为Kafka集群选择合适的Partitions数量"></a><strong>如何为Kafka集群选择合适的Partitions数量</strong></h2><h3 id="越多的分区可以提供更高的吞吐量"><a href="#越多的分区可以提供更高的吞吐量" class="headerlink" title="越多的分区可以提供更高的吞吐量"></a>越多的分区可以提供更高的吞吐量</h3><p>首先我们需要明白以下事实：在kafka中，单个patition是kafka并行操作的最小单元。在producer和broker端，向每一个分区写入数据是可以完全并行化的，此时，可以通过加大硬件资源的利用率来提升系统的吞吐量，例如对数据进行压缩。在consumer段，kafka只允许单个partition的数据被一个consumer线程消费。因此，在consumer端，每一个Consumer Group内部的consumer并行度完全依赖于被消费的分区数量。综上所述，通常情况下，在一个Kafka集群中，partition的数量越多，意味着可以到达的吞吐量越大。</p>
-<p>我们可以粗略地通过吞吐量来计算kafka集群的分区数量。假设对于单个partition，producer端的可达吞吐量为p，Consumer端的可达吞吐量为c，期望的目标吞吐量为t，那么集群所需要的partition数量至少为max(t/p,t/c)。在producer端，单个分区的吞吐量大小会受到批量大小、数据压缩方法、 确认类型（同步/异步）、复制因子等配置参数的影响。经过测试，在producer端，单个partition的吞吐量通常是在10MB/s左右。在consumer端，单个partition的吞吐量依赖于consumer端每个消息的应用逻辑处理速度。因此，我们需要对consumer端的吞吐量进行测量。</p>
-<p>虽然随着时间的推移，我们能够对分区的数量进行添加，但是对于基于Key来生成的这一类消息需要我们重点关注。当producer向kafka写入基于key的消息时，kafka通过key的hash值来确定消息需要写入哪个具体的分区。通过这样的方案，kafka能够确保相同key值的数据可以写入同一个partition。kafka的这一能力对于一部分应用是极为重要的，例如对于同一个key的所有消息，consumer需要按消息的顺序进行有序消费。如果partition的数量发生改变，那么上面的有序性保证将不复存在。为了避免上述情况发生，通常的解决办法是多分配一些分区，以满足未来的需求。通常情况下，我们需要根据未来1到2年的目标吞吐量来设计kafka的分区数量。</p>
-<p>一开始，我们可以基于当前的业务吞吐量为kafka集群分配较小的broker数量，随着时间的推移，我们可以向集群中增加更多的broker，然后在线方式将适当比例的partition转移到新增加的broker中去。通过这样的方法，我们可以在满足各种应用场景（包括基于key消息的场景）的情况下，保持业务吞吐量的扩展性。</p>
-<p>在设计分区数时，除了吞吐量，还有一些其他因素值得考虑。正如我们后面即将看到的，对于一些应用场景，集群拥有过的分区将会带来负面的影响。</p>
-]]></content>
-      <categories>
-        <category>Apache Kafka</category>
-      </categories>
-      <tags>
-        <tag>Apache Kafka</tag>
       </tags>
   </entry>
   <entry>
@@ -1644,6 +1628,49 @@
       </tags>
   </entry>
   <entry>
+    <title>apache-kafka:study-features</title>
+    <url>/2019/11/06/apache-kafka:study-features/</url>
+    <content><![CDATA[<h2 id="如何为Kafka集群选择合适的Partitions数量"><a href="#如何为Kafka集群选择合适的Partitions数量" class="headerlink" title="如何为Kafka集群选择合适的Partitions数量"></a><strong>如何为Kafka集群选择合适的Partitions数量</strong></h2><h3 id="越多的分区可以提供更高的吞吐量"><a href="#越多的分区可以提供更高的吞吐量" class="headerlink" title="越多的分区可以提供更高的吞吐量"></a>越多的分区可以提供更高的吞吐量</h3><p>首先我们需要明白以下事实：在kafka中，单个patition是kafka并行操作的最小单元。在producer和broker端，向每一个分区写入数据是可以完全并行化的，此时，可以通过加大硬件资源的利用率来提升系统的吞吐量，例如对数据进行压缩。在consumer段，kafka只允许单个partition的数据被一个consumer线程消费。因此，在consumer端，每一个Consumer Group内部的consumer并行度完全依赖于被消费的分区数量。综上所述，通常情况下，在一个Kafka集群中，partition的数量越多，意味着可以到达的吞吐量越大。</p>
+<p>我们可以粗略地通过吞吐量来计算kafka集群的分区数量。假设对于单个partition，producer端的可达吞吐量为p，Consumer端的可达吞吐量为c，期望的目标吞吐量为t，那么集群所需要的partition数量至少为max(t/p,t/c)。在producer端，单个分区的吞吐量大小会受到批量大小、数据压缩方法、 确认类型（同步/异步）、复制因子等配置参数的影响。经过测试，在producer端，单个partition的吞吐量通常是在10MB/s左右。在consumer端，单个partition的吞吐量依赖于consumer端每个消息的应用逻辑处理速度。因此，我们需要对consumer端的吞吐量进行测量。</p>
+<p>虽然随着时间的推移，我们能够对分区的数量进行添加，但是对于基于Key来生成的这一类消息需要我们重点关注。当producer向kafka写入基于key的消息时，kafka通过key的hash值来确定消息需要写入哪个具体的分区。通过这样的方案，kafka能够确保相同key值的数据可以写入同一个partition。kafka的这一能力对于一部分应用是极为重要的，例如对于同一个key的所有消息，consumer需要按消息的顺序进行有序消费。如果partition的数量发生改变，那么上面的有序性保证将不复存在。为了避免上述情况发生，通常的解决办法是多分配一些分区，以满足未来的需求。通常情况下，我们需要根据未来1到2年的目标吞吐量来设计kafka的分区数量。</p>
+<p>一开始，我们可以基于当前的业务吞吐量为kafka集群分配较小的broker数量，随着时间的推移，我们可以向集群中增加更多的broker，然后在线方式将适当比例的partition转移到新增加的broker中去。通过这样的方法，我们可以在满足各种应用场景（包括基于key消息的场景）的情况下，保持业务吞吐量的扩展性。</p>
+<p>在设计分区数时，除了吞吐量，还有一些其他因素值得考虑。正如我们后面即将看到的，对于一些应用场景，集群拥有过的分区将会带来负面的影响。</p>
+]]></content>
+      <categories>
+        <category>Apache Kafka</category>
+      </categories>
+      <tags>
+        <tag>Apache Kafka</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Mac安装Apache Zookeeper-3.4.12</title>
+    <url>/2019/10/20/apache-zookeeper:3.4.12-mac-install/</url>
+    <content><![CDATA[<p>Mac安装Apache Zookeeper-3.4.12教程</p>
+<span id="more"></span>
+
+<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a><strong>安装</strong></h3><h4 id="安装方式1-brew安装"><a href="#安装方式1-brew安装" class="headerlink" title="安装方式1-brew安装"></a>安装方式1-brew安装</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ brew install zookeeper</span><br></pre></td></tr></table></figure>
+
+<h4 id="安装方式2-下载压缩包"><a href="#安装方式2-下载压缩包" class="headerlink" title="安装方式2-下载压缩包"></a>安装方式2-下载压缩包</h4><p>从此地址下载<strong><a href="http://mirrors.hust.edu.cn/apache/zookeeper/stable/">http://mirrors.hust.edu.cn/apache/zookeeper/stable/</a></strong></p>
+<p>解压配置文件</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ tar -zxvf zookeeper-3.4.12.tar.gz // 解压</span><br><span class="line">$ <span class="built_in">cd</span> zookeeper-3.4.12/conf // 切换到配置目录下</span><br><span class="line">$ mv zoo_sample.cfg zoo.cfg // 更改默认配置文件名称</span><br><span class="line">$ vi zoo.cfg // 编辑配置文件，自定义dataDir</span><br></pre></td></tr></table></figure>
+
+<h3 id="启动"><a href="#启动" class="headerlink" title="启动"></a><strong>启动</strong></h3><h4 id="启动sever端"><a href="#启动sever端" class="headerlink" title="启动sever端"></a>启动sever端</h4><p>切换到bin目录</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ <span class="built_in">pwd</span></span><br><span class="line">/user/<span class="built_in">local</span>/Celler/zookeeper/3.4.12/bin</span><br><span class="line"></span><br><span class="line">$ ls</span><br><span class="line">README.txt	zkCli.cmd	zkEnv.cmd	zkServer.cmd	zookeeper.out</span><br><span class="line">zkCleanup.sh	zkCli.sh	zkEnv.sh	zkServer.sh</span><br><span class="line"></span><br><span class="line">$ ./zkServer.sh start</span><br><span class="line">ZooKeeper JMX enabled by default</span><br><span class="line">Using config: /user/<span class="built_in">local</span>/Celler/zookeeper/3.4.12/bin/../conf/zoo.cfg</span><br><span class="line">Starting zookeeper ... STARTED</span><br></pre></td></tr></table></figure>
+
+<h4 id="启动client端"><a href="#启动client端" class="headerlink" title="启动client端"></a>启动client端</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./zkCli.sh -server 127.0.0.1:2181</span><br><span class="line">Connecting to 127.0.0.1:2181</span><br><span class="line">2019-10-20 12:17:25,861 [myid:] - INFO  [main:Environment@100] - Client environment:zookeeper.version=3.4.12-e5259e437540f349646870ea94dc2658c4e44b3b, built on 03/27/2018 03:55 GMT</span><br><span class="line">2019-10-20 12:17:25,864 [myid:] - INFO  [main:Environment@100] - Client environment:host.name=localhost</span><br><span class="line">2019-10-20 12:17:25,864 [myid:] - INFO  [main:Environment@100] - Client environment:java.version=1.8.0_191</span><br><span class="line">2019-10-20 12:17:25,866 [myid:] - INFO  [main:Environment@100] - Client environment:java.vendor=Oracle Corporation</span><br><span class="line">2019-10-20 12:17:25,866 [myid:] - INFO  [main:Environment@100] - Client environment:java.home=/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home/jre</span><br><span class="line">2019-10-20 12:17:25,868 [myid:] - INFO  [main:ZooKeeper@441] - Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=30000 watcher=org.apache.zookeeper.ZooKeeperMain<span class="variable">$MyWatcher</span>@799f7e29</span><br><span class="line">Welcome to ZooKeeper!</span><br><span class="line">2019-10-20 12:17:25,896 [myid:] - INFO  [main-SendThread(127.0.0.1:2181):ClientCnxn<span class="variable">$SendThread</span>@1028] - Opening socket connection to server 127.0.0.1/127.0.0.1:2181. Will not attempt to authenticate using SASL (unknown error)</span><br><span class="line">JLine support is enabled</span><br><span class="line">2019-10-20 12:17:25,959 [myid:] - INFO  [main-SendThread(127.0.0.1:2181):ClientCnxn<span class="variable">$SendThread</span>@878] - Socket connection established to 127.0.0.1/127.0.0.1:2181, initiating session</span><br><span class="line">2019-10-20 12:17:25,966 [myid:] - INFO  [main-SendThread(127.0.0.1:2181):ClientCnxn<span class="variable">$SendThread</span>@1302] - Session establishment complete on server 127.0.0.1/127.0.0.1:2181, sessionid = 0x10000112e160008, negotiated timeout = 30000</span><br><span class="line"></span><br><span class="line">WATCHER::</span><br><span class="line"></span><br><span class="line">WatchedEvent state:SyncConnected <span class="built_in">type</span>:None path:null</span><br><span class="line">[zk: 127.0.0.1:2181(CONNECTED) 0] ls /</span><br><span class="line">[zookeeper, hbase]</span><br></pre></td></tr></table></figure>
+
+<h4 id="停止server端"><a href="#停止server端" class="headerlink" title="停止server端"></a>停止server端</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">&gt; ./zkServer.sh stop //停止后，如果CLi没有关闭，将报错</span><br><span class="line">ZooKeeper JMX enabled by default</span><br><span class="line">Using config: zookeeper-3.4.12/bin/../conf/zoo.cfg</span><br><span class="line">Stopping zookeeper ... STOPPED</span><br></pre></td></tr></table></figure>
+
+<h3 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a><strong>配置文件</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># The number of milliseconds of each tick</span></span><br><span class="line">tickTime=2000</span><br><span class="line"><span class="comment"># The number of ticks that the initial</span></span><br><span class="line"><span class="comment"># synchronization phase can take</span></span><br><span class="line">initLimit=10</span><br><span class="line"><span class="comment"># The number of ticks that can pass between</span></span><br><span class="line"><span class="comment"># sending a request and getting an acknowledgement</span></span><br><span class="line">syncLimit=5</span><br><span class="line"><span class="comment"># the directory where the snapshot is stored.</span></span><br><span class="line"><span class="comment"># do not use /tmp for storage, /tmp here is just</span></span><br><span class="line"><span class="comment"># example sakes. </span></span><br><span class="line"><span class="comment"># 内存数据快照的保存目录；如果没有自定义Log也使用该目录</span></span><br><span class="line">dataDir=/tmp/zookeeper</span><br><span class="line"><span class="comment"># the port at which the clients will connect</span></span><br><span class="line"><span class="comment"># zookeeper服务端的端口，客户端启动时需要连接的端口</span></span><br><span class="line">clientPort=2181</span><br><span class="line"><span class="comment"># the maximum number of client connections.</span></span><br><span class="line"><span class="comment"># increase this if you need to handle more clients</span></span><br><span class="line"><span class="comment">#maxClientCnxns=60</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Be sure to read the maintenance section of the</span></span><br><span class="line"><span class="comment"># administrator guide before turning on autopurge.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># http://zookeeper.apache.org/doc/current/zookeeperAdmin.html#sc_maintenance</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># The number of snapshots to retain in dataDir</span></span><br><span class="line"><span class="comment">#autopurge.snapRetainCount=3</span></span><br><span class="line"><span class="comment"># Purge task interval in hours</span></span><br><span class="line"><span class="comment"># Set to &quot;0&quot; to disable auto purge feature</span></span><br><span class="line"><span class="comment">#autopurge.purgeInterval=1</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Apache Zookeeper</category>
+      </categories>
+      <tags>
+        <tag>Apache Zookeeper</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Apache Zookeeper 学习：Zookeeper实现统一配置管理中心</title>
     <url>/2019/10/24/apache-zookeeper:study-zookeeper-implement-unified-configuration-management-center/</url>
     <content><![CDATA[<p>Apache Zookeeper 学习：模拟三台节点组成的Zookeeper集群实现的统一配置管理中心</p>
@@ -1696,69 +1723,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Elastic-Job学习：分布式任务调度框架</title>
-    <url>/2019/10/26/elastic-job:study-distributed-scheduled-job-framework/</url>
-    <content><![CDATA[<p>分布式任务调度框架学习</p>
-<span id="more"></span>
-
-<p><a href="http://elasticjob.io/docs/elastic-job-lite/00-overview/intro/">官方文档</a></p>
-<p><a href="https://github.com/elasticjob">elastic-job github</a></p>
-]]></content>
-      <categories>
-        <category>分布式调度框架</category>
-      </categories>
-      <tags>
-        <tag>Apache Zookeeper</tag>
-        <tag>分布式调度框架</tag>
-        <tag>SpringBoot</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Mac安装Apache Zookeeper-3.4.12</title>
-    <url>/2019/10/20/apache-zookeeper:3.4.12-mac-install/</url>
-    <content><![CDATA[<p>Mac安装Apache Zookeeper-3.4.12教程</p>
-<span id="more"></span>
-
-<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a><strong>安装</strong></h3><h4 id="安装方式1-brew安装"><a href="#安装方式1-brew安装" class="headerlink" title="安装方式1-brew安装"></a>安装方式1-brew安装</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ brew install zookeeper</span><br></pre></td></tr></table></figure>
-
-<h4 id="安装方式2-下载压缩包"><a href="#安装方式2-下载压缩包" class="headerlink" title="安装方式2-下载压缩包"></a>安装方式2-下载压缩包</h4><p>从此地址下载<strong><a href="http://mirrors.hust.edu.cn/apache/zookeeper/stable/">http://mirrors.hust.edu.cn/apache/zookeeper/stable/</a></strong></p>
-<p>解压配置文件</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ tar -zxvf zookeeper-3.4.12.tar.gz // 解压</span><br><span class="line">$ <span class="built_in">cd</span> zookeeper-3.4.12/conf // 切换到配置目录下</span><br><span class="line">$ mv zoo_sample.cfg zoo.cfg // 更改默认配置文件名称</span><br><span class="line">$ vi zoo.cfg // 编辑配置文件，自定义dataDir</span><br></pre></td></tr></table></figure>
-
-<h3 id="启动"><a href="#启动" class="headerlink" title="启动"></a><strong>启动</strong></h3><h4 id="启动sever端"><a href="#启动sever端" class="headerlink" title="启动sever端"></a>启动sever端</h4><p>切换到bin目录</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ <span class="built_in">pwd</span></span><br><span class="line">/user/<span class="built_in">local</span>/Celler/zookeeper/3.4.12/bin</span><br><span class="line"></span><br><span class="line">$ ls</span><br><span class="line">README.txt	zkCli.cmd	zkEnv.cmd	zkServer.cmd	zookeeper.out</span><br><span class="line">zkCleanup.sh	zkCli.sh	zkEnv.sh	zkServer.sh</span><br><span class="line"></span><br><span class="line">$ ./zkServer.sh start</span><br><span class="line">ZooKeeper JMX enabled by default</span><br><span class="line">Using config: /user/<span class="built_in">local</span>/Celler/zookeeper/3.4.12/bin/../conf/zoo.cfg</span><br><span class="line">Starting zookeeper ... STARTED</span><br></pre></td></tr></table></figure>
-
-<h4 id="启动client端"><a href="#启动client端" class="headerlink" title="启动client端"></a>启动client端</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./zkCli.sh -server 127.0.0.1:2181</span><br><span class="line">Connecting to 127.0.0.1:2181</span><br><span class="line">2019-10-20 12:17:25,861 [myid:] - INFO  [main:Environment@100] - Client environment:zookeeper.version=3.4.12-e5259e437540f349646870ea94dc2658c4e44b3b, built on 03/27/2018 03:55 GMT</span><br><span class="line">2019-10-20 12:17:25,864 [myid:] - INFO  [main:Environment@100] - Client environment:host.name=localhost</span><br><span class="line">2019-10-20 12:17:25,864 [myid:] - INFO  [main:Environment@100] - Client environment:java.version=1.8.0_191</span><br><span class="line">2019-10-20 12:17:25,866 [myid:] - INFO  [main:Environment@100] - Client environment:java.vendor=Oracle Corporation</span><br><span class="line">2019-10-20 12:17:25,866 [myid:] - INFO  [main:Environment@100] - Client environment:java.home=/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home/jre</span><br><span class="line">2019-10-20 12:17:25,868 [myid:] - INFO  [main:ZooKeeper@441] - Initiating client connection, connectString=127.0.0.1:2181 sessionTimeout=30000 watcher=org.apache.zookeeper.ZooKeeperMain<span class="variable">$MyWatcher</span>@799f7e29</span><br><span class="line">Welcome to ZooKeeper!</span><br><span class="line">2019-10-20 12:17:25,896 [myid:] - INFO  [main-SendThread(127.0.0.1:2181):ClientCnxn<span class="variable">$SendThread</span>@1028] - Opening socket connection to server 127.0.0.1/127.0.0.1:2181. Will not attempt to authenticate using SASL (unknown error)</span><br><span class="line">JLine support is enabled</span><br><span class="line">2019-10-20 12:17:25,959 [myid:] - INFO  [main-SendThread(127.0.0.1:2181):ClientCnxn<span class="variable">$SendThread</span>@878] - Socket connection established to 127.0.0.1/127.0.0.1:2181, initiating session</span><br><span class="line">2019-10-20 12:17:25,966 [myid:] - INFO  [main-SendThread(127.0.0.1:2181):ClientCnxn<span class="variable">$SendThread</span>@1302] - Session establishment complete on server 127.0.0.1/127.0.0.1:2181, sessionid = 0x10000112e160008, negotiated timeout = 30000</span><br><span class="line"></span><br><span class="line">WATCHER::</span><br><span class="line"></span><br><span class="line">WatchedEvent state:SyncConnected <span class="built_in">type</span>:None path:null</span><br><span class="line">[zk: 127.0.0.1:2181(CONNECTED) 0] ls /</span><br><span class="line">[zookeeper, hbase]</span><br></pre></td></tr></table></figure>
-
-<h4 id="停止server端"><a href="#停止server端" class="headerlink" title="停止server端"></a>停止server端</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">&gt; ./zkServer.sh stop //停止后，如果CLi没有关闭，将报错</span><br><span class="line">ZooKeeper JMX enabled by default</span><br><span class="line">Using config: zookeeper-3.4.12/bin/../conf/zoo.cfg</span><br><span class="line">Stopping zookeeper ... STOPPED</span><br></pre></td></tr></table></figure>
-
-<h3 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a><strong>配置文件</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># The number of milliseconds of each tick</span></span><br><span class="line">tickTime=2000</span><br><span class="line"><span class="comment"># The number of ticks that the initial</span></span><br><span class="line"><span class="comment"># synchronization phase can take</span></span><br><span class="line">initLimit=10</span><br><span class="line"><span class="comment"># The number of ticks that can pass between</span></span><br><span class="line"><span class="comment"># sending a request and getting an acknowledgement</span></span><br><span class="line">syncLimit=5</span><br><span class="line"><span class="comment"># the directory where the snapshot is stored.</span></span><br><span class="line"><span class="comment"># do not use /tmp for storage, /tmp here is just</span></span><br><span class="line"><span class="comment"># example sakes. </span></span><br><span class="line"><span class="comment"># 内存数据快照的保存目录；如果没有自定义Log也使用该目录</span></span><br><span class="line">dataDir=/tmp/zookeeper</span><br><span class="line"><span class="comment"># the port at which the clients will connect</span></span><br><span class="line"><span class="comment"># zookeeper服务端的端口，客户端启动时需要连接的端口</span></span><br><span class="line">clientPort=2181</span><br><span class="line"><span class="comment"># the maximum number of client connections.</span></span><br><span class="line"><span class="comment"># increase this if you need to handle more clients</span></span><br><span class="line"><span class="comment">#maxClientCnxns=60</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Be sure to read the maintenance section of the</span></span><br><span class="line"><span class="comment"># administrator guide before turning on autopurge.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># http://zookeeper.apache.org/doc/current/zookeeperAdmin.html#sc_maintenance</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># The number of snapshots to retain in dataDir</span></span><br><span class="line"><span class="comment">#autopurge.snapRetainCount=3</span></span><br><span class="line"><span class="comment"># Purge task interval in hours</span></span><br><span class="line"><span class="comment"># Set to &quot;0&quot; to disable auto purge feature</span></span><br><span class="line"><span class="comment">#autopurge.purgeInterval=1</span></span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Apache Zookeeper</category>
-      </categories>
-      <tags>
-        <tag>Apache Zookeeper</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>IntelliJ IDEA 中如何查看一个类的所有继承关系</title>
-    <url>/2019/10/18/idea-mac:show-class-hierarchy/</url>
-    <content><![CDATA[<p>IntelliJ IDEA 中如何查看一个类的所有继承关系，包括父类与子类</p>
-<span id="more"></span>
-
-<h3 id="查看方式"><a href="#查看方式" class="headerlink" title="查看方式"></a><strong>查看方式</strong></h3><p>IntelliJ IDEA 中最上端的Navigate，下拉选择Type Hierarchy，就会出现层级关系列表</p>
-<h4 id="关于该类的父类和子类继承关系"><a href="#关于该类的父类和子类继承关系" class="headerlink" title="关于该类的父类和子类继承关系"></a>关于该类的父类和子类继承关系</h4><p><img src="/blog-img/idea-mac:show-class-hierarchy/%E7%88%B6%E7%B1%BB%E5%92%8C%E5%AD%90%E7%B1%BB%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="父类和子类继承关系"></p>
-<h4 id="关于该类的父类继承关系"><a href="#关于该类的父类继承关系" class="headerlink" title="关于该类的父类继承关系"></a>关于该类的父类继承关系</h4><p><img src="/blog-img/idea-mac:show-class-hierarchy/%E7%88%B6%E7%B1%BB%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="父类继承关系"></p>
-<h4 id="关于该类的子类继承关系"><a href="#关于该类的子类继承关系" class="headerlink" title="关于该类的子类继承关系"></a>关于该类的子类继承关系</h4><p><img src="/blog-img/idea-mac:show-class-hierarchy/%E5%AD%90%E7%B1%BB%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="子类继承关系"></p>
-]]></content>
-      <categories>
-        <category>IntelliJ IDEA</category>
-      </categories>
-      <tags>
-        <tag>IntelliJ IDEA</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Hello World</title>
     <url>/2019/10/14/hello-world/</url>
     <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
@@ -1779,6 +1743,24 @@
 ]]></content>
   </entry>
   <entry>
+    <title>Elastic-Job学习：分布式任务调度框架</title>
+    <url>/2019/10/26/elastic-job:study-distributed-scheduled-job-framework/</url>
+    <content><![CDATA[<p>分布式任务调度框架学习</p>
+<span id="more"></span>
+
+<p><a href="http://elasticjob.io/docs/elastic-job-lite/00-overview/intro/">官方文档</a></p>
+<p><a href="https://github.com/elasticjob">elastic-job github</a></p>
+]]></content>
+      <categories>
+        <category>分布式调度框架</category>
+      </categories>
+      <tags>
+        <tag>Apache Zookeeper</tag>
+        <tag>分布式调度框架</tag>
+        <tag>SpringBoot</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>useful-api-for-java</title>
     <url>/2019/10/16/java-api:useful-api/</url>
     <content><![CDATA[<h2 id="API"><a href="#API" class="headerlink" title="API"></a><strong>API</strong></h2><ul>
@@ -1791,6 +1773,24 @@
       </categories>
       <tags>
         <tag>Java Api</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>IntelliJ IDEA 中如何查看一个类的所有继承关系</title>
+    <url>/2019/10/18/idea-mac:show-class-hierarchy/</url>
+    <content><![CDATA[<p>IntelliJ IDEA 中如何查看一个类的所有继承关系，包括父类与子类</p>
+<span id="more"></span>
+
+<h3 id="查看方式"><a href="#查看方式" class="headerlink" title="查看方式"></a><strong>查看方式</strong></h3><p>IntelliJ IDEA 中最上端的Navigate，下拉选择Type Hierarchy，就会出现层级关系列表</p>
+<h4 id="关于该类的父类和子类继承关系"><a href="#关于该类的父类和子类继承关系" class="headerlink" title="关于该类的父类和子类继承关系"></a>关于该类的父类和子类继承关系</h4><p><img src="/blog-img/idea-mac:show-class-hierarchy/%E7%88%B6%E7%B1%BB%E5%92%8C%E5%AD%90%E7%B1%BB%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="父类和子类继承关系"></p>
+<h4 id="关于该类的父类继承关系"><a href="#关于该类的父类继承关系" class="headerlink" title="关于该类的父类继承关系"></a>关于该类的父类继承关系</h4><p><img src="/blog-img/idea-mac:show-class-hierarchy/%E7%88%B6%E7%B1%BB%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="父类继承关系"></p>
+<h4 id="关于该类的子类继承关系"><a href="#关于该类的子类继承关系" class="headerlink" title="关于该类的子类继承关系"></a>关于该类的子类继承关系</h4><p><img src="/blog-img/idea-mac:show-class-hierarchy/%E5%AD%90%E7%B1%BB%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="子类继承关系"></p>
+]]></content>
+      <categories>
+        <category>IntelliJ IDEA</category>
+      </categories>
+      <tags>
+        <tag>IntelliJ IDEA</tag>
       </tags>
   </entry>
   <entry>
@@ -2579,29 +2579,6 @@
       </tags>
   </entry>
   <entry>
-    <title>实时数据时效监控体系建设</title>
-    <url>/2020/12/01/wechat-blog/apache-flink:realtime-time-monitor/</url>
-    <content><![CDATA[<blockquote>
-<p>本系列介绍了实时数据时效监控体系的建设。</p>
-</blockquote>
-<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>数据延迟为是实时数据的一个最大问题。<br>其实不管是哪部分产生延迟，最终的结果是都会直接影响到上层指标（数据质量问题 + 数据时效问题）。<br>为了方便我们在开发阶段，运维阶段快速定位、解决延迟导致的问题；<br>以及为后续可能的报警能力提供基础能力，因此需要建设实时数据流时效监控体系。</p>
-<p>以一张图描述整个传输链路与耗时相关的问题。</p>
-<p><img src="/blog-img/apache-flink:realtime-time-monitor/time-cost.png" alt="架构"></p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>上述图总共分为以下三部分。</p>
-<ul>
-<li><strong>数据延迟监控</strong></li>
-<li><strong>数据乱序监控</strong></li>
-<li><strong>数据加工延迟监控</strong></li>
-</ul>
-]]></content>
-      <categories>
-        <category>Apache Flink</category>
-      </categories>
-      <tags>
-        <tag>Apache Flink</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑</title>
     <url>/2020/09/11/wechat-blog/apache-flink:realtime-out-of-order/</url>
     <content><![CDATA[<h1 id="踩坑记-Flink-事件时间语义下数据乱序丢数踩坑"><a href="#踩坑记-Flink-事件时间语义下数据乱序丢数踩坑" class="headerlink" title="踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑"></a>踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑</h1><blockquote>
@@ -2724,6 +2701,29 @@
 <li><a href="https://space.bilibili.com/33807709">https://space.bilibili.com/33807709</a></li>
 </ul>
 <p><img src="/blog-img/gzh/wechat.png" alt="公众号"></p>
+]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>实时数据时效监控体系建设</title>
+    <url>/2020/12/01/wechat-blog/apache-flink:realtime-time-monitor/</url>
+    <content><![CDATA[<blockquote>
+<p>本系列介绍了实时数据时效监控体系的建设。</p>
+</blockquote>
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>数据延迟为是实时数据的一个最大问题。<br>其实不管是哪部分产生延迟，最终的结果是都会直接影响到上层指标（数据质量问题 + 数据时效问题）。<br>为了方便我们在开发阶段，运维阶段快速定位、解决延迟导致的问题；<br>以及为后续可能的报警能力提供基础能力，因此需要建设实时数据流时效监控体系。</p>
+<p>以一张图描述整个传输链路与耗时相关的问题。</p>
+<p><img src="/blog-img/apache-flink:realtime-time-monitor/time-cost.png" alt="架构"></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>上述图总共分为以下三部分。</p>
+<ul>
+<li><strong>数据延迟监控</strong></li>
+<li><strong>数据乱序监控</strong></li>
+<li><strong>数据加工延迟监控</strong></li>
+</ul>
 ]]></content>
       <categories>
         <category>Apache Flink</category>
