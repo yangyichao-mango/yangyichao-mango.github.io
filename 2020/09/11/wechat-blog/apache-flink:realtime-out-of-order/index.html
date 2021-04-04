@@ -1,37 +1,842 @@
-{% extends '_layout.swig' %}
-{% import '_macro/post.swig' as post_template %}
-{% import '_macro/sidebar.swig' as sidebar_template %}
+<!DOCTYPE html>
 
 
-{% block title %}{{ page.title }} | {{ config.title }}{% endblock %}
 
-{% block page_class %}page-post-detail{% endblock %}
+  
 
 
-{% block content %}
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="yangyichao-mango's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本站&amp;作者">
+<meta property="og:type" content="article">
+<meta property="og:title" content="踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2020/09/11/wechat-blog/apache-flink:realtime-out-of-order/index.html">
+<meta property="og:site_name" content="yangyichao-mango&#39;s blog">
+<meta property="og:description" content="本站&amp;作者">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:realtime-out-of-order/stream.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:realtime-out-of-order/bug_stream.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/gzh/wechat.png">
+<meta property="article:published_time" content="2020-09-11T06:21:53.000Z">
+<meta property="article:modified_time" content="2020-09-20T12:37:21.791Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Flink">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:realtime-out-of-order/stream.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2020/09/11/wechat-blog/apache-flink:realtime-out-of-order/"/>
+
+
+
+
+
+  <title>踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑 | yangyichao-mango's blog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">yangyichao-mango's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
 
   <div id="posts" class="posts-expand">
-    {{ post_template.render(page) }}
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2020/09/11/wechat-blog/apache-flink:realtime-out-of-order/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="yangyichao-mango's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-09-11T14:21:53+08:00">
+                2020-09-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  本站&作者
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="踩坑记-Flink-事件时间语义下数据乱序丢数踩坑"><a href="#踩坑记-Flink-事件时间语义下数据乱序丢数踩坑" class="headerlink" title="踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑"></a>踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑</h1><blockquote>
+<p>本文详细介绍了在上游使用处理时间语义的 flink 任务出现故障后，重启消费大量积压在上游的数据并产出至下游数据乱序特别严重时，下游 flink 任务使用事件时间语义时遇到的大量丢数问题以及相关的解决方案。</p>
+</blockquote>
+<p>本文分为以下几个部分：</p>
+<ul>
+<li><strong>1.本次踩坑的应用场景</strong></li>
+<li><strong>2.应用场景中发生的丢数故障分析</strong></li>
+<li><strong>3.待修复的故障点</strong></li>
+<li><strong>4.丢数故障解决方案及原理</strong></li>
+<li><strong>5.总结</strong></li>
+</ul>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>应用场景如下：</p>
+<ul>
+<li><strong>flink 任务 A</strong> 以<strong>处理时间</strong>语义做过滤产出新增 xx 明细数据至 <strong>Kafka Y</strong></li>
+<li><strong>flink 任务 B</strong> 以<strong>事件时间</strong>语义消费 <strong>Kafka Y</strong> 做窗口聚合操作产出分钟级别聚合指标至 <strong>Kafka Z</strong></li>
+<li><strong>Kafka Z</strong> 实时导入至 <strong>Druid</strong> 以做即时 OLAP 分析，并且展示在 BI 应用看板</li>
+</ul>
+<p><img src="/blog-img/apache-flink:realtime-out-of-order/stream.png" alt="场景"></p>
+<h2 id="丢数故障分析"><a href="#丢数故障分析" class="headerlink" title="丢数故障分析"></a>丢数故障分析</h2><p>简要介绍下这次生产中故障场景。整条故障追踪链路如下：</p>
+<p>故障一：</p>
+<ul>
+<li>收到报警反馈 <strong>flink 任务 A</strong> 入口流量为 0</li>
+<li>定位 <strong>flink 任务 A</strong> 中某个算子的故障导致整个 job 卡住</li>
+<li>导致此 <strong>flink 任务 A</strong> 上游 <strong>kafka X</strong> 积压了大量数据</li>
+<li>重启 <strong>flink 任务 A</strong>后，消费大量积压在上游 <strong>kafka X</strong> 数据完成，任务恢复正常</li>
+</ul>
+<p>故障一从而引发下游的故障二：</p>
+<ul>
+<li>由于 <strong>flink 任务 A</strong> 使用了<strong>处理时间</strong>语义处理数据，并且有过滤和 keyBy 分桶窗口逻辑，在重启后消费大量积压在上游的数据时，导致 sink rebalance 后产出到下游 <strong>kafka Y</strong> 各个分区数据中的 server_timestamp 是乱序的</li>
+<li>下游 <strong>flink 任务 B</strong> 在消费 <strong>Kafka Y</strong> 时使用了<strong>事件时间</strong>语义处理数据，并且使用了数据中的 server_timestamp 作为<strong>事件时间</strong>时间戳</li>
+<li><strong>flink 任务 B</strong> 消费了乱序很严重的数据之后，导致在窗口聚合计算时丢失了大量数据</li>
+<li>最终展示在 BI 应用中的报表有丢失数据的情况</li>
+</ul>
+<p><img src="/blog-img/apache-flink:realtime-out-of-order/bug_stream.png" alt="故障场景"></p>
+<h2 id="待修复的故障点"><a href="#待修复的故障点" class="headerlink" title="待修复的故障点"></a>待修复的故障点</h2><ul>
+<li>1.<strong>flink 任务 A</strong> 的稳定性故障，这部分解决方案暂不在本文中介绍</li>
+<li>2.<strong>flink 任务 B</strong> 消费上游乱序丢数故障，解决方案在下文介绍</li>
+</ul>
+<h2 id="解决方案以及原理"><a href="#解决方案以及原理" class="headerlink" title="解决方案以及原理"></a>解决方案以及原理</h2><h3 id="丢数故障解决方案"><a href="#丢数故障解决方案" class="headerlink" title="丢数故障解决方案"></a>丢数故障解决方案</h3><p>解决方案是以下游 <strong>flink 任务 B</strong> 作为切入点，直接给出 <strong>flink 任务 B</strong> 的 sql 代码解决方案，java code 也可以按照这个方案实现，其本质原理相同。下文进行原理解释。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  to_unix_timestamp(server_timestamp / <span class="keyword">bucket</span>) <span class="keyword">AS</span> <span class="built_in">timestamp</span>, <span class="comment">-- format 成原有的事件时间戳</span></span><br><span class="line">  <span class="keyword">count</span>(<span class="keyword">id</span>) <span class="keyword">as</span> id_cnt,</span><br><span class="line">  <span class="keyword">sum</span>(<span class="keyword">duration</span>) <span class="keyword">as</span> duration_sum</span><br><span class="line"><span class="keyword">FROM</span></span><br><span class="line">  source_table</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">  TUMBLE(proctime, <span class="built_in">INTERVAL</span> <span class="string">'1'</span> <span class="keyword">MINUTE</span>),</span><br><span class="line">  server_timestamp / <span class="keyword">bucket</span> <span class="comment">-- 根据事件时间分桶计算，将相同范围（比如 1 分钟）事件时间的数据分到一个桶内</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="解决方案原理"><a href="#解决方案原理" class="headerlink" title="解决方案原理"></a>解决方案原理</h3><p>首先明确一个无法避免的问题，在不考虑 watermark 允许延迟设置特别大的情况下，只要上游使用到了处理时间语义，下游使用事件时间语义，一旦上游发生故障重启并在短时间内消费大量数据，就不可避免的会出现上述错误以及故障。</p>
+<p>在下游消费方仍然需要将对应事件时间戳的数据展示在 BI 平台报表中、并且全链路时间语义都为处理时间保障不丢数的前提下。解决方案就是在聚合并最终产出对应事件时间戳的数据。</p>
+<p>最后的方案如下：<br>整条链路全部为处理时间语义，窗口计算也使用处理时间，但是产出数据中的时间戳全部为事件时间戳。<br>在出现故障的场景下，一分钟的窗口内的数据的事件时间戳可能相差几个小时，但在最终窗口聚合时可以根据事件时间戳划分到对应的事件时间窗口内，下游 BI 应用展示时使用此事件时间戳即可。</p>
+<blockquote>
+<p>注意：sql 中的 bucket 需要根据具体使用场景进行设置，如果设置过于小，比如非故障场景下按照处理时间开 1 分钟的窗口，bucket<br>设为 60000（1 分钟），那么极有可能，这个时间窗口中所有数据的 server_timestamp 都集中在某两分钟内，那么这些数据就会被分到两个桶（bucket）内，则会导致严重的数据倾斜。</p>
+</blockquote>
+<h3 id="输入数据样例"><a href="#输入数据样例" class="headerlink" title="输入数据样例"></a>输入数据样例</h3><p>模拟上述故障，<strong>flink B</strong> 的任务某一个窗口内的数据输入如下。</p>
+<table>
+    <thead>
+        <tr>
+            <th style="width: 10%; text-align: center;">server_timestamp</th>
+            <th style="width: 20%; text-align: center;">id</th>
+            <th style="width: 20%; text-align: center;">duration</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:14:38</td>
+            <td>1</td>
+            <td>300</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:14:50</td>
+            <td>1</td>
+            <td>500</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:25:38</td>
+            <td>2</td>
+            <td>600</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:25:38</td>
+            <td>3</td>
+            <td>900</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:25:38</td>
+            <td>2</td>
+            <td>800</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3 id="输出数据样例"><a href="#输出数据样例" class="headerlink" title="输出数据样例"></a>输出数据样例</h3><p>按照上述解决方案中的 sql 处理过后，输出数据如下，则可以解决此类型丢数故障。</p>
+<table>
+    <thead>
+        <tr>
+            <th style="width: 10%; text-align: center;">timestamp</th>
+            <th style="width: 20%; text-align: center;">id_cnt</th>
+            <th style="width: 20%; text-align: center;">duration_sum</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:14:00</td>
+            <td>2</td>
+            <td>900</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:25:00</td>
+            <td>3</td>
+            <td>2300</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文分析了在 flink 应用中：</p>
+<ul>
+<li><strong>上游使用处理时间语义的 flink 任务出现故障、重启消费大量积压数据并产出至下游数据乱序特别严重时，下游使用事件时间语义时遇到的大量丢数问题</strong></li>
+<li><strong>以整条链路为处理时间语义的前提下，产出的数据时间戳为事件时间戳解决上述问题</strong></li>
+<li><strong>以 sql 代码给出了丢数故障解决方案样例</strong></li>
+</ul>
+<h2 id="学习资料"><a href="#学习资料" class="headerlink" title="学习资料"></a>学习资料</h2><h3 id="flink"><a href="#flink" class="headerlink" title="flink"></a>flink</h3><ul>
+<li><a href="https://github.com/flink-china/flink-training-course/blob/master/README.md" target="_blank" rel="noopener">https://github.com/flink-china/flink-training-course/blob/master/README.md</a></li>
+<li><a href="https://ververica.cn/developers-resources/" target="_blank" rel="noopener">https://ververica.cn/developers-resources/</a></li>
+<li><a href="https://space.bilibili.com/33807709" target="_blank" rel="noopener">https://space.bilibili.com/33807709</a></li>
+</ul>
+<p><img src="/blog-img/gzh/wechat.png" alt="公众号"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Flink/" rel="tag"># Apache Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/09/01/wechat-blog/apache-flink:learning-files/" rel="next" title="生产实践 | 基于 Flink 的视频直播核心指标监控">
+                <i class="fa fa-chevron-left"></i> 生产实践 | 基于 Flink 的视频直播核心指标监控
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/09/12/wechat-blog/apache-flink:realtime-tips-4-watermark/" rel="prev" title="Tips | flink watermark 一定只能用时间戳衡量？？？">
+                Tips | flink watermark 一定只能用时间戳衡量？？？ <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
 
     <div class="post-spread">
-      {% if theme.jiathis %}
-        {% include '_partials/share/jiathis.swig' %}
-      {% elseif theme.baidushare %}
-        {% include '_partials/share/baidushare.swig' %}
-      {% elseif theme.add_this_id %}
-        {% include '_partials/share/add-this.swig' %}
-      {% elseif theme.duoshuo_shortname and theme.duoshuo_share %}
-        {% include '_partials/share/duoshuo_share.swig' %}
-      {% endif %}
+      
     </div>
   </div>
 
-{% endblock %}
 
-{% block sidebar %}
-  {{ sidebar_template.render(true) }}
-{% endblock %}
+          </div>
+          
 
-{% block script_extra %}
-  {% include '_scripts/pages/post-details.swig' %}
-{% endblock %}
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">62</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%B8%A9%E5%9D%91%E8%AE%B0-Flink-%E4%BA%8B%E4%BB%B6%E6%97%B6%E9%97%B4%E8%AF%AD%E4%B9%89%E4%B8%8B%E6%95%B0%E6%8D%AE%E4%B9%B1%E5%BA%8F%E4%B8%A2%E6%95%B0%E8%B8%A9%E5%9D%91"><span class="nav-number">1.</span> <span class="nav-text">踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">1.1.</span> <span class="nav-text">应用场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%A2%E6%95%B0%E6%95%85%E9%9A%9C%E5%88%86%E6%9E%90"><span class="nav-number">1.2.</span> <span class="nav-text">丢数故障分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BE%85%E4%BF%AE%E5%A4%8D%E7%9A%84%E6%95%85%E9%9A%9C%E7%82%B9"><span class="nav-number">1.3.</span> <span class="nav-text">待修复的故障点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E4%BB%A5%E5%8F%8A%E5%8E%9F%E7%90%86"><span class="nav-number">1.4.</span> <span class="nav-text">解决方案以及原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%A2%E6%95%B0%E6%95%85%E9%9A%9C%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">1.4.1.</span> <span class="nav-text">丢数故障解决方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E5%8E%9F%E7%90%86"><span class="nav-number">1.4.2.</span> <span class="nav-text">解决方案原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%93%E5%85%A5%E6%95%B0%E6%8D%AE%E6%A0%B7%E4%BE%8B"><span class="nav-number">1.4.3.</span> <span class="nav-text">输入数据样例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%93%E5%87%BA%E6%95%B0%E6%8D%AE%E6%A0%B7%E4%BE%8B"><span class="nav-number">1.4.4.</span> <span class="nav-text">输出数据样例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.5.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E8%B5%84%E6%96%99"><span class="nav-number">1.6.</span> <span class="nav-text">学习资料</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#flink"><span class="nav-number">1.6.1.</span> <span class="nav-text">flink</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

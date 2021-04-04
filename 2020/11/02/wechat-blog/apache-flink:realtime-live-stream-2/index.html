@@ -1,37 +1,808 @@
-{% extends '_layout.swig' %}
-{% import '_macro/post.swig' as post_template %}
-{% import '_macro/sidebar.swig' as sidebar_template %}
+<!DOCTYPE html>
 
 
-{% block title %}{{ page.title }} | {{ config.title }}{% endblock %}
 
-{% block page_class %}page-post-detail{% endblock %}
+  
 
 
-{% block content %}
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="yangyichao-mango's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本站&amp;作者">
+<meta property="og:type" content="article">
+<meta property="og:title" content="生产实践 | Flink + 直播（二）| 如何建设实时公共画像维表？">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2020/11/02/wechat-blog/apache-flink:realtime-live-stream-2/index.html">
+<meta property="og:site_name" content="yangyichao-mango&#39;s blog">
+<meta property="og:description" content="本站&amp;作者">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:realtime-live-stream-2/tec-arc.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:realtime-live-stream-2/dim-tec-arc.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:realtime-live-stream-2/live-stream-life-cycle.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:realtime-live-stream-2/live-stream-dim-redis-hash.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:realtime-live-stream-2/live-stream-life-cycle.png">
+<meta property="article:published_time" content="2020-11-02T06:21:53.000Z">
+<meta property="article:modified_time" content="2020-11-07T10:37:44.932Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Flink">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:realtime-live-stream-2/tec-arc.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2020/11/02/wechat-blog/apache-flink:realtime-live-stream-2/"/>
+
+
+
+
+
+  <title>生产实践 | Flink + 直播（二）| 如何建设实时公共画像维表？ | yangyichao-mango's blog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">yangyichao-mango's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
 
   <div id="posts" class="posts-expand">
-    {{ post_template.render(page) }}
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2020/11/02/wechat-blog/apache-flink:realtime-live-stream-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="yangyichao-mango's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">生产实践 | Flink + 直播（二）| 如何建设实时公共画像维表？</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-11-02T14:21:53+08:00">
+                2020-11-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  本站&作者
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="生产实践-Flink-直播（二）-如何建设实时公共画像维表？"><a href="#生产实践-Flink-直播（二）-如何建设实时公共画像维表？" class="headerlink" title="生产实践 | Flink + 直播（二）| 如何建设实时公共画像维表？"></a>生产实践 | Flink + 直播（二）| 如何建设实时公共画像维表？</h1><blockquote>
+<p>本系列每篇文章都是从一些实际生产实践需求出发，解决一些生产实践中的问题，抛砖引玉，以帮助小伙伴们解决一些实际生产问题。本篇文章主要介绍直播间画像实时维表建设的整个过程，如果对小伙伴有帮助的话，欢迎点赞 + 再看~</p>
+</blockquote>
+<h2 id="技术架构"><a href="#技术架构" class="headerlink" title="技术架构"></a>技术架构</h2><p>回顾上一节的<strong>技术架构</strong>图。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-2/tec-arc.png" alt="技术架构"></p>
+<p>整个架构相对来说是比较好理解的。从数据源到数据处理以及最后到数据汇部分。</p>
+<p>但是大家的疑惑点可能就集中在三个维表的建设上，包含<strong>主播用户画像维表，观众用户画像维表，直播间画像维表</strong>。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-2/dim-tec-arc.png" alt="技术架构"></p>
+<p>我们依然从以下几个角度的问题出发，通过分析场景，解答这几个问题来给大家介绍以上三个维表的建设过程。</p>
+<h2 id="Question"><a href="#Question" class="headerlink" title="Question"></a>Question</h2><ul>
+<li><strong>WHAT：直播实时公共画像维表是指什么？离线公共画像维表又指什么？区别？</strong></li>
+<li><strong>WHY：为什么架构图中的三类公共画像维表要按照实时和离线进行划分？为什么需要建设实时公共画像维表，离线公共画像维表不能满足需求？</strong></li>
+<li><strong>HOW：怎样才能建设满足直播实时数据的实时公共画像维表？</strong></li>
+<li><strong>WHO：需要使用什么样的组件建设直播实时公共画像维表？为什么选用这些组件进行建设？</strong></li>
+</ul>
+<h2 id="WHAT：实时-amp-离线公共画像维表？"><a href="#WHAT：实时-amp-离线公共画像维表？" class="headerlink" title="WHAT：实时 &amp; 离线公共画像维表？"></a>WHAT：实时 &amp; 离线公共画像维表？</h2><h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p>首先简单介绍下，<strong>实时 &amp; 离线公共画像维表</strong>中存储的内容就是实体的固有属性（比如用户的年龄等），我理解这两个词本身是高层抽象的概念，本文中介绍的<strong>主播用户画像维表，观众用户画像维表，直播间画像维表</strong>是其具体实现。</p>
+<p>其他大佬的文章解释中会对<strong>实时公共画像维表</strong> &amp; <strong>离线公共画像维表</strong>有更加深度的理解，这里我只说明我在直播实时数据建设过程中的理解~</p>
+<h3 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h3><p>其实这两个词的区别从名字上就可以区分出来，实时公共画像维表和离线公共画像维表的最大区别就是数据建设和应用场景要求的时效性不同。</p>
+<h3 id="离线公共画像维表"><a href="#离线公共画像维表" class="headerlink" title="离线公共画像维表"></a>离线公共画像维表</h3><p>特点：</p>
+<ul>
+<li><strong>场景</strong>：适合离线场景，<strong>时效性要求比较弱</strong>的场景，为指标提供画像维度填充或者打标服务</li>
+<li><strong>建设</strong>：一般都是以离线 t + 1 的方式进行建设</li>
+<li><strong>应用</strong>：使用的数据为离线 t + 1 的数据</li>
+<li><strong>举例</strong>：数据仓库中的用户画像维表，为应用层数据提供画像服务；比如不但需要统计总 uv，还需要统计分年龄段的 uv。</li>
+</ul>
+<h3 id="实时公共画像维表"><a href="#实时公共画像维表" class="headerlink" title="实时公共画像维表"></a>实时公共画像维表</h3><p>特点：</p>
+<ul>
+<li><strong>场景</strong>：适合实时场景，<strong>时效性要求比较强</strong>的场景，为指标提供画像维度填充或者打标服务</li>
+<li><strong>建设</strong>：实时的进行建设，延迟一般在秒级别</li>
+<li><strong>应用</strong>：使用的数据都是实时建设好的，必须可以实时获取（秒级别延迟后获取到）并使用</li>
+</ul>
+<h2 id="WHY：为什么建设实时公共画像维表？"><a href="#WHY：为什么建设实时公共画像维表？" class="headerlink" title="WHY：为什么建设实时公共画像维表？"></a>WHY：为什么建设实时公共画像维表？</h2><p>为什么架构图中的三类公共画像维表要按照实时和离线进行划分？为什么需要建设实时公共画像维表，离线公共画像维表不能满足需求？</p>
+<p>这几个问题其实围绕着我们的直播实时数据建设以及应用的场景就可以展开解答。</p>
+<p>接上篇技术架构图，其中直播实时数据需要建设的公共维表分为以下三类：</p>
+<ul>
+<li><strong>直播间画像维表</strong>：包含直播对应的直播类别、开播客户端、标题、开播地址等信息</li>
+<li><strong>主播画像维表</strong>：主播对应的主播名、主播类别、性别、年龄段等</li>
+<li><strong>观众画像维表</strong>：观众对应的观众性别、年龄段等</li>
+</ul>
+<h3 id="直播间画像维表"><a href="#直播间画像维表" class="headerlink" title="直播间画像维表"></a>直播间画像维表</h3><p>首先抛出结论：<strong>直播间画像都是直播间的固有属性画像，直播间画像维表的建设过程是实时的</strong>。</p>
+<p>由于大多数直播的时长都在几小时不等，随着直播的开始，主播域观众的互动也随即产生，从而直播生产和消费的指标也开始产出，随着直播的结束，主播和观众的互动也就结束了，对应的直播生产和消费指标也就不存在了，因此直播间画像的所能提供给其他指标作为维表的价值也就快速消失了，所以直播间画像（标题，开播地址）的应用场景特点就是<strong>时效性很强</strong>。<br>因此直播间画像维表对于直播生产消费指标的建设和应用来说，需要满足可实时建设、可实时查询获取的要求。</p>
+<h3 id="主播-amp-观众用户画像维表"><a href="#主播-amp-观众用户画像维表" class="headerlink" title="主播 &amp; 观众用户画像维表"></a>主播 &amp; 观众用户画像维表</h3><p>结论：<strong>这类画像都是用户的固有属性画像，而非直播间固有属性，和直播间是非强相关的。主播 &amp; 观众用户画像维表的建设过程可以是离线的</strong>。</p>
+<p>无论直播间的开播关播，直播过程中的生产消费，主播画像和观众画像基本上不会产生变动。<br>（举例：大多数情况下，当已经判定一个用户的年龄段画像为 18 - 23 时，即使这个用户开了 10 场直播，或者这个用户观看了 10 场直播，其年龄段判定也基本不会有变化）。<br>因此主播用户画像维表 &amp; 观众用户画像维表对于直播生产消费指标的建设和应用来说，可以满足离线 t + 1 建设，提供数据服务进行实时获取的要求。</p>
+<blockquote>
+<p>Notes：</p>
+<p>主播 &amp; 观众用户画像需要根据用户生产消费行为以及其他信息，使用到机器学习进行性别和年龄段等的用户画像信息判定产出。<br>也有非常多的场景将这类画像进行实时建设，用于实时个性化推荐等。只不过本文的直播实时数据建设对于这两类画像的时效性要求较弱，所以采用了离线的方式进行建设。</p>
+</blockquote>
+<h2 id="HOW-WHO：怎样建设？用什么建设？"><a href="#HOW-WHO：怎样建设？用什么建设？" class="headerlink" title="HOW + WHO：怎样建设？用什么建设？"></a>HOW + WHO：怎样建设？用什么建设？</h2><h3 id="直播间生命周期-amp-数据流转"><a href="#直播间生命周期-amp-数据流转" class="headerlink" title="直播间生命周期 &amp; 数据流转"></a>直播间生命周期 &amp; 数据流转</h3><p>直播间整个生命周期如图所示。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-2/live-stream-life-cycle.png" alt="生命周期"></p>
+<ul>
+<li>1.主播创建直播间，直播间进入开播的状态；</li>
+<li>2.观众进入直播间后，在直播间内与主播进行互动；</li>
+<li>3.最后就是主播对直播间进行关播，标识着直播间生命周期的结束状态。</li>
+</ul>
+<h3 id="直播间画像维表-实时"><a href="#直播间画像维表-实时" class="headerlink" title="直播间画像维表-实时"></a>直播间画像维表-实时</h3><p>实时画像维表的建设。上图中<strong>红色</strong>的字体为实时画像维表的建设和应用过程。</p>
+<h4 id="直播间画像实时数据流转"><a href="#直播间画像实时数据流转" class="headerlink" title="直播间画像实时数据流转"></a>直播间画像实时数据流转</h4><ul>
+<li>1.当主播开播，直播间进行直播后，直播间产生了直播间画像信息，这时可以将画像信息实时的建设到直播间画像实时维表中。<br>并且可以同时建设生产侧的实时指标，利用建设好的<strong>直播间画像实时维表 + 主播 &amp; 观众画像离线维表</strong>进行生产侧指标的维度填充；</li>
+<li>2.当观众进入直播间后，与主播进行互动，产生一系列的消费行为，随即可以建设消费侧的实时指标，利用建设的<strong>直播间画像实时维表 + 主播 &amp; 观众画像离线维表</strong>进行消费侧指标的维度填充；</li>
+<li>3.当主播对直播间进行关播的时候，从直播间画像实时维表中就可以对该直播间的画像进行删除。</li>
+</ul>
+<h4 id="组件选型"><a href="#组件选型" class="headerlink" title="组件选型"></a>组件选型</h4><p>通过上文的分析，可以了解到直播间画像实时维表建设的要求如下：</p>
+<ul>
+<li>实时画像：首先需要支持实时建设，实时访问；</li>
+<li>实时画像：建设的数据都为实时指标，即要求低延迟的请求响应时间；</li>
+<li>公共画像：需要支撑多个大流量生产消费实时任务的访问请求，即提供高 QPS 画像数据服务；</li>
+<li>公共画像：高稳定性。</li>
+</ul>
+<p>因此组件选型就自然落在了高速缓存的范畴中，我们最后经过方案对比之后，选择了 redis 作为我们的实时维表的存储引擎。</p>
+<p>使用了 redis 中的 hash 作为维表存储结构，其中直播间画像维度存储设计如下图。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-2/live-stream-dim-redis-hash.png" alt="维度存储"></p>
+<h4 id="flink-实时维表建设代码示例"><a href="#flink-实时维表建设代码示例" class="headerlink" title="flink 实时维表建设代码示例"></a>flink 实时维表建设代码示例</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LiveStreamRealtimeDimBuilderJob</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();</span><br><span class="line"></span><br><span class="line">        DataStream&lt;<span class="keyword">byte</span>[]&gt; source = SourceFactory.getSourceDataStream();</span><br><span class="line">        source.process(<span class="keyword">new</span> ProcessFunction&lt;<span class="keyword">byte</span>[], String&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processElement</span><span class="params">(<span class="keyword">byte</span>[] bytes, Context context, Collector&lt;String&gt; collector)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                CommonModel c = CommonModel.parseFrom(bytes);</span><br><span class="line">                <span class="comment">// 开播</span></span><br><span class="line">                <span class="keyword">if</span> (c.isStartLiveStream()) &#123;</span><br><span class="line">                    RedisConfig</span><br><span class="line">                            .get()</span><br><span class="line">                            .hmset(c.getLiveStreamId()</span><br><span class="line">                                    , ImmutableMap.&lt;String, String&gt;builder()</span><br><span class="line">                                            .put(<span class="string">"type"</span>, c.getType())</span><br><span class="line">                                            .put(<span class="string">"client"</span>, c.getClient())</span><br><span class="line">                                            .put(<span class="string">"title"</span>, c.getTitle())</span><br><span class="line">                                            .put(<span class="string">"address"</span>, c.getAddress())</span><br><span class="line">                                            .build()</span><br><span class="line">                            );</span><br><span class="line">                    RedisConfig</span><br><span class="line">                            .get()</span><br><span class="line">                            .expire(c.getLiveStreamId(), <span class="number">30</span> * <span class="number">24</span> * <span class="number">60</span> * <span class="number">60</span>);</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (c.isEndLiveStream()) &#123;</span><br><span class="line">                <span class="comment">// 关播</span></span><br><span class="line">                    RedisConfig</span><br><span class="line">                            .get()</span><br><span class="line">                            .expire(c.getLiveStreamId(), <span class="number">2</span> * <span class="number">24</span> * <span class="number">60</span> * <span class="number">60</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        env.execute();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Data</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">CommonModel</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> String liveStreamId; <span class="comment">// 直播间 id</span></span><br><span class="line">        <span class="keyword">private</span> String type; <span class="comment">// 直播间类型</span></span><br><span class="line">        <span class="keyword">private</span> String client; <span class="comment">// 开播客户端</span></span><br><span class="line">        <span class="keyword">private</span> String title; <span class="comment">// 直播间标题</span></span><br><span class="line">        <span class="keyword">private</span> String address; <span class="comment">// 直播间开播地址</span></span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> CommonModel <span class="title">parseFrom</span><span class="params">(<span class="keyword">byte</span>[] bytes)</span> </span>&#123;</span><br><span class="line">            <span class="comment">// 逻辑根据业务逻辑判定</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isStartLiveStream</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="comment">// 逻辑根据业务逻辑判定</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isEndLiveStream</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="comment">// 逻辑根据业务逻辑判定</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="主播-amp-观众用户画像维表-离线"><a href="#主播-amp-观众用户画像维表-离线" class="headerlink" title="主播 &amp; 观众用户画像维表-离线"></a>主播 &amp; 观众用户画像维表-离线</h3><p>离线画像维表的建设。主要包含主播和观众的用户画像，性别，年龄等信息。如下图<strong>蓝色</strong>的字体为离线画像维表的应用过程。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-2/live-stream-life-cycle.png" alt="生命周期"></p>
+<h4 id="主播-amp-观众画像数据流转"><a href="#主播-amp-观众画像数据流转" class="headerlink" title="主播 &amp; 观众画像数据流转"></a>主播 &amp; 观众画像数据流转</h4><p>在产出直播间生产侧、消费侧实时数据时，使用主播 &amp; 观众画像进行了画像维度填充。</p>
+<h4 id="存储组件"><a href="#存储组件" class="headerlink" title="存储组件"></a>存储组件</h4><p>其中离线画像维表的存储组件选型与实时相同，同为 redis，画像信息存储方式也是使用 redis hash 结构进行存储。</p>
+<p>以 t + 1 的方式进行画像数据建设并进行数据同步，将建设好的全量主播和观众用户画像同步到 redis 高速缓存当中。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文衔接上文，主要介绍直播间实时维表的建设过程。提出几个建设的问题，以这几个问题出发，引出了一下三小节。</p>
+<p>第一节简单介绍了实时 &amp; 离线公共画像维表的概念。</p>
+<p>第二节从数据应用场景的角度出发，介绍了为什么需要建设实时的公共画像维表。</p>
+<p>第三节主要介绍了实时画像维表的建设过程以及详细的技术方案。</p>
+<p>最后一节对本文进行了总结。</p>
+<p>如果你也建设过实时画像维表，或者有相同的需求，欢迎留言或者留下你的文章链接，相互交流~</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Flink/" rel="tag"># Apache Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/11/01/wechat-blog/apache-flink:realtime-live-stream-1/" rel="next" title="">
+                <i class="fa fa-chevron-left"></i> 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/11/11/wechat-blog/apache-flink:realtime-pressure/" rel="prev" title="生产实践 | 实时压测方案沉淀">
+                生产实践 | 实时压测方案沉淀 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
 
     <div class="post-spread">
-      {% if theme.jiathis %}
-        {% include '_partials/share/jiathis.swig' %}
-      {% elseif theme.baidushare %}
-        {% include '_partials/share/baidushare.swig' %}
-      {% elseif theme.add_this_id %}
-        {% include '_partials/share/add-this.swig' %}
-      {% elseif theme.duoshuo_shortname and theme.duoshuo_share %}
-        {% include '_partials/share/duoshuo_share.swig' %}
-      {% endif %}
+      
     </div>
   </div>
 
-{% endblock %}
 
-{% block sidebar %}
-  {{ sidebar_template.render(true) }}
-{% endblock %}
+          </div>
+          
 
-{% block script_extra %}
-  {% include '_scripts/pages/post-details.swig' %}
-{% endblock %}
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">62</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5-Flink-%E7%9B%B4%E6%92%AD%EF%BC%88%E4%BA%8C%EF%BC%89-%E5%A6%82%E4%BD%95%E5%BB%BA%E8%AE%BE%E5%AE%9E%E6%97%B6%E5%85%AC%E5%85%B1%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">生产实践 | Flink + 直播（二）| 如何建设实时公共画像维表？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84"><span class="nav-number">1.1.</span> <span class="nav-text">技术架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Question"><span class="nav-number">1.2.</span> <span class="nav-text">Question</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WHAT%EF%BC%9A%E5%AE%9E%E6%97%B6-amp-%E7%A6%BB%E7%BA%BF%E5%85%AC%E5%85%B1%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8%EF%BC%9F"><span class="nav-number">1.3.</span> <span class="nav-text">WHAT：实时 &amp; 离线公共画像维表？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-number">1.3.1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8C%BA%E5%88%AB"><span class="nav-number">1.3.2.</span> <span class="nav-text">区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A6%BB%E7%BA%BF%E5%85%AC%E5%85%B1%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8"><span class="nav-number">1.3.3.</span> <span class="nav-text">离线公共画像维表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E6%97%B6%E5%85%AC%E5%85%B1%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8"><span class="nav-number">1.3.4.</span> <span class="nav-text">实时公共画像维表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WHY%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BB%BA%E8%AE%BE%E5%AE%9E%E6%97%B6%E5%85%AC%E5%85%B1%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8%EF%BC%9F"><span class="nav-number">1.4.</span> <span class="nav-text">WHY：为什么建设实时公共画像维表？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B4%E6%92%AD%E9%97%B4%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8"><span class="nav-number">1.4.1.</span> <span class="nav-text">直播间画像维表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E6%92%AD-amp-%E8%A7%82%E4%BC%97%E7%94%A8%E6%88%B7%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8"><span class="nav-number">1.4.2.</span> <span class="nav-text">主播 &amp; 观众用户画像维表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HOW-WHO%EF%BC%9A%E6%80%8E%E6%A0%B7%E5%BB%BA%E8%AE%BE%EF%BC%9F%E7%94%A8%E4%BB%80%E4%B9%88%E5%BB%BA%E8%AE%BE%EF%BC%9F"><span class="nav-number">1.5.</span> <span class="nav-text">HOW + WHO：怎样建设？用什么建设？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B4%E6%92%AD%E9%97%B4%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F-amp-%E6%95%B0%E6%8D%AE%E6%B5%81%E8%BD%AC"><span class="nav-number">1.5.1.</span> <span class="nav-text">直播间生命周期 &amp; 数据流转</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B4%E6%92%AD%E9%97%B4%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8-%E5%AE%9E%E6%97%B6"><span class="nav-number">1.5.2.</span> <span class="nav-text">直播间画像维表-实时</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%9B%B4%E6%92%AD%E9%97%B4%E7%94%BB%E5%83%8F%E5%AE%9E%E6%97%B6%E6%95%B0%E6%8D%AE%E6%B5%81%E8%BD%AC"><span class="nav-number">1.5.2.1.</span> <span class="nav-text">直播间画像实时数据流转</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%84%E4%BB%B6%E9%80%89%E5%9E%8B"><span class="nav-number">1.5.2.2.</span> <span class="nav-text">组件选型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#flink-%E5%AE%9E%E6%97%B6%E7%BB%B4%E8%A1%A8%E5%BB%BA%E8%AE%BE%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.5.2.3.</span> <span class="nav-text">flink 实时维表建设代码示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E6%92%AD-amp-%E8%A7%82%E4%BC%97%E7%94%A8%E6%88%B7%E7%94%BB%E5%83%8F%E7%BB%B4%E8%A1%A8-%E7%A6%BB%E7%BA%BF"><span class="nav-number">1.5.3.</span> <span class="nav-text">主播 &amp; 观众用户画像维表-离线</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BB%E6%92%AD-amp-%E8%A7%82%E4%BC%97%E7%94%BB%E5%83%8F%E6%95%B0%E6%8D%AE%E6%B5%81%E8%BD%AC"><span class="nav-number">1.5.3.1.</span> <span class="nav-text">主播 &amp; 观众画像数据流转</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E7%BB%84%E4%BB%B6"><span class="nav-number">1.5.3.2.</span> <span class="nav-text">存储组件</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.6.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

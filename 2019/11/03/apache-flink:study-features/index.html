@@ -1,37 +1,764 @@
-{% extends '_layout.swig' %}
-{% import '_macro/post.swig' as post_template %}
-{% import '_macro/sidebar.swig' as sidebar_template %}
+<!DOCTYPE html>
 
 
-{% block title %}{{ page.title }} | {{ config.title }}{% endblock %}
 
-{% block page_class %}page-post-detail{% endblock %}
+  
 
 
-{% block content %}
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="yangyichao-mango's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本站&amp;作者">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Apache Flink 学习：系统特性学习">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2019/11/03/apache-flink:study-features/index.html">
+<meta property="og:site_name" content="yangyichao-mango&#39;s blog">
+<meta property="og:description" content="本站&amp;作者">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-11-03T08:20:21.000Z">
+<meta property="article:modified_time" content="2019-11-11T07:18:07.272Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Flink">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2019/11/03/apache-flink:study-features/"/>
+
+
+
+
+
+  <title>Apache Flink 学习：系统特性学习 | yangyichao-mango's blog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">yangyichao-mango's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
 
   <div id="posts" class="posts-expand">
-    {{ post_template.render(page) }}
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2019/11/03/apache-flink:study-features/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="yangyichao-mango's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Apache Flink 学习：系统特性学习</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-11-03T16:20:21+08:00">
+                2019-11-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  本站&作者
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Apache Flink 学习：系统特性学习</p>
+<a id="more"></a>
+
+<p><a href="https://github.com/flink-china/flink-training-course" target="_blank" rel="noopener">教程</a></p>
+<h2 id="window窗口"><a href="#window窗口" class="headerlink" title="window窗口"></a><strong>window窗口</strong></h2><h3 id="窗口大小"><a href="#窗口大小" class="headerlink" title="窗口大小"></a>窗口大小</h3><p>窗口大小是用户自己设定的，但是窗口的起始和结束时间点是系统根据窗口大小和自然数进行设定的，不会出现设置了一分钟的窗口，统计的数据是2:30到3:30的数据</p>
+<p>[window_start_time, window_end_time)根据窗口大小和自然数进行设定</p>
+<p>如果window大小是3秒，那么1分钟内会把window划分为如下的形式:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[00:00:00,00:00:03)</span><br><span class="line">[00:00:03,00:00:06)</span><br><span class="line">...</span><br><span class="line">[00:00:57,00:01:00)</span><br></pre></td></tr></table></figure>
+
+<p>如果window大小是10秒，则window会被分为如下的形式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[00:00:00,00:00:10)</span><br><span class="line">[00:00:10,00:00:20)</span><br><span class="line">...</span><br><span class="line">[00:00:50,00:01:00)</span><br></pre></td></tr></table></figure>
+
+<h3 id="watermark"><a href="#watermark" class="headerlink" title="watermark"></a>watermark</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Watermark <span class="title">getCurrentWatermark</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// this guarantees that the watermark never goes backwards.</span></span><br><span class="line">    <span class="keyword">long</span> potentialWM = currentMaxTimestamp - maxOutOfOrderness;</span><br><span class="line">    <span class="keyword">if</span> (potentialWM &gt;= lastEmittedWatermark) &#123;</span><br><span class="line">        lastEmittedWatermark = potentialWM;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Watermark(lastEmittedWatermark);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>watermark = max( [当前已到达的时间戳最新的数据(currentMaxTimestamp)] - [最大乱序等待时间(maxOutOfOrderness)], watermark )</strong></p>
+<h3 id="触发窗口运算条件"><a href="#触发窗口运算条件" class="headerlink" title="触发窗口运算条件"></a>触发窗口运算条件</h3><p>1.当前最新数据到达进行判断：当前到达event的time(timestamp) ＜ watermark则触发，表示数据是超过了最大等待时间，已经延迟到达的，则会触发</p>
+<p>2.当前最新数据到达进行判断：最新的watermark &gt;= window_end_time（对于out-of-order以及正常的数据而言），在[window_start_time, window_end_time)中有数据存在</p>
+<p>3.而且，这里要强调一点，watermark和currentMaxTimestamp是一个全局的值，不是某一个key下的值，所以即使不是同一个key的数据，其warmark也会增加</p>
+<p>语义是：currentMaxTimestamp是当前到达的最大时间戳数据，代表时间戳为currentMaxTimestamp的数据已经到达了，所以所能等待的数据的时间戳（max_out_of_orderness）只能为watermark = currentMaxTimestamp - maxOutOfOrderness</p>
+<h3 id="窗口计算"><a href="#窗口计算" class="headerlink" title="窗口计算"></a>窗口计算</h3><p>Window reduce，Window aggregate 和 Window Fold 是增量聚合，每来一条数据就计算一次，高效</p>
+<p>Window apply（Window process 的老版本） 和 Window process 是全量聚合，触发窗口计算时全量计算</p>
+<h3 id="被Keys化与非被Keys化Windows"><a href="#被Keys化与非被Keys化Windows" class="headerlink" title="被Keys化与非被Keys化Windows"></a>被Keys化与非被Keys化Windows</h3><p>要指定的第一件事是您的流是否应该使用keyedWindow，一般都与业务逻辑有关，比如说使用一分钟的窗口进行去重。使用keyBy(…)将您的无限流分成逻辑Key化的数据流。如果keyBy(…)未调用，则表示您的流不是被Keys化的。</p>
+<p>对于被Key化的数据流，可以将传入数据（Object）的的任何属性用作键）。拥有被Key化的数据流将允许您的窗口计算由多个任务并行执行，因为每个Key化的数据流可以独立于其余任务进行处理。引用相同Keys的所有数据将被发送到同一个并行任务进行计算。</p>
+<p>在非被Key化的数据流的情况下，您的原始流将不会被拆分为多个逻辑流，并且所有窗口逻辑将由单个任务执行，即并行度为1。</p>
+<h2 id="sql"><a href="#sql" class="headerlink" title="sql"></a><strong>sql</strong></h2><p>1.在flinkSql中，如果使用groupBy，尽量使用窗口，否则会认为被groupBy的数据会默认人为整个窗口内的数据还没有到达，所以会一直等待，不会产出数据</p>
+<p>update-mode: append / update</p>
+<p>分为 update stream 模式和 append stream 模式</p>
+<p>window聚合为append mode stream，groupby聚合为update mode stream</p>
+<h2 id="Flink生成-Timestamps-和-Watermarks"><a href="#Flink生成-Timestamps-和-Watermarks" class="headerlink" title="Flink生成 Timestamps 和 Watermarks"></a><strong>Flink生成 Timestamps 和 Watermarks</strong></h2><p>为了让event time工作，Flink需要知道事件的时间戳，这意味着流中的每个元素都需要分配其事件时间戳。这个通常是通过抽取或者访问事件中某些字段的时间戳来获取的。</p>
+<p>时间戳的分配伴随着水印的生成，告诉系统事件时间中的进度。</p>
+<p>这里有两种方式来分配时间戳和生成水印:</p>
+<ol>
+<li>直接在数据流源中进行。</li>
+<li>通过timestamp assigner和watermark generator生成:在Flink中，timestamp分配器也定义了用来发射的水印。</li>
+</ol>
+<h3 id="数据流源生成Timestamps和Watermarks"><a href="#数据流源生成Timestamps和Watermarks" class="headerlink" title="数据流源生成Timestamps和Watermarks"></a>数据流源生成Timestamps和Watermarks</h3><p>数据流源可以直接为它们产生的数据元素分配timestamp，并且他们也能发送水印。这样做的话，就没必要再去定义timestamp分配器了，需要注意的是:如果一个timestamp分配器被使用的话，由源提供的任何timestamp和watermark都会被重写。</p>
+<h3 id="时间戳分配器-水印生成器（Timestamp-Assigners-Watermark-Generators）"><a href="#时间戳分配器-水印生成器（Timestamp-Assigners-Watermark-Generators）" class="headerlink" title="时间戳分配器/水印生成器（Timestamp Assigners / Watermark Generators）"></a>时间戳分配器/水印生成器（Timestamp Assigners / Watermark Generators）</h3><p>Timestamp分配器获取一个流并生成一个新的带有Timestamp元素和水印的流。如果原始流已经有时间戳和/或水印，则Timestamp分配程序将覆盖它们</p>
+<p>Timestamp分配器通常在数据源之后立即指定，但这并不是严格要求的。通常是在timestamp分配器之前先解析(MapFunction)和过滤(FilterFunction)。在任何情况下，都需要在事件时间上的第一个操作(例如第一个窗口操作)之前指定timestamp分配程序。有一个特殊情况，当使用Kafka作为流作业的数据源时，Flink允许在源内部指定timestamp分配器和watermark生成器。更多关于如何进行的信息请参考Kafka Connector的文档。</p>
+<p>直接在FlinkKafkaConsumer010上面使用assignTimestampsAndWatermarks可以根据kafka source的partitions的特性进行设置Timestamps和Watermarks，让用户做一些特殊的处理</p>
+<p>Running timestamp extractors / watermark generators directly inside the Kafka source, per Kafka<br>partition, allows users to let them exploit the per-partition characteristics.</p>
+<h2 id="log"><a href="#log" class="headerlink" title="log"></a><strong>log</strong></h2><h3 id="Web-UI查找log"><a href="#Web-UI查找log" class="headerlink" title="Web UI查找log"></a>Web UI查找log</h3><p>JobManger log： 展示整个作业的状态变化（例如，从create 到deploy到running再到failed），通过jobManger log可以查看作业历史失败的记录和直接原因。</p>
+<p>TaskManager log： 调度到该TaskManager上的task 的打印的相关log。</p>
+<h2 id="shuffle"><a href="#shuffle" class="headerlink" title="shuffle"></a><strong>shuffle</strong></h2><p>被keyBy的数据流中，相同的key的数据会被发送到同一个slot中运行（partitiner决定），也就是TaskManager中slot进行shuffle的过程<br>如果有多个producer并且producer的数量和partition数量相同，则每个producer写一个partition</p>
+<h2 id="Savepoints和Checkpoints"><a href="#Savepoints和Checkpoints" class="headerlink" title="Savepoints和Checkpoints"></a><strong>Savepoints和Checkpoints</strong></h2><p>用 Data Stream API 编写的程序可以从 savepoint 继续执行。Savepoints 允许在不丢失任何状态的情况下升级程序和 Flink 集群。</p>
+<p>Savepoints 是手动触发的 Checkpoints，它依靠常规的 Checkpoint 机制获取程序的快照并将其写入 state backend。在执行期间，程序会定期在 worker 节点上创建快照并生成 Checkpoints。对于恢复，Flink 仅需要最后完成的 Checkpoint，而一旦完成了新的 Checkpoint，旧的就可以被丢弃。</p>
+<p>Savepoints 类似于这些定期的 Checkpoints，除了它们是由用户触发并且在新的 Checkpoints 完成时不会自动过期。你可以通过命令行 或在取消一个 job 时通过 REST API 来创建 Savepoints。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Flink/" rel="tag"># Apache Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/11/03/apache-flink:study-realtime-scenario/" rel="next" title="Apache Flink 学习：实时场景下的应用">
+                <i class="fa fa-chevron-left"></i> Apache Flink 学习：实时场景下的应用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/11/06/apache-kafka:study-features/" rel="prev" title="apache-kafka:study-features">
+                apache-kafka:study-features <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
 
     <div class="post-spread">
-      {% if theme.jiathis %}
-        {% include '_partials/share/jiathis.swig' %}
-      {% elseif theme.baidushare %}
-        {% include '_partials/share/baidushare.swig' %}
-      {% elseif theme.add_this_id %}
-        {% include '_partials/share/add-this.swig' %}
-      {% elseif theme.duoshuo_shortname and theme.duoshuo_share %}
-        {% include '_partials/share/duoshuo_share.swig' %}
-      {% endif %}
+      
     </div>
   </div>
 
-{% endblock %}
 
-{% block sidebar %}
-  {{ sidebar_template.render(true) }}
-{% endblock %}
+          </div>
+          
 
-{% block script_extra %}
-  {% include '_scripts/pages/post-details.swig' %}
-{% endblock %}
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">62</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#window%E7%AA%97%E5%8F%A3"><span class="nav-number">1.</span> <span class="nav-text">window窗口</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AA%97%E5%8F%A3%E5%A4%A7%E5%B0%8F"><span class="nav-number">1.1.</span> <span class="nav-text">窗口大小</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#watermark"><span class="nav-number">1.2.</span> <span class="nav-text">watermark</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A6%E5%8F%91%E7%AA%97%E5%8F%A3%E8%BF%90%E7%AE%97%E6%9D%A1%E4%BB%B6"><span class="nav-number">1.3.</span> <span class="nav-text">触发窗口运算条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AA%97%E5%8F%A3%E8%AE%A1%E7%AE%97"><span class="nav-number">1.4.</span> <span class="nav-text">窗口计算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A2%ABKeys%E5%8C%96%E4%B8%8E%E9%9D%9E%E8%A2%ABKeys%E5%8C%96Windows"><span class="nav-number">1.5.</span> <span class="nav-text">被Keys化与非被Keys化Windows</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sql"><span class="nav-number">2.</span> <span class="nav-text">sql</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink%E7%94%9F%E6%88%90-Timestamps-%E5%92%8C-Watermarks"><span class="nav-number">3.</span> <span class="nav-text">Flink生成 Timestamps 和 Watermarks</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%B5%81%E6%BA%90%E7%94%9F%E6%88%90Timestamps%E5%92%8CWatermarks"><span class="nav-number">3.1.</span> <span class="nav-text">数据流源生成Timestamps和Watermarks</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E6%88%B3%E5%88%86%E9%85%8D%E5%99%A8-%E6%B0%B4%E5%8D%B0%E7%94%9F%E6%88%90%E5%99%A8%EF%BC%88Timestamp-Assigners-Watermark-Generators%EF%BC%89"><span class="nav-number">3.2.</span> <span class="nav-text">时间戳分配器&#x2F;水印生成器（Timestamp Assigners &#x2F; Watermark Generators）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#log"><span class="nav-number">4.</span> <span class="nav-text">log</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Web-UI%E6%9F%A5%E6%89%BElog"><span class="nav-number">4.1.</span> <span class="nav-text">Web UI查找log</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#shuffle"><span class="nav-number">5.</span> <span class="nav-text">shuffle</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Savepoints%E5%92%8CCheckpoints"><span class="nav-number">6.</span> <span class="nav-text">Savepoints和Checkpoints</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

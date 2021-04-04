@@ -1,37 +1,785 @@
-{% extends '_layout.swig' %}
-{% import '_macro/post.swig' as post_template %}
-{% import '_macro/sidebar.swig' as sidebar_template %}
+<!DOCTYPE html>
 
 
-{% block title %}{{ page.title }} | {{ config.title }}{% endblock %}
 
-{% block page_class %}page-post-detail{% endblock %}
+  
 
 
-{% block content %}
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="yangyichao-mango's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本站&amp;作者">
+<meta property="og:type" content="article">
+<meta property="og:title" content="生产实践 | 基于 Flink 的短视频生产消费监控">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2020/09/01/wechat-blog/apache-flink:realtime-monitor-video/index.html">
+<meta property="og:site_name" content="yangyichao-mango&#39;s blog">
+<meta property="og:description" content="本站&amp;作者">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/monitor/data_transform.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/monitor/monitor_flink.png">
+<meta property="article:published_time" content="2020-09-01T06:21:53.000Z">
+<meta property="article:modified_time" content="2020-09-06T12:46:06.628Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Flink">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/monitor/data_transform.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2020/09/01/wechat-blog/apache-flink:realtime-monitor-video/"/>
+
+
+
+
+
+  <title>生产实践 | 基于 Flink 的短视频生产消费监控 | yangyichao-mango's blog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">yangyichao-mango's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
 
   <div id="posts" class="posts-expand">
-    {{ post_template.render(page) }}
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2020/09/01/wechat-blog/apache-flink:realtime-monitor-video/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="yangyichao-mango's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">生产实践 | 基于 Flink 的短视频生产消费监控</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-09-01T14:21:53+08:00">
+                2020-09-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  本站&作者
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="生产实践-基于-Flink-的短视频生产消费监控"><a href="#生产实践-基于-Flink-的短视频生产消费监控" class="headerlink" title="生产实践 | 基于 Flink 的短视频生产消费监控"></a>生产实践 | 基于 Flink 的短视频生产消费监控</h1><blockquote>
+<p>本文详细介绍了实时监控类指标的数据流转链路以及技术方案，大多数的实时监控类指标都可按照本文中的几种方案实现。</p>
+</blockquote>
+<h2 id="短视频生产消费监控"><a href="#短视频生产消费监控" class="headerlink" title="短视频生产消费监控"></a>短视频生产消费监控</h2><p>短视频带来了全新的传播场域和节目形态，小屏幕、快节奏成为行业潮流的同时，也催生了新的用户消费习惯，为创作者和商户带来收益。而多元化的短视频也可以为品牌方提供营销机遇。</p>
+<p>其中对于垂类生态短视频的生产消费热点的监控分析目前成为了实时数据处理很常见的一个应用场景，比如对某个圈定的垂类生态下的视频生产或者视频消费进行监控，对热点视频生成对应的优化推荐策略，促进热点视频的生产或者消费，构建整个生产消费数据链路的闭环，从而提高创作者收益以及消费者留存。</p>
+<p>本文将完整分析垂类生态短视频生产消费数据的整条链路流转方式，并基于 Flink 提供几种对于垂类视频生产消费监控的方案设计。通过本文，你可以了解到：</p>
+<ul>
+<li><p><strong>垂类生态短视频生产消费数据链路闭环</strong></p>
+</li>
+<li><p><strong>实时监控短视频生产消费的方案设计</strong></p>
+</li>
+<li><p><strong>不同监控量级场景下的代码实现</strong></p>
+</li>
+<li><p><strong>flink 学习资料</strong></p>
+</li>
+</ul>
+<h2 id="项目简介"><a href="#项目简介" class="headerlink" title="项目简介"></a>项目简介</h2><p>垂类生态短视频生产消费数据链路流转架构图如下，此数据流转图也适用于其他场景：</p>
+<p><img src="/blog-img/monitor/data_transform.png" alt="链路"></p>
+<p>在上述场景中，用户生产和消费短视频，从而客户端、服务端以及数据库会产生相应的行为操作日志，这些日志会通过日志抽取中间件抽取到消息队列中，我们目前的场景中是使用 Kafka 作为消息队列；然后使用 flink 对垂类生态中的视频进行生产或消费监控（内容生产通常是圈定垂类作者 id 池，内容消费通常是圈定垂类视频 id 池），最后将实时聚合数据产出到下游；下游可以以数据服务，实时看板的方式展现，运营同学或者自动化工具最终会帮助我们分析当前垂类下的生产或者消费热点，从而生成推荐策略。</p>
+<h2 id="方案设计"><a href="#方案设计" class="headerlink" title="方案设计"></a>方案设计</h2><p><img src="/blog-img/monitor/monitor_flink.png" alt="架构"></p>
+<p>其中数据源如下：</p>
+<ul>
+<li><strong>Kafka</strong> 为全量内容生产和内容消费的日志。</li>
+<li><strong>Rpc/Http/Mysql/配置中心/Redis/HBase</strong> 为需要监控的垂类生态内容 id 池（内容生产则为作者 id 池，内容消费则为视频 id 池），其主要是提供给运营同学动态配置需要监控的 id 范围，其可以在 flink 中进行实时查询，解析运营同学想要的监控指标范围，以及监控的指标和计算方式，然后加工数据产出，可以支持随时配置，实时数据随时计算产出。</li>
+</ul>
+<p>其中数据汇为聚类好的内容生产或者消费热点话题或者事件指标：</p>
+<ul>
+<li><strong>Redis/HBase</strong> 主要是以低延迟（Redis 5ms p99，HBase 100ms p99，不同公司的服务能力不同）并且高 QPS 提供数据服务，给 Server 端或者线上用户提供低延迟的数据查询。</li>
+<li><strong>Druid/Mysql</strong> 可以做为 OLAP 引擎为 BI 分析提供灵活的上卷下钻聚合分析能力，供运营同学配置可视化图表使用。</li>
+<li><strong>Kafka</strong> 可以以流式数据产出，从而提供给下游继续消费或者进行特征提取。</li>
+</ul>
+<p>废话不多说，我们直接上方案和代码，下述几种方案按照监控 id 范围量级区分，不同的量级对应着不同的方案，其中的代码示例为 ProcessWindowFunction，也可以使用 AggregateFunction 代替，其中主要监控逻辑都相同。</p>
+<h3 id="方案-1"><a href="#方案-1" class="headerlink" title="方案 1"></a>方案 1</h3><p>适合监控 id 数据量小的场景（<strong>几千 id</strong>），其实现方式是在 flink 任务初始化时将需要监控的 id 池或动态配置中心的 id 池加载到内存当中，之后只需要在内存中判断内容生产或者消费数据是否在这个监控池当中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">ProcessWindowFunction p = <span class="keyword">new</span> ProcessWindowFunction&lt;CommonModel, CommonModel, Long, TimeWindow&gt;() &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 配置中心动态 id 池</span></span><br><span class="line">    <span class="keyword">private</span> Config&lt;Set&lt;Long&gt;&gt; needMonitoredIdsConfig;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">open</span><span class="params">(Configuration parameters)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.needMonitoredIdsConfig = ConfigBuilder</span><br><span class="line">                .buildSet(<span class="string">"needMonitoredIds"</span>, Long.class);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(Long bucket, Context context, Iterable&lt;CommonModel&gt; iterable, Collector&lt;CommonModel&gt; collector)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Set&lt;Long&gt; needMonitoredIds = needMonitoredIdsConfig.get();</span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * 判断 commonModel 中的 id 是否在 needMonitoredIds 池中</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>监控的 id 池可以按照固定或者可配置从而分出两种获取方式：第一种是在 flink 任务开始时就全部加载进内存中，这种方式适合监控 id 池不变的情况；第二种是使用动态配置中心，每次都从配置中心访问到最新的监控 id 池，其可以满足动态配置或者更改 id 池的需求，并且这种实现方式通常可以实时感知到配置更改，几乎无延迟。</p>
+</blockquote>
+<h3 id="方案-2"><a href="#方案-2" class="headerlink" title="方案 2"></a>方案 2</h3><p>适合监控 id 数据量适中（<strong>几十万 id</strong>），监控数据范围会不定时发生变动的场景。其实现方式是在 flink 算子中定时访问接口获取最新的监控 id 池，以获取最新监控数据范围。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">ProcessWindowFunction p = <span class="keyword">new</span> ProcessWindowFunction&lt;CommonModel, CommonModel, Long, TimeWindow&gt;() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">long</span> lastRefreshTimestamp;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Set&lt;Long&gt; needMonitoredIds;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">open</span><span class="params">(Configuration parameters)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.open(parameters);</span><br><span class="line">        <span class="keyword">this</span>.refreshNeedMonitoredIds(System.currentTimeMillis());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(Long bucket, Context context, Iterable&lt;CommonModel&gt; iterable, Collector&lt;CommonModel&gt; collector)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">long</span> windowStart = context.window().getStart();</span><br><span class="line">        <span class="keyword">this</span>.refreshNeedMonitoredIds(windowStart);</span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * 判断 commonModel 中的 id 是否在 needMonitoredIds 池中</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">refreshNeedMonitoredIds</span><span class="params">(<span class="keyword">long</span> windowStart)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 每隔 10 秒访问一次</span></span><br><span class="line">        <span class="keyword">if</span> (windowStart - <span class="keyword">this</span>.lastRefreshTimestamp &gt;= <span class="number">10000L</span>) &#123;</span><br><span class="line">            <span class="keyword">this</span>.lastRefreshTimestamp = windowStart;</span><br><span class="line">            <span class="keyword">this</span>.needMonitoredIds = Rpc.get(...)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>根据上述代码实现方式，按照时间间隔的方式刷新 id 池，其缺点在于不能实时感知监控 id 池的变化，所以刷新时间可能会和需求场景强耦合（如果 id 池会频繁更新，那么就需要缩小刷新时间间隔）。也可根据需求场景在每个窗口开始前刷新 id 池，这样可保证每个窗口中的 id 池中的数据一直保持更新。</p>
+</blockquote>
+<h3 id="方案-3"><a href="#方案-3" class="headerlink" title="方案 3"></a>方案 3</h3><p>方案 3 对方案 2 的一个优化（<strong>几十万 id，我们生产环境中最常用的</strong>）。其实现方式是在 flink 中使用 broadcast 算子定时访问监控 id 池，并将 id 池以广播的形式下发给下游参与计算的各个算子。其优化点在于：比如任务的并行度为 500，每 1s 访问一次，采用方案 2 则访问监控 id 池接口的 QPS 为 500，在使用 broadcast 算子之后，其访问 QPS 可以减少到 1，可以大大减少对接口的访问量，减轻接口压力。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Example</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Slf</span>4j</span><br><span class="line">    <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">NeedMonitorIdsSource</span> <span class="keyword">implements</span> <span class="title">SourceFunction</span>&lt;<span class="title">Map</span>&lt;<span class="title">Long</span>, <span class="title">Set</span>&lt;<span class="title">Long</span>&gt;&gt;&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">boolean</span> isCancel;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">(SourceContext&lt;Map&lt;Long, Set&lt;Long&gt;&gt;&gt; sourceContext)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">            <span class="keyword">while</span> (!<span class="keyword">this</span>.isCancel) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    TimeUnit.SECONDS.sleep(<span class="number">1</span>);</span><br><span class="line">                    Set&lt;Long&gt; needMonitorIds = Rpc.get(...);</span><br><span class="line">                    <span class="comment">// 可以和上一次访问的数据做比较查看是否有变化，如果有变化，才发送出去</span></span><br><span class="line">                    <span class="keyword">if</span> (CollectionUtils.isNotEmpty(needMonitorIds)) &#123;</span><br><span class="line">                        sourceContext.collect(<span class="keyword">new</span> HashMap&lt;Long, Set&lt;Long&gt;&gt;() &#123;&#123;</span><br><span class="line">                            put(<span class="number">0L</span>, needMonitorIds);</span><br><span class="line">                        &#125;&#125;);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">                    <span class="comment">// 防止接口访问失败导致的错误导致 flink job 挂掉</span></span><br><span class="line">                    log.error(<span class="string">"need monitor ids error"</span>, e);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">cancel</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.isCancel = <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ParameterTool parameterTool = ParameterTool.fromArgs(args);</span><br><span class="line">        InputParams inputParams = <span class="keyword">new</span> InputParams(parameterTool);</span><br><span class="line">        StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> MapStateDescriptor&lt;Long, Set&lt;Long&gt;&gt; broadcastMapStateDescriptor = <span class="keyword">new</span> MapStateDescriptor&lt;&gt;(</span><br><span class="line">                <span class="string">"config-keywords"</span>,</span><br><span class="line">                BasicTypeInfo.LONG_TYPE_INFO,</span><br><span class="line">                TypeInformation.of(<span class="keyword">new</span> TypeHint&lt;Set&lt;Long&gt;&gt;() &#123;</span><br><span class="line">                &#125;));</span><br><span class="line"></span><br><span class="line">        <span class="comment">/********************* kafka source *********************/</span></span><br><span class="line">        BroadcastStream&lt;Map&lt;Long, Set&lt;Long&gt;&gt;&gt; broadcastStream = env</span><br><span class="line">                .addSource(<span class="keyword">new</span> NeedMonitorIdsSource()) <span class="comment">// redis photoId 数据广播</span></span><br><span class="line">                .setParallelism(<span class="number">1</span>)</span><br><span class="line">                .broadcast(broadcastMapStateDescriptor);</span><br><span class="line"></span><br><span class="line">        DataStream&lt;CommonModel&gt; logSourceDataStream = SourceFactory.getSourceDataStream(...);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/********************* dag *********************/</span></span><br><span class="line">        DataStream&lt;CommonModel&gt; resultDataStream = logSourceDataStream</span><br><span class="line">                .keyBy(KeySelectorFactory.getStringKeySelector(CommonModel::getKeyField))</span><br><span class="line">                .connect(broadcastStream)</span><br><span class="line">                .process(<span class="keyword">new</span> KeyedBroadcastProcessFunction&lt;String, CommonModel, Map&lt;Long, Set&lt;Long&gt;&gt;, CommonModel&gt;() &#123;</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">private</span> Set&lt;Long&gt; needMonitoredIds;</span><br><span class="line"></span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">open</span><span class="params">(Configuration parameters)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                        <span class="keyword">super</span>.open(parameters);</span><br><span class="line">                        <span class="keyword">this</span>.needMonitoredIds = Rpc.get(...)</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processElement</span><span class="params">(CommonModel commonModel, ReadOnlyContext readOnlyContext, Collector&lt;CommonModel&gt; collector)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                        <span class="comment">// 判断 commonModel 中的 id 是否在 needMonitoredIds 池中</span></span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processBroadcastElement</span><span class="params">(Map&lt;Long, Set&lt;Long&gt;&gt; longSetMap, Context context, Collector&lt;CommonModel&gt; collector)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                        <span class="comment">// 需要监控的字段</span></span><br><span class="line">                        Set&lt;Long&gt; needMonitorIds = longSetMap.get(<span class="number">0L</span>);</span><br><span class="line">                        <span class="keyword">if</span> (CollectionUtils.isNotEmpty(needMonitorIds)) &#123;</span><br><span class="line">                            <span class="keyword">this</span>.needMonitoredIds = needMonitorIds;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/********************* kafka sink *********************/</span></span><br><span class="line">        SinkFactory.setSinkDataStream(...);</span><br><span class="line">        </span><br><span class="line">        env.execute(inputParams.jobName);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="方案-4"><a href="#方案-4" class="headerlink" title="方案 4"></a>方案 4</h3><p>适合于超大监控范围的数据（<strong>几百万，我们自己的生产实践中使用扩量到 500 万</strong>）。其原理是将监控范围接口按照 id 按照一定规则分桶。flink 消费到日志数据后将 id 按照 监控范围接口 id 相同的分桶方法进行分桶 keyBy，这样在下游算子中每个算子中就可以按照桶名称，从接口中拿到对应桶的监控 id 数据，这样 flink 中并行的每个算子只需要获取到自己对应的桶的数据，可以大大减少请求的压力。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Example</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ParameterTool parameterTool = ParameterTool.fromArgs(args);</span><br><span class="line">        InputParams inputParams = <span class="keyword">new</span> InputParams(parameterTool);</span><br><span class="line">        StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> MapStateDescriptor&lt;Long, Set&lt;Long&gt;&gt; broadcastMapStateDescriptor = <span class="keyword">new</span> MapStateDescriptor&lt;&gt;(</span><br><span class="line">                <span class="string">"config-keywords"</span>,</span><br><span class="line">                BasicTypeInfo.LONG_TYPE_INFO,</span><br><span class="line">                TypeInformation.of(<span class="keyword">new</span> TypeHint&lt;Set&lt;Long&gt;&gt;() &#123;</span><br><span class="line">                &#125;));</span><br><span class="line"></span><br><span class="line">        <span class="comment">/********************* kafka source *********************/</span></span><br><span class="line"></span><br><span class="line">        DataStream&lt;CommonModel&gt; logSourceDataStream = SourceFactory.getSourceDataStream(...);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/********************* dag *********************/</span></span><br><span class="line">        DataStream&lt;CommonModel&gt; resultDataStream = logSourceDataStream</span><br><span class="line">                .keyBy(KeySelectorFactory.getLongKeySelector(CommonModel::getKeyField))</span><br><span class="line">                .timeWindow(Time.seconds(inputParams.accTimeWindowSeconds))</span><br><span class="line">                .process(<span class="keyword">new</span> ProcessWindowFunction&lt;CommonModel, CommonModel, Long, TimeWindow&gt;() &#123;</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">private</span> <span class="keyword">long</span> lastRefreshTimestamp;</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">private</span> Set&lt;Long&gt; oneBucketNeedMonitoredIds;</span><br><span class="line"></span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">open</span><span class="params">(Configuration parameters)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                        <span class="keyword">super</span>.open(parameters);</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(Long bucket, Context context, Iterable&lt;CommonModel&gt; iterable, Collector&lt;CommonModel&gt; collector)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                        <span class="keyword">long</span> windowStart = context.window().getStart();</span><br><span class="line">                        <span class="keyword">this</span>.refreshNeedMonitoredIds(windowStart, bucket);</span><br><span class="line">                        <span class="comment">/**</span></span><br><span class="line"><span class="comment">                         * 判断 commonModel 中的 id 是否在 needMonitoredIds 池中</span></span><br><span class="line"><span class="comment">                         */</span></span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">refreshNeedMonitoredIds</span><span class="params">(<span class="keyword">long</span> windowStart, <span class="keyword">long</span> bucket)</span> </span>&#123;</span><br><span class="line">                        <span class="comment">// 每隔 10 秒访问一次</span></span><br><span class="line">                        <span class="keyword">if</span> (windowStart - <span class="keyword">this</span>.lastRefreshTimestamp &gt;= <span class="number">10000L</span>) &#123;</span><br><span class="line">                            <span class="keyword">this</span>.lastRefreshTimestamp = windowStart;</span><br><span class="line">                            <span class="keyword">this</span>.oneBucketNeedMonitoredIds = Rpc.get(bucket, ...)</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/********************* kafka sink *********************/</span></span><br><span class="line">        SinkFactory.setSinkDataStream(...);</span><br><span class="line"></span><br><span class="line">        env.execute(inputParams.jobName);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文首先介绍了，在短视频领域中，短视频生产消费数据链路的整个闭环，并且其数据链路闭环一般情况下也适用于其他场景；以及对应的实时监控方案的设计和不同场景下的代码实现，包括：</p>
+<ul>
+<li><p><strong>垂类生态短视频生产消费数据链路闭环：用户操作行为日志的流转，日志上传，实时计算，以及流转到 BI，数据服务，最后数据赋能的整个流程</strong></p>
+</li>
+<li><p><strong>实时监控方案设计：监控类实时计算流程中各类数据源，数据汇的选型</strong></p>
+</li>
+<li><p><strong>监控 id 池在不同量级场景下具体代码实现</strong></p>
+</li>
+</ul>
+<h2 id="学习资料"><a href="#学习资料" class="headerlink" title="学习资料"></a>学习资料</h2><h3 id="flink"><a href="#flink" class="headerlink" title="flink"></a>flink</h3><ul>
+<li><a href="https://github.com/flink-china/flink-training-course/blob/master/README.md" target="_blank" rel="noopener">https://github.com/flink-china/flink-training-course/blob/master/README.md</a></li>
+<li><a href="https://ververica.cn/developers-resources/" target="_blank" rel="noopener">https://ververica.cn/developers-resources/</a></li>
+<li><a href="https://space.bilibili.com/33807709" target="_blank" rel="noopener">https://space.bilibili.com/33807709</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Flink/" rel="tag"># Apache Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/09/01/wechat-blog/realtime/" rel="next" title="实时开发标准化处理方案">
+                <i class="fa fa-chevron-left"></i> 实时开发标准化处理方案
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/09/01/wechat-blog/apache-flink:realtime-new-id/" rel="prev" title="实时新增类指标标准化处理方案">
+                实时新增类指标标准化处理方案 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
 
     <div class="post-spread">
-      {% if theme.jiathis %}
-        {% include '_partials/share/jiathis.swig' %}
-      {% elseif theme.baidushare %}
-        {% include '_partials/share/baidushare.swig' %}
-      {% elseif theme.add_this_id %}
-        {% include '_partials/share/add-this.swig' %}
-      {% elseif theme.duoshuo_shortname and theme.duoshuo_share %}
-        {% include '_partials/share/duoshuo_share.swig' %}
-      {% endif %}
+      
     </div>
   </div>
 
-{% endblock %}
 
-{% block sidebar %}
-  {{ sidebar_template.render(true) }}
-{% endblock %}
+          </div>
+          
 
-{% block script_extra %}
-  {% include '_scripts/pages/post-details.swig' %}
-{% endblock %}
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">62</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5-%E5%9F%BA%E4%BA%8E-Flink-%E7%9A%84%E7%9F%AD%E8%A7%86%E9%A2%91%E7%94%9F%E4%BA%A7%E6%B6%88%E8%B4%B9%E7%9B%91%E6%8E%A7"><span class="nav-number">1.</span> <span class="nav-text">生产实践 | 基于 Flink 的短视频生产消费监控</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9F%AD%E8%A7%86%E9%A2%91%E7%94%9F%E4%BA%A7%E6%B6%88%E8%B4%B9%E7%9B%91%E6%8E%A7"><span class="nav-number">1.1.</span> <span class="nav-text">短视频生产消费监控</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A1%B9%E7%9B%AE%E7%AE%80%E4%BB%8B"><span class="nav-number">1.2.</span> <span class="nav-text">项目简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1"><span class="nav-number">1.3.</span> <span class="nav-text">方案设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88-1"><span class="nav-number">1.3.1.</span> <span class="nav-text">方案 1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88-2"><span class="nav-number">1.3.2.</span> <span class="nav-text">方案 2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88-3"><span class="nav-number">1.3.3.</span> <span class="nav-text">方案 3</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88-4"><span class="nav-number">1.3.4.</span> <span class="nav-text">方案 4</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.4.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E8%B5%84%E6%96%99"><span class="nav-number">1.5.</span> <span class="nav-text">学习资料</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#flink"><span class="nav-number">1.5.1.</span> <span class="nav-text">flink</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

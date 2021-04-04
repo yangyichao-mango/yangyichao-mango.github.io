@@ -1,37 +1,1268 @@
-{% extends '_layout.swig' %}
-{% import '_macro/post.swig' as post_template %}
-{% import '_macro/sidebar.swig' as sidebar_template %}
+<!DOCTYPE html>
 
 
-{% block title %}{{ page.title }} | {{ config.title }}{% endblock %}
 
-{% block page_class %}page-post-detail{% endblock %}
+  
 
 
-{% block content %}
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Druid," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="yangyichao-mango's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本站&amp;作者">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Apache Druid 学习：组件以及查询类型">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2019/10/22/apache-druid:study-components-and-query-types/index.html">
+<meta property="og:site_name" content="yangyichao-mango&#39;s blog">
+<meta property="og:description" content="本站&amp;作者">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-10-22T02:40:12.000Z">
+<meta property="article:modified_time" content="2019-10-22T13:18:53.844Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Druid">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2019/10/22/apache-druid:study-components-and-query-types/"/>
+
+
+
+
+
+  <title>Apache Druid 学习：组件以及查询类型 | yangyichao-mango's blog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">yangyichao-mango's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
 
   <div id="posts" class="posts-expand">
-    {{ post_template.render(page) }}
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2019/10/22/apache-druid:study-components-and-query-types/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="yangyichao-mango's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Apache Druid 学习：组件以及查询类型</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-10-22T10:40:12+08:00">
+                2019-10-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Druid/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Druid</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  本站&作者
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Apache Druid 学习：组件以及查询类型</p>
+<a id="more"></a>
+
+<h2 id="OLAP"><a href="#OLAP" class="headerlink" title="OLAP"></a><strong>OLAP</strong></h2><h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><p>维度(Dimension): 指的是观察数据的一个角度，是考虑问题的一类属性，这些属性的集合统称为一个维。<br>维的级别(Level): 对数据的观察还存在细节程度的不同，在druid中一般表示为时间的粒度(granularity)，比如一秒，一分钟，一小时，一天…… <br>度量(Measure): 度量是用来聚合分析计算的数字信息，在druid中称为”metrics”，它可以是存储在数据库中，也可以是通过策略计算得出的。比如一篇文章的点击数、或者是根据评论数、点击数、转发数计算出的热点值</p>
+<h3 id="对于数据处理"><a href="#对于数据处理" class="headerlink" title="对于数据处理"></a>对于数据处理</h3><p>向下钻取(Drill-down)/上卷(Roll-up): <strong>改变维的层次和级别，变换分析的粒度</strong>。Roll-up在于提升维的级别（或者称粒度）或者减少维度来聚合数据，展现总览，Drill-down反之，降低维的级别(或者称粒度)或增加维度来查看细节<br>切片(slice)和切块(dice): 当维度为两个时，我们对获取数据(查询)的操作称之为切片，当维度的数量大于两个时，我们称之为切块<br>旋转(Pivoting): 变换维的方向，例如表格中的行列互换</p>
+<h2 id="查询条件参数"><a href="#查询条件参数" class="headerlink" title="查询条件参数"></a><strong>查询条件参数</strong></h2><table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">描述</th>
+<th align="center">是否必须</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">queryType</td>
+<td align="center">查询类型，对应聚合查询下的类型值：timeseries、topN、groupBy等</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">dataSource</td>
+<td align="center">数据源，类似关系数据库中表的概念，对应数据导入时Json配置属性dataSource值</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">descending</td>
+<td align="center">返回结果是否逆序，默认值为否（正序）</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">intervals</td>
+<td align="center">查询时间区间</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">filter</td>
+<td align="center">对Dimension进行过滤，可以根据情况对几个维度组合不同的filter类型(and、or、not、bound)，还可以根据需要定义javascript function进行过滤</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">aggregations</td>
+<td align="center">指定度量在聚合时候的计算策略，例如相加、或者求平均值、又或者取最后一个值，在内置类型不满足的情况下可以使用javascript。比如某手游中我统计了我每一局击杀小怪数量，以及野怪的数量，通过聚合策略sum，我能知道我从开号以来击杀了多少小怪和野怪。</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">postAggregations</td>
+<td align="center">后聚合策略，提供了多个度量组合生成新度量的能力，主要有利于聚合计算的抽象，避免对一些指标的重复计算。举个例子，假如我需要一个度量，是我击杀小怪和野怪的总和，那么，我只需要在后聚合阶段计算，只需要拿小怪和野怪的数量相加一次，大大地提高了计算效率。</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">granularity</td>
+<td align="center">查询的时间粒度，最细粒度为秒，最大粒度为all，提供了时间维度级别的调整并对数据进行上卷和向下钻取的能力</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">dimensionSpec</td>
+<td align="center">提供了维度在聚合前输出展示值定制的能力，比如在Dimension age一列中，拿到的是字符串类型的数字，我希望转成数字类型，又或者定制一个javascript function，统一以 ${age} year old的形式展现</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">limit</td>
+<td align="center">返回结果数量限制</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">context</td>
+<td align="center">表示对当前查询本身的一些配置，比如设置查询超时的时间，又比如是否使用缓存，在通用的配置基础上，每种查询类型还有特定的配置，详见文档</td>
+<td align="center">否</td>
+</tr>
+</tbody></table>
+<h2 id="基本组件"><a href="#基本组件" class="headerlink" title="基本组件"></a><strong>基本组件</strong></h2><h3 id="filter"><a href="#filter" class="headerlink" title="filter"></a>filter</h3><p>过滤器，在查询语句中是一个json对象，<strong>用来对维度进行筛选</strong>，表示满足filter的是我们需要的数据。类似于SQL中的where。</p>
+<table>
+<thead>
+<tr>
+<th align="center">类型</th>
+<th align="center">功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">SelectorFilter</td>
+<td align="center">功能类似于SQL中的where key=value</td>
+</tr>
+<tr>
+<td align="center">AndFilter, OrFilter, NotFilter</td>
+<td align="center">功能类似于SQL中and、or、not三种过滤器。支持递归嵌套，可以构造出丰富的逻辑表达式</td>
+</tr>
+<tr>
+<td align="center">RegexFilter</td>
+<td align="center">正则表达式，支持任意维度值的java正则</td>
+</tr>
+<tr>
+<td align="center">SearchFilter</td>
+<td align="center">通过字符串匹配维度，支持多种表达式</td>
+</tr>
+<tr>
+<td align="center">InFilter</td>
+<td align="center">功能类似于SQL中where key in (value1, value2)</td>
+</tr>
+<tr>
+<td align="center">IntervalFilter</td>
+<td align="center">针对于时间维度过滤</td>
+</tr>
+<tr>
+<td align="center">BoundFilter</td>
+<td align="center">功能类似于SQL中的大于、小于、等于三种算子</td>
+</tr>
+<tr>
+<td align="center">JavaScriptFilter</td>
+<td align="center">上述filter均不能满足可以自己写JavaScript来过滤维度</td>
+</tr>
+</tbody></table>
+<h3 id="aggregator"><a href="#aggregator" class="headerlink" title="aggregator"></a>aggregator</h3><p>聚合可以在采集数据时规格部分的一种方式，汇总数据进入Druid之前提供。<br>聚合也可以被指定为在查询时多查询的部分，聚合类型如下：</p>
+<table>
+<thead>
+<tr>
+<th align="center">类型</th>
+<th align="center">功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">CountAggregator</td>
+<td align="center">SQL count(key)</td>
+</tr>
+<tr>
+<td align="center">SumAggregator</td>
+<td align="center">SQL sum(key)</td>
+</tr>
+<tr>
+<td align="center">MaxAggregator, MinAggregator</td>
+<td align="center">SQL max(key), min(key)</td>
+</tr>
+<tr>
+<td align="center">DistinctCountAggregator</td>
+<td align="center">SQL count(distinct key)</td>
+</tr>
+<tr>
+<td align="center">JavaScriptAggregator</td>
+<td align="center">上述aggregator均不能满足可以自己写JavaScript来定义计算</td>
+</tr>
+</tbody></table>
+<h3 id="post-aggregator"><a href="#post-aggregator" class="headerlink" title="post-aggregator"></a>post-aggregator</h3><table>
+<thead>
+<tr>
+<th align="center">类型</th>
+<th align="center">功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">ArithmeticPostAggregator</td>
+<td align="center">支持对聚合后<strong>指标</strong>进行”+ - * / quotient”计算</td>
+</tr>
+<tr>
+<td align="center">FieldAccessPostAggregator</td>
+<td align="center">直接获取聚合的字段（维度，指标）</td>
+</tr>
+<tr>
+<td align="center">ConstantPostAggregator</td>
+<td align="center">返回常数</td>
+</tr>
+<tr>
+<td align="center">JavaScriptPostAggregator</td>
+<td align="center">上述postAggregator均不能满足可以自己写JavaScript来定义计算</td>
+</tr>
+</tbody></table>
+<h2 id="查询类型"><a href="#查询类型" class="headerlink" title="查询类型"></a><strong>查询类型</strong></h2><h3 id="聚合查询"><a href="#聚合查询" class="headerlink" title="聚合查询"></a>聚合查询</h3><h4 id="timeseries"><a href="#timeseries" class="headerlink" title="timeseries"></a>timeseries</h4><p>时序查询，实际上即是对数据基于时间点(timestamp)的一次上卷。适合用来看某几个度量在一个时间段内的趋势。排序可按时间降序或升序</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">描述</th>
+<th align="center">是否必须</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">queryType</td>
+<td align="center">查询类型，必须为 “timeseries”</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">dataSource</td>
+<td align="center">数据源，比如 “wikipedia”</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">descending</td>
+<td align="center">返回结果是否逆序，默认值为否（正序）</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">intervals</td>
+<td align="center">查询时间区间</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">granularity</td>
+<td align="center">聚合粒度，粒度决定如何在跨时间维度得到数据块</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">filter</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">aggregations</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">postAggregations</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">limit</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">context</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+</tbody></table>
+<p>context：</p>
+<p>1.grandTotal</p>
+<p>2.零填充<br>如果时间范围内没有值，则会填充0<br>时间序列查询通常用零填充空的内部时间段。例如，如果您对间隔2012-01-01 / 2012-01-04发出“天”粒度时间序列查询，而2012-01-02没有数据存在，您将收到：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="string">"timestamp"</span>: <span class="string">"2012-01-01T00:00:00.000Z"</span>,</span><br><span class="line">    <span class="string">"result"</span>: &#123; <span class="string">"sample_name1"</span>: &lt;some_value&gt; &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">   <span class="string">"timestamp"</span>: <span class="string">"2012-01-02T00:00:00.000Z"</span>,</span><br><span class="line">   <span class="string">"result"</span>: &#123; <span class="string">"sample_name1"</span>: 0 &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="string">"timestamp"</span>: <span class="string">"2012-01-03T00:00:00.000Z"</span>,</span><br><span class="line">    <span class="string">"result"</span>: &#123; <span class="string">"sample_name1"</span>: &lt;some_value&gt; &#125;</span><br><span class="line">  &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<h4 id="topN"><a href="#topN" class="headerlink" title="topN"></a>topN</h4><p>在时间点的基础上，又增加了一个维度(OLAP的概念算两个维度)，进而对源数据进行切片，切片之后分别上卷，最后返回一个聚合集，你可以指定某个指标作为排序的依据。官方文档称这对比单个druid dimension 的groupBy 更高效。适合看某个维度下的时间趋势，（比如美国和中国十年内GDP的增长趋势比对，在这里除了时间外国家就是另外一个维度）</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">描述</th>
+<th align="center">是否必须</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">queryType</td>
+<td align="center">查询类型，必须为 “topN”</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">dataSource</td>
+<td align="center">数据源，比如 “wikipedia”</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">intervals</td>
+<td align="center">查询时间区间</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">granularity</td>
+<td align="center">聚合粒度，粒度决定如何在跨时间维度得到数据块</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">filter</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">aggregations</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">postAggregations</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">dimension</td>
+<td align="center">除了时间之外聚合的维度，只能定义一个维度</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">threshold</td>
+<td align="center">topN中的N，例如：希望查询到top2，则值为2</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">metric</td>
+<td align="center">topN中用来排序的指标</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">context</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+</tbody></table>
+<h4 id="groupBy"><a href="#groupBy" class="headerlink" title="groupBy"></a>groupBy</h4><p>适用于两个维度以上的查询，druid会根据维度切块，并且分别上卷，最后返回聚合集。相对于topN而言，这是一个向下钻取的操作，每多一个维度意味着保留更多的细节。(比如增加一个行业的维度，就可以知道美国和中国十年内，每一年不同行业贡献GDP的占比)<br><strong>注意：如果要使用时间作为唯一分组进行聚合，或者在单个维度上使用有序groupBy进行聚合，请优先考虑使用Timeseries和TopN查询。在某些情况下，它们的性能可能会更好。有关更多详细信息，请参见下面的替代方法。</strong></p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">描述</th>
+<th align="center">是否必须</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">queryType</td>
+<td align="center">查询类型，必须为 “groupBy”</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">dataSource</td>
+<td align="center">数据源，比如 “wikipedia”</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">dimensions</td>
+<td align="center">需要聚合的所有维度</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">limitSpec</td>
+<td align="center">同关系型数据库中的limit</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">having</td>
+<td align="center">同关系型数据库中的having</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">granularity</td>
+<td align="center">聚合粒度，粒度决定如何在跨时间维度得到数据块</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">filter</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">aggregations</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">postAggregations</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">intervals</td>
+<td align="center">查询时间区间</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">subtotalsSpec</td>
+<td align="center">类似于的grouping sets</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">context</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+</tbody></table>
+<h3 id="普通查询"><a href="#普通查询" class="headerlink" title="普通查询"></a>普通查询</h3><h4 id="select"><a href="#select" class="headerlink" title="select"></a>select</h4><p>类似SQL中的select操作，select用来查看Druid中存储的数据，并支持按照指定过滤器和时间查看指定维度和指标。不支持aggregations和post aggregations</p>
+<p><strong>注意：建议您尽可能使用scan查询类型而不是select。在涉及大量segment的情况下，select查询可能具有很高的内存和性能开销，但是scan查询没有此问题。<br>两者之间的主要区别是“扫描”查询不支持分页。但是，即使没有分页，scan查询类型也能够返回几乎无限数量的结果，使得分页在许多情况下是不必要的。</strong></p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">描述</th>
+<th align="center">是否必须</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">queryType</td>
+<td align="center">查询类型，必须为 “select”</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">dataSource</td>
+<td align="center">数据源，比如 “wikipedia”</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">intervals</td>
+<td align="center">查询时间区间</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">descending</td>
+<td align="center">返回结果是否逆序，默认值为否（正序）</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">filter</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">dimensions</td>
+<td align="center">需要查询的维度列表</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">metrics</td>
+<td align="center">需要查询的指标列表</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">granularity</td>
+<td align="center">聚合粒度，粒度决定如何在跨时间维度得到数据块，默认是Granularity.ALL</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">pagingSpec</td>
+<td align="center">分页</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">context</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+</tbody></table>
+<h4 id="scan"><a href="#scan" class="headerlink" title="scan"></a>scan</h4><p>扫描查询以流模式返回行，Select查询和Scan查询之间的最大区别是，Scan查询子返回给客户端数据之前不会将所有行数据保留在内存中<br>而select查询将把行保留在内存中，如果返回太多行，则会导致内存压力。扫描查询可以返回所有行，而无需发出另一个分页查询。</p>
+<p>除了将scan查询发送给server的用法外，还可以直接向historical历史记录进程或streaming ingestion流式提取任务发出扫描查询。如果要并行检索大量数据，这将很有用。</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">描述</th>
+<th align="center">是否必须</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">queryType</td>
+<td align="center">查询类型，必须为 “scan”</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">dataSource</td>
+<td align="center">数据源，比如 “wikipedia”</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">intervals</td>
+<td align="center">查询时间区间</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">resultFormat</td>
+<td align="center">返回结果类型：list，compactedList或valueVector。目前仅list和compactedList受支持。默认是list</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">filter</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">columns</td>
+<td align="center">需要scan的维度和指标，默认为所有</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">batchSize</td>
+<td align="center">返回数据之前默认缓存最多多少行</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">limit</td>
+<td align="center">查询返回最大的数据条目，如果不指定，则返回所有的数据</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">order</td>
+<td align="center">返回数据的order，基于timestamp，并且只有__time被包含在columns中才生效</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">legacy</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">context</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+</tbody></table>
+<h4 id="search"><a href="#search" class="headerlink" title="search"></a>search</h4><p>类似SQL中的Like操作，但是支持更多的匹配操作</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段名</th>
+<th align="center">描述</th>
+<th align="center">是否必须</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">queryType</td>
+<td align="center">查询类型，必须为 “search”</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">dataSource</td>
+<td align="center">数据源，比如 “wikipedia”</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">granularity</td>
+<td align="center">聚合粒度，粒度决定如何在跨时间维度得到数据块</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">filter</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">limit</td>
+<td align="center">每个历史进程的最大查询返回数据条目（默认是1000）</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">intervals</td>
+<td align="center">查询时间区间</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">searchDimensions</td>
+<td align="center">需要search的维度（默认是所有维度），key like value中的key</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">query</td>
+<td align="center">search维度需要匹配的value，key like value中的value</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td align="center">sort</td>
+<td align="center">指定应如何对搜索结果进行排序，包括字典编排（默认排序），字母数字，strlen和数字排序</td>
+<td align="center">否</td>
+</tr>
+<tr>
+<td align="center">context</td>
+<td align="center"></td>
+<td align="center">否</td>
+</tr>
+</tbody></table>
+<h3 id="元数据查询"><a href="#元数据查询" class="headerlink" title="元数据查询"></a>元数据查询</h3><h4 id="time-bounding"><a href="#time-bounding" class="headerlink" title="time bounding"></a>time bounding</h4><h4 id="segment-metadata"><a href="#segment-metadata" class="headerlink" title="segment metadata"></a>segment metadata</h4><h4 id="dataSource-metadata"><a href="#dataSource-metadata" class="headerlink" title="dataSource metadata"></a>dataSource metadata</h4>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Druid/" rel="tag"># Apache Druid</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/10/21/apache-druid:study-kafka-to-druid/" rel="next" title="Apache Druid 学习：kafka to druid">
+                <i class="fa fa-chevron-left"></i> Apache Druid 学习：kafka to druid
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/10/24/apache-zookeeper:study-zookeeper-implement-unified-configuration-management-center/" rel="prev" title="Apache Zookeeper 学习：Zookeeper实现统一配置管理中心">
+                Apache Zookeeper 学习：Zookeeper实现统一配置管理中心 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
 
     <div class="post-spread">
-      {% if theme.jiathis %}
-        {% include '_partials/share/jiathis.swig' %}
-      {% elseif theme.baidushare %}
-        {% include '_partials/share/baidushare.swig' %}
-      {% elseif theme.add_this_id %}
-        {% include '_partials/share/add-this.swig' %}
-      {% elseif theme.duoshuo_shortname and theme.duoshuo_share %}
-        {% include '_partials/share/duoshuo_share.swig' %}
-      {% endif %}
+      
     </div>
   </div>
 
-{% endblock %}
 
-{% block sidebar %}
-  {{ sidebar_template.render(true) }}
-{% endblock %}
+          </div>
+          
 
-{% block script_extra %}
-  {% include '_scripts/pages/post-details.swig' %}
-{% endblock %}
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">62</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">categories</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#OLAP"><span class="nav-number">1.</span> <span class="nav-text">OLAP</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-number">1.1.</span> <span class="nav-text">基本概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E4%BA%8E%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86"><span class="nav-number">1.2.</span> <span class="nav-text">对于数据处理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E6%9D%A1%E4%BB%B6%E5%8F%82%E6%95%B0"><span class="nav-number">2.</span> <span class="nav-text">查询条件参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E7%BB%84%E4%BB%B6"><span class="nav-number">3.</span> <span class="nav-text">基本组件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#filter"><span class="nav-number">3.1.</span> <span class="nav-text">filter</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#aggregator"><span class="nav-number">3.2.</span> <span class="nav-text">aggregator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#post-aggregator"><span class="nav-number">3.3.</span> <span class="nav-text">post-aggregator</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E7%B1%BB%E5%9E%8B"><span class="nav-number">4.</span> <span class="nav-text">查询类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%81%9A%E5%90%88%E6%9F%A5%E8%AF%A2"><span class="nav-number">4.1.</span> <span class="nav-text">聚合查询</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#timeseries"><span class="nav-number">4.1.1.</span> <span class="nav-text">timeseries</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#topN"><span class="nav-number">4.1.2.</span> <span class="nav-text">topN</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#groupBy"><span class="nav-number">4.1.3.</span> <span class="nav-text">groupBy</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%99%AE%E9%80%9A%E6%9F%A5%E8%AF%A2"><span class="nav-number">4.2.</span> <span class="nav-text">普通查询</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#select"><span class="nav-number">4.2.1.</span> <span class="nav-text">select</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#scan"><span class="nav-number">4.2.2.</span> <span class="nav-text">scan</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#search"><span class="nav-number">4.2.3.</span> <span class="nav-text">search</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%83%E6%95%B0%E6%8D%AE%E6%9F%A5%E8%AF%A2"><span class="nav-number">4.3.</span> <span class="nav-text">元数据查询</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#time-bounding"><span class="nav-number">4.3.1.</span> <span class="nav-text">time bounding</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#segment-metadata"><span class="nav-number">4.3.2.</span> <span class="nav-text">segment metadata</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#dataSource-metadata"><span class="nav-number">4.3.3.</span> <span class="nav-text">dataSource metadata</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
