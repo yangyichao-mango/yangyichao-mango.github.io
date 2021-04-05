@@ -81,15 +81,15 @@
 
 
 
-<meta name="description" content="本系列每篇文章都是从实际生产触发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
+<meta name="description" content="本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
 <meta property="og:type" content="article">
 <meta property="og:title" content="深入浅出 | flink 全局一致性快照（二）">
 <meta property="og:url" content="https://yangyichao-mango.github.io/2021/03/12/wechat-blog/apache-flink:state-2/index.html">
 <meta property="og:site_name" content="antigeneral&#39;s blog">
-<meta property="og:description" content="本系列每篇文章都是从实际生产触发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
+<meta property="og:description" content="本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
 <meta property="og:locale">
 <meta property="article:published_time" content="2021-03-12T06:21:53.000Z">
-<meta property="article:modified_time" content="2021-04-04T14:49:12.793Z">
+<meta property="article:modified_time" content="2021-04-05T06:21:14.663Z">
 <meta property="article:author" content="yangyichao-mango">
 <meta property="article:tag" content="Apache Flink">
 <meta name="twitter:card" content="summary">
@@ -422,7 +422,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  591
+                  593
                 </span>
               
 
@@ -446,7 +446,7 @@
 
           
               <div class="post-description">
-                  本系列每篇文章都是从实际生产触发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
+                  本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
               </div>
           
 
@@ -474,7 +474,7 @@
 </li>
 <li><p>全局一致性快照的分布式应用举例<br>通过一个简单分布式应用介绍一下全局一致性状态是每时每刻都存在的。时间轴上的每一个时刻都存在一个全局一致性快照（类似拍照片）。flink 做 cp，sp，类似于每隔固定的时间从时间轴上的一个点拿出来这个时间点对应的一个全局一致性状态</p>
 </li>
-<li><p>全局一致性快照的标准定义<br>假如说有两个事件，a和b，在绝对时间下，如果a发生在b之前，且b被包含在快照当中，那么则a事件或者其对快照产生的影响也被包含在快照当中</p>
+<li><p>全局一致性快照的标准定义<br>假如说有两个事件，a 和 b，在绝对时间下，如果 a 发生在 b 之前，且 b 被包含在快照当中，那么则 a 事件或者其对快照产生的影响也被包含在快照当中</p>
 </li>
 <li><p>怎么实现全局一致性快照？<br>同步去做，包括时钟同步、Stop-the-world，但是这两种方法都不可接受；<br>既然同步无法做，那如果异步能做出相同的全局一致性状态也可以</p>
 </li>
