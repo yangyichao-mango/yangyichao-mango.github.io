@@ -1,6 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Mac安装Apache Druid-0.16.0-incubating</title>
+    <url>/2019/10/21/apache-druid:0.16.0-incubating-mac-install/</url>
+    <content><![CDATA[<p>Mac安装Apache Druid-0.16.0-incubating教程</p>
+<span id="more"></span>
+
+<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a><strong>安装</strong></h3><p>参考<a href="http://druid.apache.org/docs/latest/tutorials/index.html">官网教程</a></p>
+<h4 id="brew安装"><a href="#brew安装" class="headerlink" title="brew安装"></a>brew安装</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">brew install druid</span><br></pre></td></tr></table></figure>
+<p>quer</p>
+<h4 id="下载安装"><a href="#下载安装" class="headerlink" title="下载安装"></a>下载安装</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ curl https://www-us.apache.org/dist/incubator/druid/0.16.0-incubating/apache-druid-0.16.0-incubating-bin.tar.gz</span><br><span class="line">$ tar -xzf apache-druid-0.16.0-incubating-bin.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> apache-druid-0.16.0-incubating</span><br></pre></td></tr></table></figure>
+
+<h3 id="配置启动"><a href="#配置启动" class="headerlink" title="配置启动"></a><strong>配置启动</strong></h3><p>启动druid服务之前需要先启动zookeeper，下面有两种方式启动和使用zookeeper</p>
+<h4 id="使用集成zookeeper"><a href="#使用集成zookeeper" class="headerlink" title="使用集成zookeeper"></a>使用集成zookeeper</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> <span class="variable">$DRUID_HOME</span> // 需要在~/.bash_profile中进行配置</span><br><span class="line">$ curl https://archive.apache.org/dist/zookeeper/zookeeper-3.4.14/zookeeper-3.4.14.tar.gz -o zookeeper-3.4.14.tar.gz</span><br><span class="line">$ tar -xzf zookeeper-3.4.14.tar.gz</span><br><span class="line">$ mv zookeeper-3.4.14 zk</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用外部zookeeper"><a href="#使用外部zookeeper" class="headerlink" title="使用外部zookeeper"></a>使用外部zookeeper</h4><h5 id="修改-DRUID-HOME-conf-supervise-single-server-micro-quickstart-conf-中的配置"><a href="#修改-DRUID-HOME-conf-supervise-single-server-micro-quickstart-conf-中的配置" class="headerlink" title="修改 $DRUID_HOME/conf/supervise/single-server/micro-quickstart.conf 中的配置"></a>修改 <strong>$DRUID_HOME/conf/supervise/single-server/micro-quickstart.conf</strong> 中的配置</h5><p>将 <strong>!p10 zk bin/run-zk conf</strong> 注释掉</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ vi <span class="variable">$DRUID_HOME</span>/conf/supervise/single-server/micro-quickstart.conf</span><br><span class="line"></span><br><span class="line">:verify bin/verify-java</span><br><span class="line">:verify bin/verify-default-ports</span><br><span class="line">:kill-timeout 10</span><br><span class="line"></span><br><span class="line"><span class="comment"># !p10 zk bin/run-zk conf // 这里是运行集成zookeeper的代码，所以要注释掉</span></span><br><span class="line">coordinator-overlord bin/run-druid coordinator-overlord conf/druid/single-server/micro-quickstart</span><br><span class="line">broker bin/run-druid broker conf/druid/single-server/micro-quickstart</span><br><span class="line">router bin/run-druid router conf/druid/single-server/micro-quickstart</span><br><span class="line">historical bin/run-druid historical conf/druid/single-server/micro-quickstart</span><br><span class="line">!p90 middleManager bin/run-druid middleManager conf/druid/single-server/micro-quickstart</span><br><span class="line"></span><br><span class="line"><span class="comment"># Uncomment to use Tranquility Server</span></span><br><span class="line"><span class="comment">#!p95 tranquility-server tranquility/bin/tranquility server -configFile conf/tranquility/wikipedia-server.json -Ddruid.extensions.loadList=[]</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="修改-DRUID-HOME-conf-druid-single-server-micro-quickstart-common-common-runtime-properties-中的配置"><a href="#修改-DRUID-HOME-conf-druid-single-server-micro-quickstart-common-common-runtime-properties-中的配置" class="headerlink" title="修改 $DRUID_HOME/conf/druid/single-server/micro-quickstart/_common/common.runtime.properties 中的配置"></a>修改 <strong>$DRUID_HOME/conf/druid/single-server/micro-quickstart/_common/common.runtime.properties</strong> 中的配置</h5><p>修改zookeeper的client配置</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ vim <span class="variable">$DRUID_HOME</span>/conf/druid/single-server/micro-quickstart/_common/common.runtime.properties</span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置外部zookeeper的信息</span></span><br><span class="line"><span class="comment"># zookeeper，大概在46~55行中间，对zk进行配置</span></span><br><span class="line"><span class="comment"># zookeeper的server运行在2181端口上</span></span><br><span class="line">druid.zk.service.host=127.0.0.1:2181</span><br><span class="line">druid.zk.paths.base=/druid</span><br></pre></td></tr></table></figure>
+
+<h5 id="修改-DRUID-HOME-bin-verify-default-ports-中的配置"><a href="#修改-DRUID-HOME-bin-verify-default-ports-中的配置" class="headerlink" title="修改 $DRUID_HOME/bin/verify-default-ports 中的配置"></a>修改 <strong>$DRUID_HOME/bin/verify-default-ports</strong> 中的配置</h5><p>因为使用了外部zookeeper，并且外部zookeeper的ip:port为127.0.0.1:2181<br>所以需要将zookeeper的2181端口删除，否则会校验本机2181端口是否被占用，因为本机zookeeper已经将其占用，则会报错，服务不能启动<br>如果使用的zookeeper的不在本机部署，则可以不注释2181</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ vi <span class="variable">$DRUID_HOME</span>/bin/verify-default-ports</span><br><span class="line"></span><br><span class="line"><span class="comment"># my @ports = (1527, 2181, 8081, 8082, 8083, 8090, 8091, 8200, 9095);</span></span><br><span class="line"></span><br><span class="line">my @ports = (1527, 8081, 8082, 8083, 8090, 8091, 8200, 9095);</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./bin/start-micro-quickstart</span><br></pre></td></tr></table></figure>
+
+<p>可以到<a href="http://localhost:8888">http://localhost:8888</a>查看是否启动成功</p>
+]]></content>
+      <categories>
+        <category>Apache Druid</category>
+      </categories>
+      <tags>
+        <tag>Apache Druid</tag>
+        <tag>Apache Zookeeper</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Apache Common 包学习：常用集合类Collections4学习</title>
     <url>/2019/11/06/apache-common:study-apache-common-collections4/</url>
     <content><![CDATA[<p>Apache Common 包学习：常用集合类Collections4学习</p>
@@ -579,42 +615,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Mac安装Apache Druid-0.16.0-incubating</title>
-    <url>/2019/10/21/apache-druid:0.16.0-incubating-mac-install/</url>
-    <content><![CDATA[<p>Mac安装Apache Druid-0.16.0-incubating教程</p>
-<span id="more"></span>
-
-<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a><strong>安装</strong></h3><p>参考<a href="http://druid.apache.org/docs/latest/tutorials/index.html">官网教程</a></p>
-<h4 id="brew安装"><a href="#brew安装" class="headerlink" title="brew安装"></a>brew安装</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">brew install druid</span><br></pre></td></tr></table></figure>
-<p>quer</p>
-<h4 id="下载安装"><a href="#下载安装" class="headerlink" title="下载安装"></a>下载安装</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ curl https://www-us.apache.org/dist/incubator/druid/0.16.0-incubating/apache-druid-0.16.0-incubating-bin.tar.gz</span><br><span class="line">$ tar -xzf apache-druid-0.16.0-incubating-bin.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> apache-druid-0.16.0-incubating</span><br></pre></td></tr></table></figure>
-
-<h3 id="配置启动"><a href="#配置启动" class="headerlink" title="配置启动"></a><strong>配置启动</strong></h3><p>启动druid服务之前需要先启动zookeeper，下面有两种方式启动和使用zookeeper</p>
-<h4 id="使用集成zookeeper"><a href="#使用集成zookeeper" class="headerlink" title="使用集成zookeeper"></a>使用集成zookeeper</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> <span class="variable">$DRUID_HOME</span> // 需要在~/.bash_profile中进行配置</span><br><span class="line">$ curl https://archive.apache.org/dist/zookeeper/zookeeper-3.4.14/zookeeper-3.4.14.tar.gz -o zookeeper-3.4.14.tar.gz</span><br><span class="line">$ tar -xzf zookeeper-3.4.14.tar.gz</span><br><span class="line">$ mv zookeeper-3.4.14 zk</span><br></pre></td></tr></table></figure>
-
-<h4 id="使用外部zookeeper"><a href="#使用外部zookeeper" class="headerlink" title="使用外部zookeeper"></a>使用外部zookeeper</h4><h5 id="修改-DRUID-HOME-conf-supervise-single-server-micro-quickstart-conf-中的配置"><a href="#修改-DRUID-HOME-conf-supervise-single-server-micro-quickstart-conf-中的配置" class="headerlink" title="修改 $DRUID_HOME/conf/supervise/single-server/micro-quickstart.conf 中的配置"></a>修改 <strong>$DRUID_HOME/conf/supervise/single-server/micro-quickstart.conf</strong> 中的配置</h5><p>将 <strong>!p10 zk bin/run-zk conf</strong> 注释掉</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ vi <span class="variable">$DRUID_HOME</span>/conf/supervise/single-server/micro-quickstart.conf</span><br><span class="line"></span><br><span class="line">:verify bin/verify-java</span><br><span class="line">:verify bin/verify-default-ports</span><br><span class="line">:kill-timeout 10</span><br><span class="line"></span><br><span class="line"><span class="comment"># !p10 zk bin/run-zk conf // 这里是运行集成zookeeper的代码，所以要注释掉</span></span><br><span class="line">coordinator-overlord bin/run-druid coordinator-overlord conf/druid/single-server/micro-quickstart</span><br><span class="line">broker bin/run-druid broker conf/druid/single-server/micro-quickstart</span><br><span class="line">router bin/run-druid router conf/druid/single-server/micro-quickstart</span><br><span class="line">historical bin/run-druid historical conf/druid/single-server/micro-quickstart</span><br><span class="line">!p90 middleManager bin/run-druid middleManager conf/druid/single-server/micro-quickstart</span><br><span class="line"></span><br><span class="line"><span class="comment"># Uncomment to use Tranquility Server</span></span><br><span class="line"><span class="comment">#!p95 tranquility-server tranquility/bin/tranquility server -configFile conf/tranquility/wikipedia-server.json -Ddruid.extensions.loadList=[]</span></span><br></pre></td></tr></table></figure>
-
-<h5 id="修改-DRUID-HOME-conf-druid-single-server-micro-quickstart-common-common-runtime-properties-中的配置"><a href="#修改-DRUID-HOME-conf-druid-single-server-micro-quickstart-common-common-runtime-properties-中的配置" class="headerlink" title="修改 $DRUID_HOME/conf/druid/single-server/micro-quickstart/_common/common.runtime.properties 中的配置"></a>修改 <strong>$DRUID_HOME/conf/druid/single-server/micro-quickstart/_common/common.runtime.properties</strong> 中的配置</h5><p>修改zookeeper的client配置</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ vim <span class="variable">$DRUID_HOME</span>/conf/druid/single-server/micro-quickstart/_common/common.runtime.properties</span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置外部zookeeper的信息</span></span><br><span class="line"><span class="comment"># zookeeper，大概在46~55行中间，对zk进行配置</span></span><br><span class="line"><span class="comment"># zookeeper的server运行在2181端口上</span></span><br><span class="line">druid.zk.service.host=127.0.0.1:2181</span><br><span class="line">druid.zk.paths.base=/druid</span><br></pre></td></tr></table></figure>
-
-<h5 id="修改-DRUID-HOME-bin-verify-default-ports-中的配置"><a href="#修改-DRUID-HOME-bin-verify-default-ports-中的配置" class="headerlink" title="修改 $DRUID_HOME/bin/verify-default-ports 中的配置"></a>修改 <strong>$DRUID_HOME/bin/verify-default-ports</strong> 中的配置</h5><p>因为使用了外部zookeeper，并且外部zookeeper的ip:port为127.0.0.1:2181<br>所以需要将zookeeper的2181端口删除，否则会校验本机2181端口是否被占用，因为本机zookeeper已经将其占用，则会报错，服务不能启动<br>如果使用的zookeeper的不在本机部署，则可以不注释2181</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ vi <span class="variable">$DRUID_HOME</span>/bin/verify-default-ports</span><br><span class="line"></span><br><span class="line"><span class="comment"># my @ports = (1527, 2181, 8081, 8082, 8083, 8090, 8091, 8200, 9095);</span></span><br><span class="line"></span><br><span class="line">my @ports = (1527, 8081, 8082, 8083, 8090, 8091, 8200, 9095);</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./bin/start-micro-quickstart</span><br></pre></td></tr></table></figure>
-
-<p>可以到<a href="http://localhost:8888">http://localhost:8888</a>查看是否启动成功</p>
-]]></content>
-      <categories>
-        <category>Apache Druid</category>
-      </categories>
-      <tags>
-        <tag>Apache Druid</tag>
-        <tag>Apache Zookeeper</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Apache Druid 学习：kafka to druid</title>
     <url>/2019/10/21/apache-druid:study-kafka-to-druid/</url>
     <content><![CDATA[<p>Apache Druid 学习：kafka to druid demo</p>
@@ -662,9 +662,26 @@
       </tags>
   </entry>
   <entry>
-    <title>apache-flink:study-allowedLateness-and-maxOutOfOrderness</title>
-    <url>/2019/11/11/apache-flink:study-allowedLateness-and-maxOutOfOrderness/</url>
-    <content><![CDATA[]]></content>
+    <title>Apache Flink 学习：BoundedOutOfOrdernessTimestampExtractor</title>
+    <url>/2019/11/02/apache-flink:study-BoundedOutOfOrdernessTimestampExtractor/</url>
+    <content><![CDATA[<p>Apache Flink 学习：BoundedOutOfOrdernessTimestampExtractor</p>
+<span id="more"></span>
+
+<h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a><strong>源码</strong></h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * Licensed to the Apache Software Foundation (ASF) under one</span></span><br><span class="line"><span class="comment"> * or more contributor license agreements.  See the NOTICE file</span></span><br><span class="line"><span class="comment"> * distributed with this work for additional information</span></span><br><span class="line"><span class="comment"> * regarding copyright ownership.  The ASF licenses this file</span></span><br><span class="line"><span class="comment"> * to you under the Apache License, Version 2.0 (the</span></span><br><span class="line"><span class="comment"> * &quot;License&quot;); you may not use this file except in compliance</span></span><br><span class="line"><span class="comment"> * with the License.  You may obtain a copy of the License at</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *    http://www.apache.org/licenses/LICENSE-2.0</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></span><br><span class="line"><span class="comment"> * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span></span><br><span class="line"><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></span><br><span class="line"><span class="comment"> * See the License for the specific language governing permissions and</span></span><br><span class="line"><span class="comment"> * limitations under the License.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">package</span> org.apache.flink.streaming.api.functions.timestamps;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.watermark.Watermark;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.windowing.time.Time;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * This is a &#123;<span class="doctag">@link</span> AssignerWithPeriodicWatermarks&#125; used to emit Watermarks that lag behind the element with</span></span><br><span class="line"><span class="comment"> * the maximum timestamp (in event time) seen so far by a fixed amount of time, &lt;code&gt;t_late&lt;/code&gt;. This can</span></span><br><span class="line"><span class="comment"> * help reduce the number of elements that are ignored due to lateness when computing the final result for a</span></span><br><span class="line"><span class="comment"> * given window, in the case where we know that elements arrive no later than &lt;code&gt;t_late&lt;/code&gt; units of time</span></span><br><span class="line"><span class="comment"> * after the watermark that signals that the system event-time has advanced past their (event-time) timestamp.</span></span><br><span class="line"><span class="comment"> * */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">BoundedOutOfOrdernessTimestampExtractor</span>&lt;<span class="title">T</span>&gt; <span class="keyword">implements</span> <span class="title">AssignerWithPeriodicWatermarks</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1L</span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** The current maximum timestamp seen so far. */</span></span><br><span class="line">	<span class="comment">/** 数据流的最大时间戳 */</span></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">long</span> currentMaxTimestamp;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** The timestamp of the last emitted watermark. */</span></span><br><span class="line">	<span class="comment">/** 最后一次已提交的最新 [水印]（当前批次水印） */</span></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">long</span> lastEmittedWatermark = Long.MIN_VALUE;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * The (fixed) interval between the maximum seen timestamp seen in the records</span></span><br><span class="line"><span class="comment">	 * and that of the watermark to be emitted.</span></span><br><span class="line"><span class="comment">	 * 最大乱序时间间隔</span></span><br><span class="line"><span class="comment">	 * 将要被提交的 [水印] 和 [数据流的最大时间戳] 的固定时间间隔</span></span><br><span class="line"><span class="comment">	 * 如果 [数据流的最大时间戳] - [当前批次水印] &gt; [最大乱序时间间隔]</span></span><br><span class="line"><span class="comment">	 * 则就会打上一个新的 [水印]</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">long</span> maxOutOfOrderness;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">BoundedOutOfOrdernessTimestampExtractor</span><span class="params">(Time maxOutOfOrderness)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span> (maxOutOfOrderness.toMilliseconds() &lt; <span class="number">0</span>) &#123;</span><br><span class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;Tried to set the maximum allowed &quot;</span> +</span><br><span class="line">				<span class="string">&quot;lateness to &quot;</span> + maxOutOfOrderness + <span class="string">&quot;. This parameter cannot be negative.&quot;</span>);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">this</span>.maxOutOfOrderness = maxOutOfOrderness.toMilliseconds();</span><br><span class="line">		<span class="keyword">this</span>.currentMaxTimestamp = Long.MIN_VALUE + <span class="keyword">this</span>.maxOutOfOrderness;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">getMaxOutOfOrdernessInMillis</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> maxOutOfOrderness;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * Extracts the timestamp from the given element.</span></span><br><span class="line"><span class="comment">	 * 从当前数据流元素中获取 [时间戳] 字段，需要用户根据业务自定义</span></span><br><span class="line"><span class="comment">	 *</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> element The element that the timestamp is extracted from.</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@return</span> The new timestamp.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">long</span> <span class="title">extractTimestamp</span><span class="params">(T element)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 如果 [当前数据流最大时间戳] - [最大乱序时间间隔] &gt;= [最后一次已提交的时间戳]</span></span><br><span class="line"><span class="comment">	 * 则更新 [最后一次已提交的时间戳]</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Watermark <span class="title">getCurrentWatermark</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">// this guarantees that the watermark never goes backwards.</span></span><br><span class="line">		<span class="keyword">long</span> potentialWM = currentMaxTimestamp - maxOutOfOrderness;</span><br><span class="line">		<span class="keyword">if</span> (potentialWM &gt;= lastEmittedWatermark) &#123;</span><br><span class="line">			lastEmittedWatermark = potentialWM;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> Watermark(lastEmittedWatermark);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取数据流中当前最大时间戳</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">long</span> <span class="title">extractTimestamp</span><span class="params">(T element, <span class="keyword">long</span> previousElementTimestamp)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">long</span> timestamp = extractTimestamp(element);</span><br><span class="line">		<span class="keyword">if</span> (timestamp &gt; currentMaxTimestamp) &#123;</span><br><span class="line">			currentMaxTimestamp = timestamp;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> timestamp;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id=""><a href="#" class="headerlink" title="****"></a>****</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Sets the time characteristic for all streams create from this environment, e.g., processing</span></span><br><span class="line"><span class="comment"> * time, event time, or ingestion time.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;If you set the characteristic to IngestionTime of EventTime this will set a default</span></span><br><span class="line"><span class="comment"> * watermark update interval of 200 ms. If this is not applicable for your application</span></span><br><span class="line"><span class="comment"> * you should change it using &#123;<span class="doctag">@link</span> ExecutionConfig#setAutoWatermarkInterval(long)&#125;.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> characteristic The time characteristic.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@PublicEvolving</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setStreamTimeCharacteristic</span><span class="params">(TimeCharacteristic characteristic)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.timeCharacteristic = Preconditions.checkNotNull(characteristic);</span><br><span class="line">    <span class="keyword">if</span> (characteristic == TimeCharacteristic.ProcessingTime) &#123;</span><br><span class="line">        getConfig().setAutoWatermarkInterval(<span class="number">0</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        getConfig().setAutoWatermarkInterval(<span class="number">200</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="window触发机制"><a href="#window触发机制" class="headerlink" title="window触发机制"></a><strong>window触发机制</strong></h2><p>window的触发机制，是先按照自然时间将window划分，如果window大小是3秒，那么1分钟内会把window划分为如下的形式:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[00:00:00,00:00:03)</span><br><span class="line">[00:00:03,00:00:06)</span><br><span class="line">...</span><br><span class="line">[00:00:57,00:01:00)</span><br></pre></td></tr></table></figure>
+
+<p>如果window大小是10秒，则window会被分为如下的形式：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[00:00:00,00:00:10)</span><br><span class="line">[00:00:10,00:00:20)</span><br><span class="line">...</span><br><span class="line">[00:00:50,00:01:00)</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
   </entry>
   <entry>
     <title>Apache Flink 学习：异步IO之RichAsyncFunction</title>
@@ -705,26 +722,9 @@
       </tags>
   </entry>
   <entry>
-    <title>Apache Flink 学习：BoundedOutOfOrdernessTimestampExtractor</title>
-    <url>/2019/11/02/apache-flink:study-BoundedOutOfOrdernessTimestampExtractor/</url>
-    <content><![CDATA[<p>Apache Flink 学习：BoundedOutOfOrdernessTimestampExtractor</p>
-<span id="more"></span>
-
-<h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a><strong>源码</strong></h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * Licensed to the Apache Software Foundation (ASF) under one</span></span><br><span class="line"><span class="comment"> * or more contributor license agreements.  See the NOTICE file</span></span><br><span class="line"><span class="comment"> * distributed with this work for additional information</span></span><br><span class="line"><span class="comment"> * regarding copyright ownership.  The ASF licenses this file</span></span><br><span class="line"><span class="comment"> * to you under the Apache License, Version 2.0 (the</span></span><br><span class="line"><span class="comment"> * &quot;License&quot;); you may not use this file except in compliance</span></span><br><span class="line"><span class="comment"> * with the License.  You may obtain a copy of the License at</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *    http://www.apache.org/licenses/LICENSE-2.0</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></span><br><span class="line"><span class="comment"> * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span></span><br><span class="line"><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></span><br><span class="line"><span class="comment"> * See the License for the specific language governing permissions and</span></span><br><span class="line"><span class="comment"> * limitations under the License.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">package</span> org.apache.flink.streaming.api.functions.timestamps;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.watermark.Watermark;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.windowing.time.Time;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * This is a &#123;<span class="doctag">@link</span> AssignerWithPeriodicWatermarks&#125; used to emit Watermarks that lag behind the element with</span></span><br><span class="line"><span class="comment"> * the maximum timestamp (in event time) seen so far by a fixed amount of time, &lt;code&gt;t_late&lt;/code&gt;. This can</span></span><br><span class="line"><span class="comment"> * help reduce the number of elements that are ignored due to lateness when computing the final result for a</span></span><br><span class="line"><span class="comment"> * given window, in the case where we know that elements arrive no later than &lt;code&gt;t_late&lt;/code&gt; units of time</span></span><br><span class="line"><span class="comment"> * after the watermark that signals that the system event-time has advanced past their (event-time) timestamp.</span></span><br><span class="line"><span class="comment"> * */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">BoundedOutOfOrdernessTimestampExtractor</span>&lt;<span class="title">T</span>&gt; <span class="keyword">implements</span> <span class="title">AssignerWithPeriodicWatermarks</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1L</span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** The current maximum timestamp seen so far. */</span></span><br><span class="line">	<span class="comment">/** 数据流的最大时间戳 */</span></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">long</span> currentMaxTimestamp;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/** The timestamp of the last emitted watermark. */</span></span><br><span class="line">	<span class="comment">/** 最后一次已提交的最新 [水印]（当前批次水印） */</span></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">long</span> lastEmittedWatermark = Long.MIN_VALUE;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * The (fixed) interval between the maximum seen timestamp seen in the records</span></span><br><span class="line"><span class="comment">	 * and that of the watermark to be emitted.</span></span><br><span class="line"><span class="comment">	 * 最大乱序时间间隔</span></span><br><span class="line"><span class="comment">	 * 将要被提交的 [水印] 和 [数据流的最大时间戳] 的固定时间间隔</span></span><br><span class="line"><span class="comment">	 * 如果 [数据流的最大时间戳] - [当前批次水印] &gt; [最大乱序时间间隔]</span></span><br><span class="line"><span class="comment">	 * 则就会打上一个新的 [水印]</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">long</span> maxOutOfOrderness;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">BoundedOutOfOrdernessTimestampExtractor</span><span class="params">(Time maxOutOfOrderness)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span> (maxOutOfOrderness.toMilliseconds() &lt; <span class="number">0</span>) &#123;</span><br><span class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;Tried to set the maximum allowed &quot;</span> +</span><br><span class="line">				<span class="string">&quot;lateness to &quot;</span> + maxOutOfOrderness + <span class="string">&quot;. This parameter cannot be negative.&quot;</span>);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">this</span>.maxOutOfOrderness = maxOutOfOrderness.toMilliseconds();</span><br><span class="line">		<span class="keyword">this</span>.currentMaxTimestamp = Long.MIN_VALUE + <span class="keyword">this</span>.maxOutOfOrderness;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">getMaxOutOfOrdernessInMillis</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> maxOutOfOrderness;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * Extracts the timestamp from the given element.</span></span><br><span class="line"><span class="comment">	 * 从当前数据流元素中获取 [时间戳] 字段，需要用户根据业务自定义</span></span><br><span class="line"><span class="comment">	 *</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> element The element that the timestamp is extracted from.</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@return</span> The new timestamp.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">long</span> <span class="title">extractTimestamp</span><span class="params">(T element)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 如果 [当前数据流最大时间戳] - [最大乱序时间间隔] &gt;= [最后一次已提交的时间戳]</span></span><br><span class="line"><span class="comment">	 * 则更新 [最后一次已提交的时间戳]</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Watermark <span class="title">getCurrentWatermark</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">// this guarantees that the watermark never goes backwards.</span></span><br><span class="line">		<span class="keyword">long</span> potentialWM = currentMaxTimestamp - maxOutOfOrderness;</span><br><span class="line">		<span class="keyword">if</span> (potentialWM &gt;= lastEmittedWatermark) &#123;</span><br><span class="line">			lastEmittedWatermark = potentialWM;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> Watermark(lastEmittedWatermark);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取数据流中当前最大时间戳</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">long</span> <span class="title">extractTimestamp</span><span class="params">(T element, <span class="keyword">long</span> previousElementTimestamp)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">long</span> timestamp = extractTimestamp(element);</span><br><span class="line">		<span class="keyword">if</span> (timestamp &gt; currentMaxTimestamp) &#123;</span><br><span class="line">			currentMaxTimestamp = timestamp;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> timestamp;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id=""><a href="#" class="headerlink" title="****"></a>****</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Sets the time characteristic for all streams create from this environment, e.g., processing</span></span><br><span class="line"><span class="comment"> * time, event time, or ingestion time.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;If you set the characteristic to IngestionTime of EventTime this will set a default</span></span><br><span class="line"><span class="comment"> * watermark update interval of 200 ms. If this is not applicable for your application</span></span><br><span class="line"><span class="comment"> * you should change it using &#123;<span class="doctag">@link</span> ExecutionConfig#setAutoWatermarkInterval(long)&#125;.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> characteristic The time characteristic.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@PublicEvolving</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setStreamTimeCharacteristic</span><span class="params">(TimeCharacteristic characteristic)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.timeCharacteristic = Preconditions.checkNotNull(characteristic);</span><br><span class="line">    <span class="keyword">if</span> (characteristic == TimeCharacteristic.ProcessingTime) &#123;</span><br><span class="line">        getConfig().setAutoWatermarkInterval(<span class="number">0</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        getConfig().setAutoWatermarkInterval(<span class="number">200</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="window触发机制"><a href="#window触发机制" class="headerlink" title="window触发机制"></a><strong>window触发机制</strong></h2><p>window的触发机制，是先按照自然时间将window划分，如果window大小是3秒，那么1分钟内会把window划分为如下的形式:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[00:00:00,00:00:03)</span><br><span class="line">[00:00:03,00:00:06)</span><br><span class="line">...</span><br><span class="line">[00:00:57,00:01:00)</span><br></pre></td></tr></table></figure>
-
-<p>如果window大小是10秒，则window会被分为如下的形式：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[00:00:00,00:00:10)</span><br><span class="line">[00:00:10,00:00:20)</span><br><span class="line">...</span><br><span class="line">[00:00:50,00:01:00)</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Apache Flink</category>
-      </categories>
-      <tags>
-        <tag>Apache Flink</tag>
-      </tags>
+    <title>apache-flink:study-allowedLateness-and-maxOutOfOrderness</title>
+    <url>/2019/11/11/apache-flink:study-allowedLateness-and-maxOutOfOrderness/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Apache Flink 学习：系统特性学习</title>
@@ -967,6 +967,18 @@
       </tags>
   </entry>
   <entry>
+    <title>Apache Flink 学习：DataStream Api 中 State 和容错——State 的使用</title>
+    <url>/2019/11/19/apache-flink:study-flink-datastream-state-and-fault-tolerance-working-with-state/</url>
+    <content><![CDATA[<p>flink有两种基本的state，分别是Keyed State以及Operator State(non-keyed state)；其中Keyed State只能在KeyedStream上的functions及operators上使用；每个operator state会跟parallel operator中的一个实例绑定；Operator State支持parallelism变更时进行redistributing<br>Keyed State及Operator State都分别有managed及raw两种形式，managed由flink runtime来管理，由runtime负责encode及写入checkpoint；raw形式的state由operators自己管理，flink runtime无法了解该state的数据结构，将其视为raw bytes；所有的datastream function都可以使用managed state，而raw state一般仅限于自己实现operators来使用<br>stateful function可以通过CheckpointedFunction接口或者ListCheckpointed接口来使用managed operator state；CheckpointedFunction定义了snapshotState、initializeState两个方法；每当checkpoint执行的时候，snapshotState会被调用；而initializeState方法在每次用户定义的function初始化的时候(第一次初始化或者从前一次checkpoint recover的时候)被调用，该方法不仅可以用来初始化state，还可以用于处理state recovery的逻辑<br>对于manageed operator state，目前仅仅支持list-style的形式，即要求state是serializable objects的List结构，方便在rescale的时候进行redistributed；关于redistribution schemes的模式目前有两种，分别是Even-split redistribution(在restore/redistribution的时候每个operator仅仅得到整个state的sublist)及Union redistribution(在restore/redistribution的时候每个operator得到整个state的完整list)<br>FunctionSnapshotContext继承了ManagedSnapshotContext接口，它定义了getCheckpointId、getCheckpointTimestamp方法；FunctionInitializationContext继承了ManagedInitializationContext接口，它定义了isRestored、getOperatorStateStore、getKeyedStateStore方法，可以用来判断是否是在前一次execution的snapshot中restored，以及获取OperatorStateStore、KeyedStateStore对象</p>
+]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Apache Flink 学习：Flink Job ExecutionGraph生成过程</title>
     <url>/2019/11/08/apache-flink:study-flink-job-ExecutionGraph/</url>
     <content><![CDATA[<p>Apache Flink 学习：Flink Job 执行计划生成过程</p>
@@ -979,18 +991,6 @@
 <p>1.转换过程 StreamExecutionEnvironment 存放的 transformation -&gt; StreamGraph -&gt; JobGraph -&gt; ExecutionGraph -&gt; 物理执行图<br>2.StreamExecutionEnvironment 存放的 transformation -&gt; StreamGraph -&gt; JobGraph 在<strong>客户端</strong>完成，然后提交 JobGraph 到 JobManager<br>3.JobManager 的主节点 JobMaster，将 JobGraph 转化为 ExecutionGraph，然后发送到不同的 taskManager，得到实际的物理执行图</p>
 <h2 id="LocalStreamEnvironment-中-parallelism"><a href="#LocalStreamEnvironment-中-parallelism" class="headerlink" title="LocalStreamEnvironment 中 parallelism"></a><strong>LocalStreamEnvironment 中 parallelism</strong></h2><p>其中 LocalStreamEnvironment Task 中的 parallelism 数量是根据以下代码生成的</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Public</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">StreamExecutionEnvironment</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> defaultLocalParallelism = Runtime.getRuntime().availableProcessors();</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Creates a &#123;<span class="doctag">@link</span> LocalStreamEnvironment&#125;. The local execution environment</span></span><br><span class="line"><span class="comment">     * will run the program in a multi-threaded fashion in the same JVM as the</span></span><br><span class="line"><span class="comment">     * environment was created in. The default parallelism of the local</span></span><br><span class="line"><span class="comment">     * environment is the number of hardware contexts (CPU cores / threads),</span></span><br><span class="line"><span class="comment">     * unless it was specified differently by &#123;<span class="doctag">@link</span> #setParallelism(int)&#125;.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> A local execution environment.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> LocalStreamEnvironment <span class="title">createLocalEnvironment</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> createLocalEnvironment(defaultLocalParallelism);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Creates a &#123;<span class="doctag">@link</span> LocalStreamEnvironment&#125;. The local execution environment</span></span><br><span class="line"><span class="comment">     * will run the program in a multi-threaded fashion in the same JVM as the</span></span><br><span class="line"><span class="comment">     * environment was created in. It will use the parallelism specified in the</span></span><br><span class="line"><span class="comment">     * parameter.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> parallelism</span></span><br><span class="line"><span class="comment">     * 		The parallelism for the local environment.</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> A local execution environment with the specified parallelism.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> LocalStreamEnvironment <span class="title">createLocalEnvironment</span><span class="params">(<span class="keyword">int</span> parallelism)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> createLocalEnvironment(parallelism, <span class="keyword">new</span> Configuration());</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Apache Flink</category>
-      </categories>
-      <tags>
-        <tag>Apache Flink</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Apache Flink 学习：DataStream Api 中 State 和容错——State 的使用</title>
-    <url>/2019/11/19/apache-flink:study-flink-datastream-state-and-fault-tolerance-working-with-state/</url>
-    <content><![CDATA[<p>flink有两种基本的state，分别是Keyed State以及Operator State(non-keyed state)；其中Keyed State只能在KeyedStream上的functions及operators上使用；每个operator state会跟parallel operator中的一个实例绑定；Operator State支持parallelism变更时进行redistributing<br>Keyed State及Operator State都分别有managed及raw两种形式，managed由flink runtime来管理，由runtime负责encode及写入checkpoint；raw形式的state由operators自己管理，flink runtime无法了解该state的数据结构，将其视为raw bytes；所有的datastream function都可以使用managed state，而raw state一般仅限于自己实现operators来使用<br>stateful function可以通过CheckpointedFunction接口或者ListCheckpointed接口来使用managed operator state；CheckpointedFunction定义了snapshotState、initializeState两个方法；每当checkpoint执行的时候，snapshotState会被调用；而initializeState方法在每次用户定义的function初始化的时候(第一次初始化或者从前一次checkpoint recover的时候)被调用，该方法不仅可以用来初始化state，还可以用于处理state recovery的逻辑<br>对于manageed operator state，目前仅仅支持list-style的形式，即要求state是serializable objects的List结构，方便在rescale的时候进行redistributed；关于redistribution schemes的模式目前有两种，分别是Even-split redistribution(在restore/redistribution的时候每个operator仅仅得到整个state的sublist)及Union redistribution(在restore/redistribution的时候每个operator得到整个state的完整list)<br>FunctionSnapshotContext继承了ManagedSnapshotContext接口，它定义了getCheckpointId、getCheckpointTimestamp方法；FunctionInitializationContext继承了ManagedInitializationContext接口，它定义了isRestored、getOperatorStateStore、getKeyedStateStore方法，可以用来判断是否是在前一次execution的snapshot中restored，以及获取OperatorStateStore、KeyedStateStore对象</p>
-]]></content>
       <categories>
         <category>Apache Flink</category>
       </categories>
@@ -1013,25 +1013,6 @@
       <tags>
         <tag>Apache Flink</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>Apache Flink 学习：Table Api &amp; SQL</title>
-    <url>/2019/11/12/apache-flink:study-flink-table-api-and-sql/</url>
-    <content><![CDATA[<p>Apache Flink 学习：Table Api &amp; SQL</p>
-<span id="more"></span>]]></content>
-      <categories>
-        <category>Apache Flink</category>
-      </categories>
-      <tags>
-        <tag>Apache Flink</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>apache-flink:study-flink</title>
-    <url>/2019/11/22/apache-flink:study-flink/</url>
-    <content><![CDATA[<p>所有operator中的初始化如果写在构造函数当中就会出错，问题是序列化时的问题<br>flink从jobmanager序列化到各个 taskmanager时可能会出问题</p>
-<p>split组件功能可以减少多个flatmap的性能损失<br>多个flatmap数据每个都是使用全部的流进行filter<br>split一个就可以满足</p>
-]]></content>
   </entry>
   <entry>
     <title>Apache Flink 学习：slot和parallelism设置的关系</title>
@@ -1064,6 +1045,25 @@
 <p>那么再看上面的图片，source/map/keyby/window/apply 最大可以有 6 个并行度，sink 只用了 1 个并行。</p>
 <p>每个 Flink TaskManager 在集群中提供 slot。 slot 的数量通常与每个 TaskManager 的可用 CPU 内核数成比例。一般情况下你的 slot 数是你每个 TaskManager 的 cpu 的核数</p>
 ]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>apache-flink:study-flink</title>
+    <url>/2019/11/22/apache-flink:study-flink/</url>
+    <content><![CDATA[<p>所有operator中的初始化如果写在构造函数当中就会出错，问题是序列化时的问题<br>flink从jobmanager序列化到各个 taskmanager时可能会出问题</p>
+<p>split组件功能可以减少多个flatmap的性能损失<br>多个flatmap数据每个都是使用全部的流进行filter<br>split一个就可以满足</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>Apache Flink 学习：Table Api &amp; SQL</title>
+    <url>/2019/11/12/apache-flink:study-flink-table-api-and-sql/</url>
+    <content><![CDATA[<p>Apache Flink 学习：Table Api &amp; SQL</p>
+<span id="more"></span>]]></content>
       <categories>
         <category>Apache Flink</category>
       </categories>
@@ -1507,6 +1507,25 @@
       </tags>
   </entry>
   <entry>
+    <title>Apache Hive环境搭建错误：com.mysql.jdbc.Driver was not found in the CLASSPATH</title>
+    <url>/2019/10/17/apache-hive:error-ClassNotFoundException:com.mysql.jdbc.driver/</url>
+    <content><![CDATA[<p>Apache Hive环境搭建错误：com.mysql.jdbc.Driver was not found in the CLASSPATH</p>
+<span id="more"></span>
+
+
+<h3 id="错误场景详情"><a href="#错误场景详情" class="headerlink" title="错误场景详情"></a><strong>错误场景详情</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ <span class="variable">$HIVE_HOME</span>/bin/schematool -dbType mysql -initSchema</span><br><span class="line">SLF4J: Class path contains multiple SLF4J bindings.</span><br><span class="line">SLF4J: Found binding <span class="keyword">in</span> [jar:file:/usr/<span class="built_in">local</span>/Cellar/hive/3.1.2/libexec/lib/log4j-slf4j-impl-2.10.0.jar!/org/slf4j/impl/StaticLoggerBinder.class]</span><br><span class="line">SLF4J: Found binding <span class="keyword">in</span> [jar:file:/usr/<span class="built_in">local</span>/Cellar/hadoop/3.2.1/libexec/share/hadoop/common/lib/slf4j-log4j12-1.7.25.jar!/org/slf4j/impl/StaticLoggerBinder.class]</span><br><span class="line">SLF4J: See http://www.slf4j.org/codes.html<span class="comment">#multiple_bindings for an explanation.</span></span><br><span class="line">SLF4J: Actual binding is of <span class="built_in">type</span> [org.apache.logging.slf4j.Log4jLoggerFactory]</span><br><span class="line">Metastore connection URL:	 jdbc:mysql://localhost:3306/hive?characterEncoding=UTF-8</span><br><span class="line">Metastore Connection Driver :	 com.mysql.jdbc.Driver</span><br><span class="line">Metastore connection User:	 hadoop</span><br><span class="line">org.apache.hadoop.hive.metastore.HiveMetaException: Failed to load driver</span><br><span class="line">Underlying cause: java.lang.ClassNotFoundException : com.mysql.jdbc.Driver</span><br><span class="line">Use --verbose <span class="keyword">for</span> detailed stacktrace.</span><br><span class="line">*** schemaTool failed ***</span><br></pre></td></tr></table></figure>
+
+<h3 id="错误原因"><a href="#错误原因" class="headerlink" title="错误原因"></a><strong>错误原因</strong></h3><p>在配置hive-site.xml文件时配置了mysql驱动，而hive/lib目录下没有mysql驱动包。</p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a><strong>解决方案</strong></h3><p>官网下载mysql驱动下载地址 (<a href="https://dev.mysql.com/downloads/connector/j/">https://dev.mysql.com/downloads/connector/j/</a>)<br>把下载好的压缩包（mysql-connector-java-8.0.18.zip）进行解压<br>unzip mysql-connector-java-8.0.18.zip<br>复制到hive/lib下<br>cp mysql-connector-java-8.0.18/mysql-connector-java-8.0.18.jar hive/lib</p>
+]]></content>
+      <categories>
+        <category>Apache Hive</category>
+      </categories>
+      <tags>
+        <tag>Apache Hive</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Apache Hive环境搭建错误：java.lang.NoSuchMethodError: com.google.common...</title>
     <url>/2019/10/17/apache-hive:error-NoSuchMethodError:com.google.common.base.Preconditions.checkArgument/</url>
     <content><![CDATA[<p>Apache Hive环境搭建错误：java.lang.NoSuchMethodError: com.google.common.base.Preconditions.checkArgument</p>
@@ -1550,25 +1569,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Apache Hive环境搭建错误：com.mysql.jdbc.Driver was not found in the CLASSPATH</title>
-    <url>/2019/10/17/apache-hive:error-ClassNotFoundException:com.mysql.jdbc.driver/</url>
-    <content><![CDATA[<p>Apache Hive环境搭建错误：com.mysql.jdbc.Driver was not found in the CLASSPATH</p>
-<span id="more"></span>
-
-
-<h3 id="错误场景详情"><a href="#错误场景详情" class="headerlink" title="错误场景详情"></a><strong>错误场景详情</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ <span class="variable">$HIVE_HOME</span>/bin/schematool -dbType mysql -initSchema</span><br><span class="line">SLF4J: Class path contains multiple SLF4J bindings.</span><br><span class="line">SLF4J: Found binding <span class="keyword">in</span> [jar:file:/usr/<span class="built_in">local</span>/Cellar/hive/3.1.2/libexec/lib/log4j-slf4j-impl-2.10.0.jar!/org/slf4j/impl/StaticLoggerBinder.class]</span><br><span class="line">SLF4J: Found binding <span class="keyword">in</span> [jar:file:/usr/<span class="built_in">local</span>/Cellar/hadoop/3.2.1/libexec/share/hadoop/common/lib/slf4j-log4j12-1.7.25.jar!/org/slf4j/impl/StaticLoggerBinder.class]</span><br><span class="line">SLF4J: See http://www.slf4j.org/codes.html<span class="comment">#multiple_bindings for an explanation.</span></span><br><span class="line">SLF4J: Actual binding is of <span class="built_in">type</span> [org.apache.logging.slf4j.Log4jLoggerFactory]</span><br><span class="line">Metastore connection URL:	 jdbc:mysql://localhost:3306/hive?characterEncoding=UTF-8</span><br><span class="line">Metastore Connection Driver :	 com.mysql.jdbc.Driver</span><br><span class="line">Metastore connection User:	 hadoop</span><br><span class="line">org.apache.hadoop.hive.metastore.HiveMetaException: Failed to load driver</span><br><span class="line">Underlying cause: java.lang.ClassNotFoundException : com.mysql.jdbc.Driver</span><br><span class="line">Use --verbose <span class="keyword">for</span> detailed stacktrace.</span><br><span class="line">*** schemaTool failed ***</span><br></pre></td></tr></table></figure>
-
-<h3 id="错误原因"><a href="#错误原因" class="headerlink" title="错误原因"></a><strong>错误原因</strong></h3><p>在配置hive-site.xml文件时配置了mysql驱动，而hive/lib目录下没有mysql驱动包。</p>
-<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a><strong>解决方案</strong></h3><p>官网下载mysql驱动下载地址 (<a href="https://dev.mysql.com/downloads/connector/j/">https://dev.mysql.com/downloads/connector/j/</a>)<br>把下载好的压缩包（mysql-connector-java-8.0.18.zip）进行解压<br>unzip mysql-connector-java-8.0.18.zip<br>复制到hive/lib下<br>cp mysql-connector-java-8.0.18/mysql-connector-java-8.0.18.jar hive/lib</p>
-]]></content>
-      <categories>
-        <category>Apache Hive</category>
-      </categories>
-      <tags>
-        <tag>Apache Hive</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>apache-kafka:study-features</title>
     <url>/2019/11/06/apache-kafka:study-features/</url>
     <content><![CDATA[<h2 id="如何为Kafka集群选择合适的Partitions数量"><a href="#如何为Kafka集群选择合适的Partitions数量" class="headerlink" title="如何为Kafka集群选择合适的Partitions数量"></a><strong>如何为Kafka集群选择合适的Partitions数量</strong></h2><h3 id="越多的分区可以提供更高的吞吐量"><a href="#越多的分区可以提供更高的吞吐量" class="headerlink" title="越多的分区可以提供更高的吞吐量"></a>越多的分区可以提供更高的吞吐量</h3><p>首先我们需要明白以下事实：在kafka中，单个patition是kafka并行操作的最小单元。在producer和broker端，向每一个分区写入数据是可以完全并行化的，此时，可以通过加大硬件资源的利用率来提升系统的吞吐量，例如对数据进行压缩。在consumer段，kafka只允许单个partition的数据被一个consumer线程消费。因此，在consumer端，每一个Consumer Group内部的consumer并行度完全依赖于被消费的分区数量。综上所述，通常情况下，在一个Kafka集群中，partition的数量越多，意味着可以到达的吞吐量越大。</p>
@@ -1576,6 +1576,28 @@
 <p>虽然随着时间的推移，我们能够对分区的数量进行添加，但是对于基于Key来生成的这一类消息需要我们重点关注。当producer向kafka写入基于key的消息时，kafka通过key的hash值来确定消息需要写入哪个具体的分区。通过这样的方案，kafka能够确保相同key值的数据可以写入同一个partition。kafka的这一能力对于一部分应用是极为重要的，例如对于同一个key的所有消息，consumer需要按消息的顺序进行有序消费。如果partition的数量发生改变，那么上面的有序性保证将不复存在。为了避免上述情况发生，通常的解决办法是多分配一些分区，以满足未来的需求。通常情况下，我们需要根据未来1到2年的目标吞吐量来设计kafka的分区数量。</p>
 <p>一开始，我们可以基于当前的业务吞吐量为kafka集群分配较小的broker数量，随着时间的推移，我们可以向集群中增加更多的broker，然后在线方式将适当比例的partition转移到新增加的broker中去。通过这样的方法，我们可以在满足各种应用场景（包括基于key消息的场景）的情况下，保持业务吞吐量的扩展性。</p>
 <p>在设计分区数时，除了吞吐量，还有一些其他因素值得考虑。正如我们后面即将看到的，对于一些应用场景，集群拥有过的分区将会带来负面的影响。</p>
+]]></content>
+      <categories>
+        <category>Apache Kafka</category>
+      </categories>
+      <tags>
+        <tag>Apache Kafka</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Apache Kafka 学习：kafka在数据处理中的应用</title>
+    <url>/2019/11/10/apache-kafka:study-kafka-in-data-process/</url>
+    <content><![CDATA[<p>Apache Kafka 学习：kafka在数据处理中的应用的一些个人理解。</p>
+<span id="more"></span>
+
+<h1 id="离线数据处理"><a href="#离线数据处理" class="headerlink" title="离线数据处理"></a><strong>离线数据处理</strong></h1><h2 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h2><p>在离线数据处理的过程中。<br>如果不使用消息队列，在并发量很小的情况下，所有的客户端数据日志直接向hdfs写数据暂时不会产生什么问题。<br>如果不使用消息队列，在并发量很大的情况下，向 hdfs 写数据就会出现问题，首先，向hdfs写数据会有锁竞争的情况，可能会导致大部分写请求很长时间得不到锁，导致大量请求延迟或者超时，这是不能接受的；并且 hdfs 作为文件系统不能承受太大的并发量，在并发很高的情况下，集群可能会崩溃。</p>
+<h2 id="问题原因总结"><a href="#问题原因总结" class="headerlink" title="问题原因总结"></a>问题原因总结</h2><p>总的来说，在这种情况下，问题的根本在于高并发情况下，hdfs 作为文件系统不能承受高并发请求的问题。</p>
+<h2 id="实施方案"><a href="#实施方案" class="headerlink" title="实施方案"></a>实施方案</h2><p>所以需要一种工具可以将客户端日志这种高并发请求转换为低并发的请求，这时候就可以使用kafka这样的消息队列，客户端的高并发请求直接写入 kafka，然后 hdfs 以低并发消费 kafka 中的数据。这样就解决了文件系统不能支持高并发的情况。并且由于 kafka 的HA特性，可以保证数据的正确性。</p>
+<h2 id="kafka作用"><a href="#kafka作用" class="headerlink" title="kafka作用"></a>kafka作用</h2><p>将高并发请求以低并发方式处理。这种方式中解耦效果不明显，下面的实时数据处理使用到的解耦效果比较明显。</p>
+<h1 id="实时数据处理"><a href="#实时数据处理" class="headerlink" title="实时数据处理"></a><strong>实时数据处理</strong></h1><h2 id="场景-1"><a href="#场景-1" class="headerlink" title="场景"></a>场景</h2><p>在实时数据处理的过程中。<br>如果不使用消息队列，上游数据写入到类似 flink 这样的实时处理引擎当中，flink处理完成后向下游 olap 引擎（druid，clickhouse等）或者hdfs，hive，es等的文件系统写数据时，就需要为每一种 olap 引擎开发一种 connector，这样的情况下，每出现一种 olap 引擎或者每当下游的 olap 引擎升级版本引入新特性时，就需要 flink 开发工程师开发一种新的 connector 或者跟随 olap 引擎的升级而升级自己的 connector，这样 flink 开发工程师的维护成本之后就会特别高。<br>这里有同学可能会说可以在数据处理的过程中使用下游 olap 等的引擎提供的 sdk，这种方法是可以的，但是实时处理打不风情况下并发量很高，olap 引擎提供的 sdk 应对这种高并发的场景可能会有很多问题。</p>
+<h2 id="问题原因总结-1"><a href="#问题原因总结-1" class="headerlink" title="问题原因总结"></a>问题原因总结</h2><p>问题的根本在于实时处理引擎和下游之间的耦合问题，这就需要一种HA的中间件来将各个模块进行解耦，kafka这样的消息队列可以很好的解决这中模块之间高度耦合的情况。</p>
+<h2 id="实施方案-1"><a href="#实施方案-1" class="headerlink" title="实施方案"></a>实施方案</h2><p>在 flink 和 druid中间使用 kafka 进行解耦，让 flink 向 kafka 生成数据，druid 消费 kafka 的数据。<br>这样就使得 flink 可以只开发和维护一套针对于 kafka 的 connector，druid也只用开发和维护一套针对 kafka 的 connector，这样无论是实时处理引擎的升级或替换，或者是实时处理引擎下游的模块的升级或替换，都不会互相影响，并且这些模块的工程师只需要对消息队列的 connector 进行维护即可，并且可以根据其特性进行更好的优化。</p>
+<h2 id="kafka作用-1"><a href="#kafka作用-1" class="headerlink" title="kafka作用"></a>kafka作用</h2><p>模块之间的解耦。让各个模块各司其职。<br>拓展：<br>1.Java 虚拟机在 Java 语言和各个系统之间的作用。<br>2.Sql 进行三范式优化，不需要将所有数据都放在一张表当中，将n对n的表拆分出一张维表进行解耦。将维度拆分为维表可以减少数据量，更好划分和使用维度数据。<br>3.经典网络五层模型，划分为五层，则在每一层中更新或者新建协议栈只需要对上下层进行兼容即可，不需要对整个网络架构模型做调整。<br>4.Maven multiModule 划分。<br>5.springMvc。<br>等等。</p>
 ]]></content>
       <categories>
         <category>Apache Kafka</category>
@@ -1619,28 +1641,6 @@
       </categories>
       <tags>
         <tag>Apache Maven</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Apache Kafka 学习：kafka在数据处理中的应用</title>
-    <url>/2019/11/10/apache-kafka:study-kafka-in-data-process/</url>
-    <content><![CDATA[<p>Apache Kafka 学习：kafka在数据处理中的应用的一些个人理解。</p>
-<span id="more"></span>
-
-<h1 id="离线数据处理"><a href="#离线数据处理" class="headerlink" title="离线数据处理"></a><strong>离线数据处理</strong></h1><h2 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h2><p>在离线数据处理的过程中。<br>如果不使用消息队列，在并发量很小的情况下，所有的客户端数据日志直接向hdfs写数据暂时不会产生什么问题。<br>如果不使用消息队列，在并发量很大的情况下，向 hdfs 写数据就会出现问题，首先，向hdfs写数据会有锁竞争的情况，可能会导致大部分写请求很长时间得不到锁，导致大量请求延迟或者超时，这是不能接受的；并且 hdfs 作为文件系统不能承受太大的并发量，在并发很高的情况下，集群可能会崩溃。</p>
-<h2 id="问题原因总结"><a href="#问题原因总结" class="headerlink" title="问题原因总结"></a>问题原因总结</h2><p>总的来说，在这种情况下，问题的根本在于高并发情况下，hdfs 作为文件系统不能承受高并发请求的问题。</p>
-<h2 id="实施方案"><a href="#实施方案" class="headerlink" title="实施方案"></a>实施方案</h2><p>所以需要一种工具可以将客户端日志这种高并发请求转换为低并发的请求，这时候就可以使用kafka这样的消息队列，客户端的高并发请求直接写入 kafka，然后 hdfs 以低并发消费 kafka 中的数据。这样就解决了文件系统不能支持高并发的情况。并且由于 kafka 的HA特性，可以保证数据的正确性。</p>
-<h2 id="kafka作用"><a href="#kafka作用" class="headerlink" title="kafka作用"></a>kafka作用</h2><p>将高并发请求以低并发方式处理。这种方式中解耦效果不明显，下面的实时数据处理使用到的解耦效果比较明显。</p>
-<h1 id="实时数据处理"><a href="#实时数据处理" class="headerlink" title="实时数据处理"></a><strong>实时数据处理</strong></h1><h2 id="场景-1"><a href="#场景-1" class="headerlink" title="场景"></a>场景</h2><p>在实时数据处理的过程中。<br>如果不使用消息队列，上游数据写入到类似 flink 这样的实时处理引擎当中，flink处理完成后向下游 olap 引擎（druid，clickhouse等）或者hdfs，hive，es等的文件系统写数据时，就需要为每一种 olap 引擎开发一种 connector，这样的情况下，每出现一种 olap 引擎或者每当下游的 olap 引擎升级版本引入新特性时，就需要 flink 开发工程师开发一种新的 connector 或者跟随 olap 引擎的升级而升级自己的 connector，这样 flink 开发工程师的维护成本之后就会特别高。<br>这里有同学可能会说可以在数据处理的过程中使用下游 olap 等的引擎提供的 sdk，这种方法是可以的，但是实时处理打不风情况下并发量很高，olap 引擎提供的 sdk 应对这种高并发的场景可能会有很多问题。</p>
-<h2 id="问题原因总结-1"><a href="#问题原因总结-1" class="headerlink" title="问题原因总结"></a>问题原因总结</h2><p>问题的根本在于实时处理引擎和下游之间的耦合问题，这就需要一种HA的中间件来将各个模块进行解耦，kafka这样的消息队列可以很好的解决这中模块之间高度耦合的情况。</p>
-<h2 id="实施方案-1"><a href="#实施方案-1" class="headerlink" title="实施方案"></a>实施方案</h2><p>在 flink 和 druid中间使用 kafka 进行解耦，让 flink 向 kafka 生成数据，druid 消费 kafka 的数据。<br>这样就使得 flink 可以只开发和维护一套针对于 kafka 的 connector，druid也只用开发和维护一套针对 kafka 的 connector，这样无论是实时处理引擎的升级或替换，或者是实时处理引擎下游的模块的升级或替换，都不会互相影响，并且这些模块的工程师只需要对消息队列的 connector 进行维护即可，并且可以根据其特性进行更好的优化。</p>
-<h2 id="kafka作用-1"><a href="#kafka作用-1" class="headerlink" title="kafka作用"></a>kafka作用</h2><p>模块之间的解耦。让各个模块各司其职。<br>拓展：<br>1.Java 虚拟机在 Java 语言和各个系统之间的作用。<br>2.Sql 进行三范式优化，不需要将所有数据都放在一张表当中，将n对n的表拆分出一张维表进行解耦。将维度拆分为维表可以减少数据量，更好划分和使用维度数据。<br>3.经典网络五层模型，划分为五层，则在每一层中更新或者新建协议栈只需要对上下层进行兼容即可，不需要对整个网络架构模型做调整。<br>4.Maven multiModule 划分。<br>5.springMvc。<br>等等。</p>
-]]></content>
-      <categories>
-        <category>Apache Kafka</category>
-      </categories>
-      <tags>
-        <tag>Apache Kafka</tag>
       </tags>
   </entry>
   <entry>
@@ -1779,6 +1779,21 @@
       </tags>
   </entry>
   <entry>
+    <title>useful-api-for-java</title>
+    <url>/2019/10/16/java-api:useful-api/</url>
+    <content><![CDATA[<h2 id="API"><a href="#API" class="headerlink" title="API"></a><strong>API</strong></h2><ul>
+<li><a href="https://www.jianshu.com/p/865e9ae667a0">Retrofit（http请求工具包）</a></li>
+<li><a href="https://www.jianshu.com/p/4271ebc40be8">Resilience4j（接口重试，限流，熔断器工具）</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>Java Api</category>
+      </categories>
+      <tags>
+        <tag>Java Api</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>为什么hashmap的数组初始化大小都是2的次方大小时，hashmap的效率最高</title>
     <url>/2020/01/06/java:study-hashmap/</url>
     <content><![CDATA[<p>为什么hashmap的数组初始化大小都是2的次方大小时，hashmap的效率最高</p>
@@ -1806,18 +1821,23 @@
       </tags>
   </entry>
   <entry>
-    <title>useful-api-for-java</title>
-    <url>/2019/10/16/java-api:useful-api/</url>
-    <content><![CDATA[<h2 id="API"><a href="#API" class="headerlink" title="API"></a><strong>API</strong></h2><ul>
-<li><a href="https://www.jianshu.com/p/865e9ae667a0">Retrofit（http请求工具包）</a></li>
-<li><a href="https://www.jianshu.com/p/4271ebc40be8">Resilience4j（接口重试，限流，熔断器工具）</a></li>
-</ul>
-]]></content>
+    <title>Vue学习：Vue前端项目部署到SpringBoot工程下</title>
+    <url>/2019/10/26/vue:study-vue-project-deploy-in-springboot-project/</url>
+    <content><![CDATA[<p>Vue项目部署到SpringBoot工程下</p>
+<span id="more"></span>
+
+<h2 id="Vue前端项目"><a href="#Vue前端项目" class="headerlink" title="Vue前端项目"></a><strong>Vue前端项目</strong></h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm run build</span><br></pre></td></tr></table></figure>
+
+<p>运行上述命令，将前端Vue项目打包，命令运行完成之后会在项目根目录下生成一个生成一个dist文件夹, 编译好的静态文件就在这里面</p>
+<h2 id="部署在SpringBoot项目下"><a href="#部署在SpringBoot项目下" class="headerlink" title="部署在SpringBoot项目下"></a><strong>部署在SpringBoot项目下</strong></h2><p>将前端项目中dist文件夹下的所有文件拷贝到SpringBoot工程的<strong>src/main/resources/static</strong>文件夹下</p>
+<p>运行后端项目，可以看到控制台会有这样的输出，证明将静态页面加入了容器中，现在就可以访问到前端页面了</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">2019-10-26 15:47:09.607  INFO 1967 --- [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
-        <category>Java Api</category>
+        <category>Vue</category>
       </categories>
       <tags>
-        <tag>Java Api</tag>
+        <tag>SpringBoot</tag>
+        <tag>Vue</tag>
       </tags>
   </entry>
   <entry>
@@ -1896,26 +1916,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Vue学习：Vue前端项目部署到SpringBoot工程下</title>
-    <url>/2019/10/26/vue:study-vue-project-deploy-in-springboot-project/</url>
-    <content><![CDATA[<p>Vue项目部署到SpringBoot工程下</p>
-<span id="more"></span>
-
-<h2 id="Vue前端项目"><a href="#Vue前端项目" class="headerlink" title="Vue前端项目"></a><strong>Vue前端项目</strong></h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm run build</span><br></pre></td></tr></table></figure>
-
-<p>运行上述命令，将前端Vue项目打包，命令运行完成之后会在项目根目录下生成一个生成一个dist文件夹, 编译好的静态文件就在这里面</p>
-<h2 id="部署在SpringBoot项目下"><a href="#部署在SpringBoot项目下" class="headerlink" title="部署在SpringBoot项目下"></a><strong>部署在SpringBoot项目下</strong></h2><p>将前端项目中dist文件夹下的所有文件拷贝到SpringBoot工程的<strong>src/main/resources/static</strong>文件夹下</p>
-<p>运行后端项目，可以看到控制台会有这样的输出，证明将静态页面加入了容器中，现在就可以访问到前端页面了</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">2019-10-26 15:47:09.607  INFO 1967 --- [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Vue</category>
-      </categories>
-      <tags>
-        <tag>SpringBoot</tag>
-        <tag>Vue</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>生产实践 | 基于 Flink 的视频直播核心指标监控</title>
     <url>/2019/09/01/wechat-blog/apache-flink:learning-files/</url>
     <content><![CDATA[<h1 id="Flink-学习资料"><a href="#Flink-学习资料" class="headerlink" title="Flink 学习资料"></a>Flink 学习资料</h1><blockquote>
@@ -1955,6 +1955,84 @@
 <p>6.<a href="https://www.aboutyun.com/forum.php?mod=forumdisplay&fid=443&filter=typeid&typeid=1393。" title="彻底明白Flink系统学习系列">彻底明白Flink系统学习系列</a></p>
 <p>7.<a href="https://www.jianshu.com/p/0242f456f02a。" title="kangqi">kangqi</a></p>
 <p>8.<a href="https://www.cnblogs.com/Springmoon-venn/category/1380180.html。" title="flink菜鸟">flink菜鸟</a></p>
+]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇</title>
+    <url>/2020/10/12/wechat-blog/apache-flink:realtime-live-stream-1/</url>
+    <content><![CDATA[<h1 id="生产实践-基于-Flink-的直播实时数据建设-（一）-需求和架构篇"><a href="#生产实践-基于-Flink-的直播实时数据建设-（一）-需求和架构篇" class="headerlink" title="生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇"></a>生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇</h1><blockquote>
+<p>本系列每篇文章都是从一些实际生产实践需求出发，解决一些生产实践中的问题，抛砖引玉，以帮助小伙伴们解决一些实际生产问题。相信大家或多或少都观看过直播，那大家有没有想过，如果自己负责建设公司内整体直播实时数据，会怎样去建设呢？本系列文章主要介绍直播实时数据建设的整个过程，如果对小伙伴有帮助的话，欢迎点赞 + 再看~</p>
+</blockquote>
+<h2 id="首先思考几个问题"><a href="#首先思考几个问题" class="headerlink" title="首先思考几个问题"></a>首先思考几个问题</h2><ul>
+<li><strong>WHAT：相信大家或多或少都观看过直播，甚至自己就是一名主播或负责的业务就是直播相关的，那大家有没有思考过，在直播业务场景中，你最关心什么指标以及需要关注、建设什么数据？</strong></li>
+<li><strong>WHY：为什么需要建设直播实时数据？离线建设不能满足吗？</strong></li>
+<li><strong>HOW：直播实时数据怎样赋能业务的？怎样根据公司直播场景的需求去划分直播实时数据？怎样去建设直播实时数据体？</strong></li>
+<li><strong>WHO：在建设直播实时数据的过程中，需要使用什么样的组件进行建设？每个组件都负责哪一部分？</strong></li>
+</ul>
+<p>让我们带着以上几个问题出发~</p>
+<h2 id="直播-短视频，内容运营的下一个战场"><a href="#直播-短视频，内容运营的下一个战场" class="headerlink" title="直播 + 短视频，内容运营的下一个战场"></a>直播 + 短视频，内容运营的下一个战场</h2><p>随着互联网络技术的发展，网络直播受到越来越多人的关注，直播在经过几年前的喷涌式大爆发之后，近段时间热度有所降低。内容的同质化和变现困难是直播现在面临的主要问题，随着移动终端普及和网络的提速，短视频以短平快的大流量传播方式快速获得各大平台、粉丝和资本的青睐，所以众多直播软件开始接入短视频的功能。<br>同时，一些以短视频为主发展起来的 app 也在软件中加入了直播功能，直播和短视频两者互相弥补不足，相辅相成，给用户带来了更好的使用体验，也给各大平台带来更多的流量，”直播 + 短视频”的模式已经也成为新的发展趋势。</p>
+<p>本系列文章主要围绕着直播实时数据建设而展开。本文是本系列文章的的第一篇，需求和架构篇，主要分为三个部分，按顺序为<strong>WHY - WHAT - HOW</strong>，以这三个角度出发，解答开头提出的三个问题，其中 <strong>WHO</strong>部分在本系列文章的后续建设细节章节进行介绍！</p>
+<h2 id="WHY：为什么建设直播实时数据？"><a href="#WHY：为什么建设直播实时数据？" class="headerlink" title="WHY：为什么建设直播实时数据？"></a>WHY：为什么建设直播实时数据？</h2><p>相比短视频的生产消费来说，直播的主播和观看直播的观众的纽带都是在直播间建立的，相互之间的互动行为也都只在直播间内产生，并且通常情况下，一场直播的时长也就在几个小时之内，因此直播的生产消费时效性相比短视频会更强，因而直播数据对于实时性的诉求也就更高。</p>
+<h2 id="WHAT：需要关注、建设什么直播实时数据？"><a href="#WHAT：需要关注、建设什么直播实时数据？" class="headerlink" title="WHAT：需要关注、建设什么直播实时数据？"></a>WHAT：需要关注、建设什么直播实时数据？</h2><p>需要关注、建设什么直播实时数据？换一句话来说就是根据<strong>数据分析业务的需求</strong>出发，决定建设什么样的直播实时数据？</p>
+<p>直播就是一个主播和观众联络互动的纽带，其中一切操作都是围绕着主播和观众而展开的，数据分析的同学都会以这个最基础的角度出发进行分析，因此首先我们就可以将整个直播的数据按照<strong>直播生产</strong>和<strong>直播消费</strong>进最基本的划分。</p>
+<p>除此角度之外，数据分析的同学也还会从<strong>全局直播业务洞察</strong>和<strong>单个直播间洞察</strong>不同粒度上进行分析洞察，因此还可以按照<strong>大盘数据</strong>、<strong>单直播间数据</strong>进行划分。</p>
+<p>从这两个角度出发，基本可以涵盖对于直播业务分析场景的诉求，因此直播实时数据也自然可以从这两个角度进行划分和建设。</p>
+<p>综上则整体<strong>直播实时数据业务划分和赋能应用架构</strong>如下图所示。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-1/biz-arc.png" alt="业务划分和应用架构"></p>
+<p>其中</p>
+<p><strong>直播大盘实时数据</strong>在宏观上监控直播业务，提供预测大盘的能力；其中分钟粒度时间序列可快速定位直播各行为的高峰时刻，可以基于该时刻进行详细归因。除此之外，当直播在做运营活动时，也能快速基于实时数据来看运营活动的活动效果，赋能活动策略实时优化。</p>
+<p><strong>单直播间直播实时数据</strong>可以以细粒度监控单直播间的直播业务，用来在直播过程中对外输出直播数据战报、以及可基于数据战报效果实时对单直播间进资源投放进行实时效果评估和合理调配。</p>
+<p>详细的直播实时数据需求和样例如下文。</p>
+<h3 id="大盘"><a href="#大盘" class="headerlink" title="大盘"></a>大盘</h3><p><strong>生产侧</strong></p>
+<ul>
+<li><strong>指标</strong>：总体开播直播间数…</li>
+<li><strong>维度</strong>：直播间画像、主播用户画像</li>
+<li><strong>举例</strong>：[开播直播间为游戏类直播]的[总开播主播数]</li>
+</ul>
+<p><strong>消费侧</strong></p>
+<ul>
+<li><strong>指标</strong>：总体观众观看、点赞、评论数…</li>
+<li><strong>维度</strong>：观众用户画像、日志上报其他维度</li>
+<li><strong>举例</strong>：[目前在河北观看直播]的[总观众数]</li>
+</ul>
+<h3 id="单直播间"><a href="#单直播间" class="headerlink" title="单直播间"></a>单直播间</h3><p><strong>生产侧</strong><br>单直播间一般都是一些画像信息，所以此类指标较少，暂时不做讨论。</p>
+<p><strong>消费侧</strong></p>
+<ul>
+<li><strong>指标</strong>：单直播间观众观看、点赞、评论数…</li>
+<li><strong>维度</strong>：观众用户画像、日志上报其他维度</li>
+<li><strong>举例</strong>：某直播间[18-23岁年龄段]的[总观众数]</li>
+</ul>
+<p>目前已经了解了要建设直播实时数据都包含了什么内容，接下来就是大干一场的时候了。</p>
+<h2 id="HOW：怎样去建设？"><a href="#HOW：怎样去建设？" class="headerlink" title="HOW：怎样去建设？"></a>HOW：怎样去建设？</h2><p>怎样去建设？换一句话来说就是从技术的角度出发，怎样将<strong>直播实时数据的业务需求</strong>转化为<strong>直播实时数据的技术方案</strong>进行落地？</p>
+<p>从技术角度出发，上述直播实时数据需要建设的需求内容总结下来就是一个词：<strong>直播实时多维指标</strong>。</p>
+<h3 id="多维"><a href="#多维" class="headerlink" title="多维"></a>多维</h3><p>即产出指标是多维度的，包含公共维度和非公共维度。</p>
+<p>第一类是<strong>公共维度</strong>。包含三部分，直播间画像，主播用户画像，观众用户画像，公共两字代表这类维度是可以被多个指标进行共享使用的。举例：某直播间开播之后，该直播间画像只需要一次建设，就可以被多个指标多次重复使用，不但可以作为大盘侧生产、消费指标的维度，也可以作为单直播间生产、消费指标的维度。</p>
+<p>第二类是<strong>非公共维度</strong>。非公共维度是和特定消费行为绑定的，也就是和某个指标绑定的，随着日志上报一同上报的维度。举例：某观众观看直播时的客户端类型（安卓？IOS？），观看直播时的省份等维度，这类维度只和当前的消费行为相关，不能被其他指标所共享。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-1/dim.png" alt="多维"></p>
+<h3 id="指标"><a href="#指标" class="headerlink" title="指标"></a>指标</h3><p>其实都是 pv，uv 类指标。简单理解就是各个维度下对应的 xx 量。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-1/metric.png" alt="指标"></p>
+<h3 id="实时数据建设技术架构"><a href="#实时数据建设技术架构" class="headerlink" title="实时数据建设技术架构"></a>实时数据建设技术架构</h3><p>对应到直播实时数据建设的过程主要包含两部分：公共部分和非公共部分。</p>
+<p>公共部分就是实时公共维表的建设。</p>
+<p>非公共部分就是指标非公共维度以及对应生产、消费指标建设。</p>
+<p>直接给出总体<strong>技术架构</strong>图，本系列后续的文章进行介绍这样进行整体架构设计的详细原因。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-1/tec-arc.png" alt="技术架构"></p>
+<p>简单说明下。</p>
+<p>其中数据源包含生产侧，消费侧数据源；</p>
+<p>数据处理部分包含公共实时维表建设，和指标建设，其中一部分公共维表的建设也使用了离线的方式提供了支持；</p>
+<p>最后就是数据汇部分，产出了生产侧，消费侧的多维指标供数据分析师使用。</p>
+<h2 id="下节预告"><a href="#下节预告" class="headerlink" title="下节预告"></a>下节预告</h2><p>下节主要介绍<strong>直播实时公共画像的建设</strong>，其中是技术架构图中的<strong>主播用户、关注用户画像、以及直播间画像</strong>的建设方案。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文首先提出了几个关于直播实时数据建设的问题。以这几个问题触发，引出了一下三小节。</p>
+<p>第一节简单介绍了直播时效性强的原因，因此直播对于实时数据的需求更加强烈。</p>
+<p>第二节从数据分析的角度出发，引出了我们需要建设的直播实时数据都包含哪些内容，并且从大盘/单直播间，生产/消费角度进行了模块划分。</p>
+<p>第三节对数据需求进行了技术方案的整体架构设计。</p>
+<p>最后一节对本文进行了总结。</p>
+<p>如果你也有相同的建设需求或者你以及建设了直播实时数据，欢迎留言或者留下你的文章链接，相互交流~</p>
 ]]></content>
       <categories>
         <category>Apache Flink</category>
@@ -2132,75 +2210,91 @@
       </tags>
   </entry>
   <entry>
-    <title>生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇</title>
-    <url>/2020/10/12/wechat-blog/apache-flink:realtime-live-stream-1/</url>
-    <content><![CDATA[<h1 id="生产实践-基于-Flink-的直播实时数据建设-（一）-需求和架构篇"><a href="#生产实践-基于-Flink-的直播实时数据建设-（一）-需求和架构篇" class="headerlink" title="生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇"></a>生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇</h1><blockquote>
-<p>本系列每篇文章都是从一些实际生产实践需求出发，解决一些生产实践中的问题，抛砖引玉，以帮助小伙伴们解决一些实际生产问题。相信大家或多或少都观看过直播，那大家有没有想过，如果自己负责建设公司内整体直播实时数据，会怎样去建设呢？本系列文章主要介绍直播实时数据建设的整个过程，如果对小伙伴有帮助的话，欢迎点赞 + 再看~</p>
+    <title>生产实践 | Flink + 直播（二）| 如何建设实时公共画像维表？</title>
+    <url>/2020/11/02/wechat-blog/apache-flink:realtime-live-stream-2/</url>
+    <content><![CDATA[<h1 id="生产实践-Flink-直播（二）-如何建设实时公共画像维表？"><a href="#生产实践-Flink-直播（二）-如何建设实时公共画像维表？" class="headerlink" title="生产实践 | Flink + 直播（二）| 如何建设实时公共画像维表？"></a>生产实践 | Flink + 直播（二）| 如何建设实时公共画像维表？</h1><blockquote>
+<p>本系列每篇文章都是从一些实际生产实践需求出发，解决一些生产实践中的问题，抛砖引玉，以帮助小伙伴们解决一些实际生产问题。本篇文章主要介绍直播间画像实时维表建设的整个过程，如果对小伙伴有帮助的话，欢迎点赞 + 再看~</p>
 </blockquote>
-<h2 id="首先思考几个问题"><a href="#首先思考几个问题" class="headerlink" title="首先思考几个问题"></a>首先思考几个问题</h2><ul>
-<li><strong>WHAT：相信大家或多或少都观看过直播，甚至自己就是一名主播或负责的业务就是直播相关的，那大家有没有思考过，在直播业务场景中，你最关心什么指标以及需要关注、建设什么数据？</strong></li>
-<li><strong>WHY：为什么需要建设直播实时数据？离线建设不能满足吗？</strong></li>
-<li><strong>HOW：直播实时数据怎样赋能业务的？怎样根据公司直播场景的需求去划分直播实时数据？怎样去建设直播实时数据体？</strong></li>
-<li><strong>WHO：在建设直播实时数据的过程中，需要使用什么样的组件进行建设？每个组件都负责哪一部分？</strong></li>
+<h2 id="技术架构"><a href="#技术架构" class="headerlink" title="技术架构"></a>技术架构</h2><p>回顾上一节的<strong>技术架构</strong>图。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-2/tec-arc.png" alt="技术架构"></p>
+<p>整个架构相对来说是比较好理解的。从数据源到数据处理以及最后到数据汇部分。</p>
+<p>但是大家的疑惑点可能就集中在三个维表的建设上，包含<strong>主播用户画像维表，观众用户画像维表，直播间画像维表</strong>。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-2/dim-tec-arc.png" alt="技术架构"></p>
+<p>我们依然从以下几个角度的问题出发，通过分析场景，解答这几个问题来给大家介绍以上三个维表的建设过程。</p>
+<h2 id="Question"><a href="#Question" class="headerlink" title="Question"></a>Question</h2><ul>
+<li><strong>WHAT：直播实时公共画像维表是指什么？离线公共画像维表又指什么？区别？</strong></li>
+<li><strong>WHY：为什么架构图中的三类公共画像维表要按照实时和离线进行划分？为什么需要建设实时公共画像维表，离线公共画像维表不能满足需求？</strong></li>
+<li><strong>HOW：怎样才能建设满足直播实时数据的实时公共画像维表？</strong></li>
+<li><strong>WHO：需要使用什么样的组件建设直播实时公共画像维表？为什么选用这些组件进行建设？</strong></li>
 </ul>
-<p>让我们带着以上几个问题出发~</p>
-<h2 id="直播-短视频，内容运营的下一个战场"><a href="#直播-短视频，内容运营的下一个战场" class="headerlink" title="直播 + 短视频，内容运营的下一个战场"></a>直播 + 短视频，内容运营的下一个战场</h2><p>随着互联网络技术的发展，网络直播受到越来越多人的关注，直播在经过几年前的喷涌式大爆发之后，近段时间热度有所降低。内容的同质化和变现困难是直播现在面临的主要问题，随着移动终端普及和网络的提速，短视频以短平快的大流量传播方式快速获得各大平台、粉丝和资本的青睐，所以众多直播软件开始接入短视频的功能。<br>同时，一些以短视频为主发展起来的 app 也在软件中加入了直播功能，直播和短视频两者互相弥补不足，相辅相成，给用户带来了更好的使用体验，也给各大平台带来更多的流量，”直播 + 短视频”的模式已经也成为新的发展趋势。</p>
-<p>本系列文章主要围绕着直播实时数据建设而展开。本文是本系列文章的的第一篇，需求和架构篇，主要分为三个部分，按顺序为<strong>WHY - WHAT - HOW</strong>，以这三个角度出发，解答开头提出的三个问题，其中 <strong>WHO</strong>部分在本系列文章的后续建设细节章节进行介绍！</p>
-<h2 id="WHY：为什么建设直播实时数据？"><a href="#WHY：为什么建设直播实时数据？" class="headerlink" title="WHY：为什么建设直播实时数据？"></a>WHY：为什么建设直播实时数据？</h2><p>相比短视频的生产消费来说，直播的主播和观看直播的观众的纽带都是在直播间建立的，相互之间的互动行为也都只在直播间内产生，并且通常情况下，一场直播的时长也就在几个小时之内，因此直播的生产消费时效性相比短视频会更强，因而直播数据对于实时性的诉求也就更高。</p>
-<h2 id="WHAT：需要关注、建设什么直播实时数据？"><a href="#WHAT：需要关注、建设什么直播实时数据？" class="headerlink" title="WHAT：需要关注、建设什么直播实时数据？"></a>WHAT：需要关注、建设什么直播实时数据？</h2><p>需要关注、建设什么直播实时数据？换一句话来说就是根据<strong>数据分析业务的需求</strong>出发，决定建设什么样的直播实时数据？</p>
-<p>直播就是一个主播和观众联络互动的纽带，其中一切操作都是围绕着主播和观众而展开的，数据分析的同学都会以这个最基础的角度出发进行分析，因此首先我们就可以将整个直播的数据按照<strong>直播生产</strong>和<strong>直播消费</strong>进最基本的划分。</p>
-<p>除此角度之外，数据分析的同学也还会从<strong>全局直播业务洞察</strong>和<strong>单个直播间洞察</strong>不同粒度上进行分析洞察，因此还可以按照<strong>大盘数据</strong>、<strong>单直播间数据</strong>进行划分。</p>
-<p>从这两个角度出发，基本可以涵盖对于直播业务分析场景的诉求，因此直播实时数据也自然可以从这两个角度进行划分和建设。</p>
-<p>综上则整体<strong>直播实时数据业务划分和赋能应用架构</strong>如下图所示。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-1/biz-arc.png" alt="业务划分和应用架构"></p>
-<p>其中</p>
-<p><strong>直播大盘实时数据</strong>在宏观上监控直播业务，提供预测大盘的能力；其中分钟粒度时间序列可快速定位直播各行为的高峰时刻，可以基于该时刻进行详细归因。除此之外，当直播在做运营活动时，也能快速基于实时数据来看运营活动的活动效果，赋能活动策略实时优化。</p>
-<p><strong>单直播间直播实时数据</strong>可以以细粒度监控单直播间的直播业务，用来在直播过程中对外输出直播数据战报、以及可基于数据战报效果实时对单直播间进资源投放进行实时效果评估和合理调配。</p>
-<p>详细的直播实时数据需求和样例如下文。</p>
-<h3 id="大盘"><a href="#大盘" class="headerlink" title="大盘"></a>大盘</h3><p><strong>生产侧</strong></p>
+<h2 id="WHAT：实时-amp-离线公共画像维表？"><a href="#WHAT：实时-amp-离线公共画像维表？" class="headerlink" title="WHAT：实时 &amp; 离线公共画像维表？"></a>WHAT：实时 &amp; 离线公共画像维表？</h2><h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p>首先简单介绍下，<strong>实时 &amp; 离线公共画像维表</strong>中存储的内容就是实体的固有属性（比如用户的年龄等），我理解这两个词本身是高层抽象的概念，本文中介绍的<strong>主播用户画像维表，观众用户画像维表，直播间画像维表</strong>是其具体实现。</p>
+<p>其他大佬的文章解释中会对<strong>实时公共画像维表</strong> &amp; <strong>离线公共画像维表</strong>有更加深度的理解，这里我只说明我在直播实时数据建设过程中的理解~</p>
+<h3 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h3><p>其实这两个词的区别从名字上就可以区分出来，实时公共画像维表和离线公共画像维表的最大区别就是数据建设和应用场景要求的时效性不同。</p>
+<h3 id="离线公共画像维表"><a href="#离线公共画像维表" class="headerlink" title="离线公共画像维表"></a>离线公共画像维表</h3><p>特点：</p>
 <ul>
-<li><strong>指标</strong>：总体开播直播间数…</li>
-<li><strong>维度</strong>：直播间画像、主播用户画像</li>
-<li><strong>举例</strong>：[开播直播间为游戏类直播]的[总开播主播数]</li>
+<li><strong>场景</strong>：适合离线场景，<strong>时效性要求比较弱</strong>的场景，为指标提供画像维度填充或者打标服务</li>
+<li><strong>建设</strong>：一般都是以离线 t + 1 的方式进行建设</li>
+<li><strong>应用</strong>：使用的数据为离线 t + 1 的数据</li>
+<li><strong>举例</strong>：数据仓库中的用户画像维表，为应用层数据提供画像服务；比如不但需要统计总 uv，还需要统计分年龄段的 uv。</li>
 </ul>
-<p><strong>消费侧</strong></p>
+<h3 id="实时公共画像维表"><a href="#实时公共画像维表" class="headerlink" title="实时公共画像维表"></a>实时公共画像维表</h3><p>特点：</p>
 <ul>
-<li><strong>指标</strong>：总体观众观看、点赞、评论数…</li>
-<li><strong>维度</strong>：观众用户画像、日志上报其他维度</li>
-<li><strong>举例</strong>：[目前在河北观看直播]的[总观众数]</li>
+<li><strong>场景</strong>：适合实时场景，<strong>时效性要求比较强</strong>的场景，为指标提供画像维度填充或者打标服务</li>
+<li><strong>建设</strong>：实时的进行建设，延迟一般在秒级别</li>
+<li><strong>应用</strong>：使用的数据都是实时建设好的，必须可以实时获取（秒级别延迟后获取到）并使用</li>
 </ul>
-<h3 id="单直播间"><a href="#单直播间" class="headerlink" title="单直播间"></a>单直播间</h3><p><strong>生产侧</strong><br>单直播间一般都是一些画像信息，所以此类指标较少，暂时不做讨论。</p>
-<p><strong>消费侧</strong></p>
+<h2 id="WHY：为什么建设实时公共画像维表？"><a href="#WHY：为什么建设实时公共画像维表？" class="headerlink" title="WHY：为什么建设实时公共画像维表？"></a>WHY：为什么建设实时公共画像维表？</h2><p>为什么架构图中的三类公共画像维表要按照实时和离线进行划分？为什么需要建设实时公共画像维表，离线公共画像维表不能满足需求？</p>
+<p>这几个问题其实围绕着我们的直播实时数据建设以及应用的场景就可以展开解答。</p>
+<p>接上篇技术架构图，其中直播实时数据需要建设的公共维表分为以下三类：</p>
 <ul>
-<li><strong>指标</strong>：单直播间观众观看、点赞、评论数…</li>
-<li><strong>维度</strong>：观众用户画像、日志上报其他维度</li>
-<li><strong>举例</strong>：某直播间[18-23岁年龄段]的[总观众数]</li>
+<li><strong>直播间画像维表</strong>：包含直播对应的直播类别、开播客户端、标题、开播地址等信息</li>
+<li><strong>主播画像维表</strong>：主播对应的主播名、主播类别、性别、年龄段等</li>
+<li><strong>观众画像维表</strong>：观众对应的观众性别、年龄段等</li>
 </ul>
-<p>目前已经了解了要建设直播实时数据都包含了什么内容，接下来就是大干一场的时候了。</p>
-<h2 id="HOW：怎样去建设？"><a href="#HOW：怎样去建设？" class="headerlink" title="HOW：怎样去建设？"></a>HOW：怎样去建设？</h2><p>怎样去建设？换一句话来说就是从技术的角度出发，怎样将<strong>直播实时数据的业务需求</strong>转化为<strong>直播实时数据的技术方案</strong>进行落地？</p>
-<p>从技术角度出发，上述直播实时数据需要建设的需求内容总结下来就是一个词：<strong>直播实时多维指标</strong>。</p>
-<h3 id="多维"><a href="#多维" class="headerlink" title="多维"></a>多维</h3><p>即产出指标是多维度的，包含公共维度和非公共维度。</p>
-<p>第一类是<strong>公共维度</strong>。包含三部分，直播间画像，主播用户画像，观众用户画像，公共两字代表这类维度是可以被多个指标进行共享使用的。举例：某直播间开播之后，该直播间画像只需要一次建设，就可以被多个指标多次重复使用，不但可以作为大盘侧生产、消费指标的维度，也可以作为单直播间生产、消费指标的维度。</p>
-<p>第二类是<strong>非公共维度</strong>。非公共维度是和特定消费行为绑定的，也就是和某个指标绑定的，随着日志上报一同上报的维度。举例：某观众观看直播时的客户端类型（安卓？IOS？），观看直播时的省份等维度，这类维度只和当前的消费行为相关，不能被其他指标所共享。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-1/dim.png" alt="多维"></p>
-<h3 id="指标"><a href="#指标" class="headerlink" title="指标"></a>指标</h3><p>其实都是 pv，uv 类指标。简单理解就是各个维度下对应的 xx 量。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-1/metric.png" alt="指标"></p>
-<h3 id="实时数据建设技术架构"><a href="#实时数据建设技术架构" class="headerlink" title="实时数据建设技术架构"></a>实时数据建设技术架构</h3><p>对应到直播实时数据建设的过程主要包含两部分：公共部分和非公共部分。</p>
-<p>公共部分就是实时公共维表的建设。</p>
-<p>非公共部分就是指标非公共维度以及对应生产、消费指标建设。</p>
-<p>直接给出总体<strong>技术架构</strong>图，本系列后续的文章进行介绍这样进行整体架构设计的详细原因。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-1/tec-arc.png" alt="技术架构"></p>
-<p>简单说明下。</p>
-<p>其中数据源包含生产侧，消费侧数据源；</p>
-<p>数据处理部分包含公共实时维表建设，和指标建设，其中一部分公共维表的建设也使用了离线的方式提供了支持；</p>
-<p>最后就是数据汇部分，产出了生产侧，消费侧的多维指标供数据分析师使用。</p>
-<h2 id="下节预告"><a href="#下节预告" class="headerlink" title="下节预告"></a>下节预告</h2><p>下节主要介绍<strong>直播实时公共画像的建设</strong>，其中是技术架构图中的<strong>主播用户、关注用户画像、以及直播间画像</strong>的建设方案。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文首先提出了几个关于直播实时数据建设的问题。以这几个问题触发，引出了一下三小节。</p>
-<p>第一节简单介绍了直播时效性强的原因，因此直播对于实时数据的需求更加强烈。</p>
-<p>第二节从数据分析的角度出发，引出了我们需要建设的直播实时数据都包含哪些内容，并且从大盘/单直播间，生产/消费角度进行了模块划分。</p>
-<p>第三节对数据需求进行了技术方案的整体架构设计。</p>
+<h3 id="直播间画像维表"><a href="#直播间画像维表" class="headerlink" title="直播间画像维表"></a>直播间画像维表</h3><p>首先抛出结论：<strong>直播间画像都是直播间的固有属性画像，直播间画像维表的建设过程是实时的</strong>。</p>
+<p>由于大多数直播的时长都在几小时不等，随着直播的开始，主播域观众的互动也随即产生，从而直播生产和消费的指标也开始产出，随着直播的结束，主播和观众的互动也就结束了，对应的直播生产和消费指标也就不存在了，因此直播间画像的所能提供给其他指标作为维表的价值也就快速消失了，所以直播间画像（标题，开播地址）的应用场景特点就是<strong>时效性很强</strong>。<br>因此直播间画像维表对于直播生产消费指标的建设和应用来说，需要满足可实时建设、可实时查询获取的要求。</p>
+<h3 id="主播-amp-观众用户画像维表"><a href="#主播-amp-观众用户画像维表" class="headerlink" title="主播 &amp; 观众用户画像维表"></a>主播 &amp; 观众用户画像维表</h3><p>结论：<strong>这类画像都是用户的固有属性画像，而非直播间固有属性，和直播间是非强相关的。主播 &amp; 观众用户画像维表的建设过程可以是离线的</strong>。</p>
+<p>无论直播间的开播关播，直播过程中的生产消费，主播画像和观众画像基本上不会产生变动。<br>（举例：大多数情况下，当已经判定一个用户的年龄段画像为 18 - 23 时，即使这个用户开了 10 场直播，或者这个用户观看了 10 场直播，其年龄段判定也基本不会有变化）。<br>因此主播用户画像维表 &amp; 观众用户画像维表对于直播生产消费指标的建设和应用来说，可以满足离线 t + 1 建设，提供数据服务进行实时获取的要求。</p>
+<blockquote>
+<p>Notes：</p>
+<p>主播 &amp; 观众用户画像需要根据用户生产消费行为以及其他信息，使用到机器学习进行性别和年龄段等的用户画像信息判定产出。<br>也有非常多的场景将这类画像进行实时建设，用于实时个性化推荐等。只不过本文的直播实时数据建设对于这两类画像的时效性要求较弱，所以采用了离线的方式进行建设。</p>
+</blockquote>
+<h2 id="HOW-WHO：怎样建设？用什么建设？"><a href="#HOW-WHO：怎样建设？用什么建设？" class="headerlink" title="HOW + WHO：怎样建设？用什么建设？"></a>HOW + WHO：怎样建设？用什么建设？</h2><h3 id="直播间生命周期-amp-数据流转"><a href="#直播间生命周期-amp-数据流转" class="headerlink" title="直播间生命周期 &amp; 数据流转"></a>直播间生命周期 &amp; 数据流转</h3><p>直播间整个生命周期如图所示。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-2/live-stream-life-cycle.png" alt="生命周期"></p>
+<ul>
+<li>1.主播创建直播间，直播间进入开播的状态；</li>
+<li>2.观众进入直播间后，在直播间内与主播进行互动；</li>
+<li>3.最后就是主播对直播间进行关播，标识着直播间生命周期的结束状态。</li>
+</ul>
+<h3 id="直播间画像维表-实时"><a href="#直播间画像维表-实时" class="headerlink" title="直播间画像维表-实时"></a>直播间画像维表-实时</h3><p>实时画像维表的建设。上图中<strong>红色</strong>的字体为实时画像维表的建设和应用过程。</p>
+<h4 id="直播间画像实时数据流转"><a href="#直播间画像实时数据流转" class="headerlink" title="直播间画像实时数据流转"></a>直播间画像实时数据流转</h4><ul>
+<li>1.当主播开播，直播间进行直播后，直播间产生了直播间画像信息，这时可以将画像信息实时的建设到直播间画像实时维表中。<br>并且可以同时建设生产侧的实时指标，利用建设好的<strong>直播间画像实时维表 + 主播 &amp; 观众画像离线维表</strong>进行生产侧指标的维度填充；</li>
+<li>2.当观众进入直播间后，与主播进行互动，产生一系列的消费行为，随即可以建设消费侧的实时指标，利用建设的<strong>直播间画像实时维表 + 主播 &amp; 观众画像离线维表</strong>进行消费侧指标的维度填充；</li>
+<li>3.当主播对直播间进行关播的时候，从直播间画像实时维表中就可以对该直播间的画像进行删除。</li>
+</ul>
+<h4 id="组件选型"><a href="#组件选型" class="headerlink" title="组件选型"></a>组件选型</h4><p>通过上文的分析，可以了解到直播间画像实时维表建设的要求如下：</p>
+<ul>
+<li>实时画像：首先需要支持实时建设，实时访问；</li>
+<li>实时画像：建设的数据都为实时指标，即要求低延迟的请求响应时间；</li>
+<li>公共画像：需要支撑多个大流量生产消费实时任务的访问请求，即提供高 QPS 画像数据服务；</li>
+<li>公共画像：高稳定性。</li>
+</ul>
+<p>因此组件选型就自然落在了高速缓存的范畴中，我们最后经过方案对比之后，选择了 redis 作为我们的实时维表的存储引擎。</p>
+<p>使用了 redis 中的 hash 作为维表存储结构，其中直播间画像维度存储设计如下图。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-2/live-stream-dim-redis-hash.png" alt="维度存储"></p>
+<h4 id="flink-实时维表建设代码示例"><a href="#flink-实时维表建设代码示例" class="headerlink" title="flink 实时维表建设代码示例"></a>flink 实时维表建设代码示例</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LiveStreamRealtimeDimBuilderJob</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();</span><br><span class="line"></span><br><span class="line">        DataStream&lt;<span class="keyword">byte</span>[]&gt; source = SourceFactory.getSourceDataStream();</span><br><span class="line">        source.process(<span class="keyword">new</span> ProcessFunction&lt;<span class="keyword">byte</span>[], String&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processElement</span><span class="params">(<span class="keyword">byte</span>[] bytes, Context context, Collector&lt;String&gt; collector)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                CommonModel c = CommonModel.parseFrom(bytes);</span><br><span class="line">                <span class="comment">// 开播</span></span><br><span class="line">                <span class="keyword">if</span> (c.isStartLiveStream()) &#123;</span><br><span class="line">                    RedisConfig</span><br><span class="line">                            .get()</span><br><span class="line">                            .hmset(c.getLiveStreamId()</span><br><span class="line">                                    , ImmutableMap.&lt;String, String&gt;builder()</span><br><span class="line">                                            .put(<span class="string">&quot;type&quot;</span>, c.getType())</span><br><span class="line">                                            .put(<span class="string">&quot;client&quot;</span>, c.getClient())</span><br><span class="line">                                            .put(<span class="string">&quot;title&quot;</span>, c.getTitle())</span><br><span class="line">                                            .put(<span class="string">&quot;address&quot;</span>, c.getAddress())</span><br><span class="line">                                            .build()</span><br><span class="line">                            );</span><br><span class="line">                    RedisConfig</span><br><span class="line">                            .get()</span><br><span class="line">                            .expire(c.getLiveStreamId(), <span class="number">30</span> * <span class="number">24</span> * <span class="number">60</span> * <span class="number">60</span>);</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (c.isEndLiveStream()) &#123;</span><br><span class="line">                <span class="comment">// 关播</span></span><br><span class="line">                    RedisConfig</span><br><span class="line">                            .get()</span><br><span class="line">                            .expire(c.getLiveStreamId(), <span class="number">2</span> * <span class="number">24</span> * <span class="number">60</span> * <span class="number">60</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        env.execute();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Data</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">CommonModel</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> String liveStreamId; <span class="comment">// 直播间 id</span></span><br><span class="line">        <span class="keyword">private</span> String type; <span class="comment">// 直播间类型</span></span><br><span class="line">        <span class="keyword">private</span> String client; <span class="comment">// 开播客户端</span></span><br><span class="line">        <span class="keyword">private</span> String title; <span class="comment">// 直播间标题</span></span><br><span class="line">        <span class="keyword">private</span> String address; <span class="comment">// 直播间开播地址</span></span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> CommonModel <span class="title">parseFrom</span><span class="params">(<span class="keyword">byte</span>[] bytes)</span> </span>&#123;</span><br><span class="line">            <span class="comment">// 逻辑根据业务逻辑判定</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isStartLiveStream</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="comment">// 逻辑根据业务逻辑判定</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isEndLiveStream</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="comment">// 逻辑根据业务逻辑判定</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="主播-amp-观众用户画像维表-离线"><a href="#主播-amp-观众用户画像维表-离线" class="headerlink" title="主播 &amp; 观众用户画像维表-离线"></a>主播 &amp; 观众用户画像维表-离线</h3><p>离线画像维表的建设。主要包含主播和观众的用户画像，性别，年龄等信息。如下图<strong>蓝色</strong>的字体为离线画像维表的应用过程。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-2/live-stream-life-cycle.png" alt="生命周期"></p>
+<h4 id="主播-amp-观众画像数据流转"><a href="#主播-amp-观众画像数据流转" class="headerlink" title="主播 &amp; 观众画像数据流转"></a>主播 &amp; 观众画像数据流转</h4><p>在产出直播间生产侧、消费侧实时数据时，使用主播 &amp; 观众画像进行了画像维度填充。</p>
+<h4 id="存储组件"><a href="#存储组件" class="headerlink" title="存储组件"></a>存储组件</h4><p>其中离线画像维表的存储组件选型与实时相同，同为 redis，画像信息存储方式也是使用 redis hash 结构进行存储。</p>
+<p>以 t + 1 的方式进行画像数据建设并进行数据同步，将建设好的全量主播和观众用户画像同步到 redis 高速缓存当中。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文衔接上文，主要介绍直播间实时维表的建设过程。提出几个建设的问题，以这几个问题出发，引出了一下三小节。</p>
+<p>第一节简单介绍了实时 &amp; 离线公共画像维表的概念。</p>
+<p>第二节从数据应用场景的角度出发，介绍了为什么需要建设实时的公共画像维表。</p>
+<p>第三节主要介绍了实时画像维表的建设过程以及详细的技术方案。</p>
 <p>最后一节对本文进行了总结。</p>
-<p>如果你也有相同的建设需求或者你以及建设了直播实时数据，欢迎留言或者留下你的文章链接，相互交流~</p>
+<p>如果你也建设过实时画像维表，或者有相同的需求，欢迎留言或者留下你的文章链接，相互交流~</p>
 ]]></content>
       <categories>
         <category>Apache Flink</category>
@@ -2342,91 +2436,128 @@
       </tags>
   </entry>
   <entry>
-    <title>生产实践 | Flink + 直播（二）| 如何建设实时公共画像维表？</title>
-    <url>/2020/11/02/wechat-blog/apache-flink:realtime-live-stream-2/</url>
-    <content><![CDATA[<h1 id="生产实践-Flink-直播（二）-如何建设实时公共画像维表？"><a href="#生产实践-Flink-直播（二）-如何建设实时公共画像维表？" class="headerlink" title="生产实践 | Flink + 直播（二）| 如何建设实时公共画像维表？"></a>生产实践 | Flink + 直播（二）| 如何建设实时公共画像维表？</h1><blockquote>
-<p>本系列每篇文章都是从一些实际生产实践需求出发，解决一些生产实践中的问题，抛砖引玉，以帮助小伙伴们解决一些实际生产问题。本篇文章主要介绍直播间画像实时维表建设的整个过程，如果对小伙伴有帮助的话，欢迎点赞 + 再看~</p>
+    <title>踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑</title>
+    <url>/2020/09/11/wechat-blog/apache-flink:realtime-out-of-order/</url>
+    <content><![CDATA[<h1 id="踩坑记-Flink-事件时间语义下数据乱序丢数踩坑"><a href="#踩坑记-Flink-事件时间语义下数据乱序丢数踩坑" class="headerlink" title="踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑"></a>踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑</h1><blockquote>
+<p>本文详细介绍了在上游使用处理时间语义的 flink 任务出现故障后，重启消费大量积压在上游的数据并产出至下游数据乱序特别严重时，下游 flink 任务使用事件时间语义时遇到的大量丢数问题以及相关的解决方案。</p>
 </blockquote>
-<h2 id="技术架构"><a href="#技术架构" class="headerlink" title="技术架构"></a>技术架构</h2><p>回顾上一节的<strong>技术架构</strong>图。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-2/tec-arc.png" alt="技术架构"></p>
-<p>整个架构相对来说是比较好理解的。从数据源到数据处理以及最后到数据汇部分。</p>
-<p>但是大家的疑惑点可能就集中在三个维表的建设上，包含<strong>主播用户画像维表，观众用户画像维表，直播间画像维表</strong>。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-2/dim-tec-arc.png" alt="技术架构"></p>
-<p>我们依然从以下几个角度的问题出发，通过分析场景，解答这几个问题来给大家介绍以上三个维表的建设过程。</p>
-<h2 id="Question"><a href="#Question" class="headerlink" title="Question"></a>Question</h2><ul>
-<li><strong>WHAT：直播实时公共画像维表是指什么？离线公共画像维表又指什么？区别？</strong></li>
-<li><strong>WHY：为什么架构图中的三类公共画像维表要按照实时和离线进行划分？为什么需要建设实时公共画像维表，离线公共画像维表不能满足需求？</strong></li>
-<li><strong>HOW：怎样才能建设满足直播实时数据的实时公共画像维表？</strong></li>
-<li><strong>WHO：需要使用什么样的组件建设直播实时公共画像维表？为什么选用这些组件进行建设？</strong></li>
-</ul>
-<h2 id="WHAT：实时-amp-离线公共画像维表？"><a href="#WHAT：实时-amp-离线公共画像维表？" class="headerlink" title="WHAT：实时 &amp; 离线公共画像维表？"></a>WHAT：实时 &amp; 离线公共画像维表？</h2><h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p>首先简单介绍下，<strong>实时 &amp; 离线公共画像维表</strong>中存储的内容就是实体的固有属性（比如用户的年龄等），我理解这两个词本身是高层抽象的概念，本文中介绍的<strong>主播用户画像维表，观众用户画像维表，直播间画像维表</strong>是其具体实现。</p>
-<p>其他大佬的文章解释中会对<strong>实时公共画像维表</strong> &amp; <strong>离线公共画像维表</strong>有更加深度的理解，这里我只说明我在直播实时数据建设过程中的理解~</p>
-<h3 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h3><p>其实这两个词的区别从名字上就可以区分出来，实时公共画像维表和离线公共画像维表的最大区别就是数据建设和应用场景要求的时效性不同。</p>
-<h3 id="离线公共画像维表"><a href="#离线公共画像维表" class="headerlink" title="离线公共画像维表"></a>离线公共画像维表</h3><p>特点：</p>
+<p>本文分为以下几个部分：</p>
 <ul>
-<li><strong>场景</strong>：适合离线场景，<strong>时效性要求比较弱</strong>的场景，为指标提供画像维度填充或者打标服务</li>
-<li><strong>建设</strong>：一般都是以离线 t + 1 的方式进行建设</li>
-<li><strong>应用</strong>：使用的数据为离线 t + 1 的数据</li>
-<li><strong>举例</strong>：数据仓库中的用户画像维表，为应用层数据提供画像服务；比如不但需要统计总 uv，还需要统计分年龄段的 uv。</li>
+<li><strong>1.本次踩坑的应用场景</strong></li>
+<li><strong>2.应用场景中发生的丢数故障分析</strong></li>
+<li><strong>3.待修复的故障点</strong></li>
+<li><strong>4.丢数故障解决方案及原理</strong></li>
+<li><strong>5.总结</strong></li>
 </ul>
-<h3 id="实时公共画像维表"><a href="#实时公共画像维表" class="headerlink" title="实时公共画像维表"></a>实时公共画像维表</h3><p>特点：</p>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>应用场景如下：</p>
 <ul>
-<li><strong>场景</strong>：适合实时场景，<strong>时效性要求比较强</strong>的场景，为指标提供画像维度填充或者打标服务</li>
-<li><strong>建设</strong>：实时的进行建设，延迟一般在秒级别</li>
-<li><strong>应用</strong>：使用的数据都是实时建设好的，必须可以实时获取（秒级别延迟后获取到）并使用</li>
+<li><strong>flink 任务 A</strong> 以<strong>处理时间</strong>语义做过滤产出新增 xx 明细数据至 <strong>Kafka Y</strong></li>
+<li><strong>flink 任务 B</strong> 以<strong>事件时间</strong>语义消费 <strong>Kafka Y</strong> 做窗口聚合操作产出分钟级别聚合指标至 <strong>Kafka Z</strong></li>
+<li><strong>Kafka Z</strong> 实时导入至 <strong>Druid</strong> 以做即时 OLAP 分析，并且展示在 BI 应用看板</li>
 </ul>
-<h2 id="WHY：为什么建设实时公共画像维表？"><a href="#WHY：为什么建设实时公共画像维表？" class="headerlink" title="WHY：为什么建设实时公共画像维表？"></a>WHY：为什么建设实时公共画像维表？</h2><p>为什么架构图中的三类公共画像维表要按照实时和离线进行划分？为什么需要建设实时公共画像维表，离线公共画像维表不能满足需求？</p>
-<p>这几个问题其实围绕着我们的直播实时数据建设以及应用的场景就可以展开解答。</p>
-<p>接上篇技术架构图，其中直播实时数据需要建设的公共维表分为以下三类：</p>
+<p><img src="/blog-img/apache-flink:realtime-out-of-order/stream.png" alt="场景"></p>
+<h2 id="丢数故障分析"><a href="#丢数故障分析" class="headerlink" title="丢数故障分析"></a>丢数故障分析</h2><p>简要介绍下这次生产中故障场景。整条故障追踪链路如下：</p>
+<p>故障一：</p>
 <ul>
-<li><strong>直播间画像维表</strong>：包含直播对应的直播类别、开播客户端、标题、开播地址等信息</li>
-<li><strong>主播画像维表</strong>：主播对应的主播名、主播类别、性别、年龄段等</li>
-<li><strong>观众画像维表</strong>：观众对应的观众性别、年龄段等</li>
+<li>收到报警反馈 <strong>flink 任务 A</strong> 入口流量为 0</li>
+<li>定位 <strong>flink 任务 A</strong> 中某个算子的故障导致整个 job 卡住</li>
+<li>导致此 <strong>flink 任务 A</strong> 上游 <strong>kafka X</strong> 积压了大量数据</li>
+<li>重启 <strong>flink 任务 A</strong>后，消费大量积压在上游 <strong>kafka X</strong> 数据完成，任务恢复正常</li>
 </ul>
-<h3 id="直播间画像维表"><a href="#直播间画像维表" class="headerlink" title="直播间画像维表"></a>直播间画像维表</h3><p>首先抛出结论：<strong>直播间画像都是直播间的固有属性画像，直播间画像维表的建设过程是实时的</strong>。</p>
-<p>由于大多数直播的时长都在几小时不等，随着直播的开始，主播域观众的互动也随即产生，从而直播生产和消费的指标也开始产出，随着直播的结束，主播和观众的互动也就结束了，对应的直播生产和消费指标也就不存在了，因此直播间画像的所能提供给其他指标作为维表的价值也就快速消失了，所以直播间画像（标题，开播地址）的应用场景特点就是<strong>时效性很强</strong>。<br>因此直播间画像维表对于直播生产消费指标的建设和应用来说，需要满足可实时建设、可实时查询获取的要求。</p>
-<h3 id="主播-amp-观众用户画像维表"><a href="#主播-amp-观众用户画像维表" class="headerlink" title="主播 &amp; 观众用户画像维表"></a>主播 &amp; 观众用户画像维表</h3><p>结论：<strong>这类画像都是用户的固有属性画像，而非直播间固有属性，和直播间是非强相关的。主播 &amp; 观众用户画像维表的建设过程可以是离线的</strong>。</p>
-<p>无论直播间的开播关播，直播过程中的生产消费，主播画像和观众画像基本上不会产生变动。<br>（举例：大多数情况下，当已经判定一个用户的年龄段画像为 18 - 23 时，即使这个用户开了 10 场直播，或者这个用户观看了 10 场直播，其年龄段判定也基本不会有变化）。<br>因此主播用户画像维表 &amp; 观众用户画像维表对于直播生产消费指标的建设和应用来说，可以满足离线 t + 1 建设，提供数据服务进行实时获取的要求。</p>
-<blockquote>
-<p>Notes：</p>
-<p>主播 &amp; 观众用户画像需要根据用户生产消费行为以及其他信息，使用到机器学习进行性别和年龄段等的用户画像信息判定产出。<br>也有非常多的场景将这类画像进行实时建设，用于实时个性化推荐等。只不过本文的直播实时数据建设对于这两类画像的时效性要求较弱，所以采用了离线的方式进行建设。</p>
-</blockquote>
-<h2 id="HOW-WHO：怎样建设？用什么建设？"><a href="#HOW-WHO：怎样建设？用什么建设？" class="headerlink" title="HOW + WHO：怎样建设？用什么建设？"></a>HOW + WHO：怎样建设？用什么建设？</h2><h3 id="直播间生命周期-amp-数据流转"><a href="#直播间生命周期-amp-数据流转" class="headerlink" title="直播间生命周期 &amp; 数据流转"></a>直播间生命周期 &amp; 数据流转</h3><p>直播间整个生命周期如图所示。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-2/live-stream-life-cycle.png" alt="生命周期"></p>
+<p>故障一从而引发下游的故障二：</p>
 <ul>
-<li>1.主播创建直播间，直播间进入开播的状态；</li>
-<li>2.观众进入直播间后，在直播间内与主播进行互动；</li>
-<li>3.最后就是主播对直播间进行关播，标识着直播间生命周期的结束状态。</li>
+<li>由于 <strong>flink 任务 A</strong> 使用了<strong>处理时间</strong>语义处理数据，并且有过滤和 keyBy 分桶窗口逻辑，在重启后消费大量积压在上游的数据时，导致 sink rebalance 后产出到下游 <strong>kafka Y</strong> 各个分区数据中的 server_timestamp 是乱序的</li>
+<li>下游 <strong>flink 任务 B</strong> 在消费 <strong>Kafka Y</strong> 时使用了<strong>事件时间</strong>语义处理数据，并且使用了数据中的 server_timestamp 作为<strong>事件时间</strong>时间戳</li>
+<li><strong>flink 任务 B</strong> 消费了乱序很严重的数据之后，导致在窗口聚合计算时丢失了大量数据</li>
+<li>最终展示在 BI 应用中的报表有丢失数据的情况</li>
 </ul>
-<h3 id="直播间画像维表-实时"><a href="#直播间画像维表-实时" class="headerlink" title="直播间画像维表-实时"></a>直播间画像维表-实时</h3><p>实时画像维表的建设。上图中<strong>红色</strong>的字体为实时画像维表的建设和应用过程。</p>
-<h4 id="直播间画像实时数据流转"><a href="#直播间画像实时数据流转" class="headerlink" title="直播间画像实时数据流转"></a>直播间画像实时数据流转</h4><ul>
-<li>1.当主播开播，直播间进行直播后，直播间产生了直播间画像信息，这时可以将画像信息实时的建设到直播间画像实时维表中。<br>并且可以同时建设生产侧的实时指标，利用建设好的<strong>直播间画像实时维表 + 主播 &amp; 观众画像离线维表</strong>进行生产侧指标的维度填充；</li>
-<li>2.当观众进入直播间后，与主播进行互动，产生一系列的消费行为，随即可以建设消费侧的实时指标，利用建设的<strong>直播间画像实时维表 + 主播 &amp; 观众画像离线维表</strong>进行消费侧指标的维度填充；</li>
-<li>3.当主播对直播间进行关播的时候，从直播间画像实时维表中就可以对该直播间的画像进行删除。</li>
+<p><img src="/blog-img/apache-flink:realtime-out-of-order/bug_stream.png" alt="故障场景"></p>
+<h2 id="待修复的故障点"><a href="#待修复的故障点" class="headerlink" title="待修复的故障点"></a>待修复的故障点</h2><ul>
+<li>1.<strong>flink 任务 A</strong> 的稳定性故障，这部分解决方案暂不在本文中介绍</li>
+<li>2.<strong>flink 任务 B</strong> 消费上游乱序丢数故障，解决方案在下文介绍</li>
 </ul>
-<h4 id="组件选型"><a href="#组件选型" class="headerlink" title="组件选型"></a>组件选型</h4><p>通过上文的分析，可以了解到直播间画像实时维表建设的要求如下：</p>
-<ul>
-<li>实时画像：首先需要支持实时建设，实时访问；</li>
-<li>实时画像：建设的数据都为实时指标，即要求低延迟的请求响应时间；</li>
-<li>公共画像：需要支撑多个大流量生产消费实时任务的访问请求，即提供高 QPS 画像数据服务；</li>
-<li>公共画像：高稳定性。</li>
-</ul>
-<p>因此组件选型就自然落在了高速缓存的范畴中，我们最后经过方案对比之后，选择了 redis 作为我们的实时维表的存储引擎。</p>
-<p>使用了 redis 中的 hash 作为维表存储结构，其中直播间画像维度存储设计如下图。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-2/live-stream-dim-redis-hash.png" alt="维度存储"></p>
-<h4 id="flink-实时维表建设代码示例"><a href="#flink-实时维表建设代码示例" class="headerlink" title="flink 实时维表建设代码示例"></a>flink 实时维表建设代码示例</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LiveStreamRealtimeDimBuilderJob</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();</span><br><span class="line"></span><br><span class="line">        DataStream&lt;<span class="keyword">byte</span>[]&gt; source = SourceFactory.getSourceDataStream();</span><br><span class="line">        source.process(<span class="keyword">new</span> ProcessFunction&lt;<span class="keyword">byte</span>[], String&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processElement</span><span class="params">(<span class="keyword">byte</span>[] bytes, Context context, Collector&lt;String&gt; collector)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                CommonModel c = CommonModel.parseFrom(bytes);</span><br><span class="line">                <span class="comment">// 开播</span></span><br><span class="line">                <span class="keyword">if</span> (c.isStartLiveStream()) &#123;</span><br><span class="line">                    RedisConfig</span><br><span class="line">                            .get()</span><br><span class="line">                            .hmset(c.getLiveStreamId()</span><br><span class="line">                                    , ImmutableMap.&lt;String, String&gt;builder()</span><br><span class="line">                                            .put(<span class="string">&quot;type&quot;</span>, c.getType())</span><br><span class="line">                                            .put(<span class="string">&quot;client&quot;</span>, c.getClient())</span><br><span class="line">                                            .put(<span class="string">&quot;title&quot;</span>, c.getTitle())</span><br><span class="line">                                            .put(<span class="string">&quot;address&quot;</span>, c.getAddress())</span><br><span class="line">                                            .build()</span><br><span class="line">                            );</span><br><span class="line">                    RedisConfig</span><br><span class="line">                            .get()</span><br><span class="line">                            .expire(c.getLiveStreamId(), <span class="number">30</span> * <span class="number">24</span> * <span class="number">60</span> * <span class="number">60</span>);</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (c.isEndLiveStream()) &#123;</span><br><span class="line">                <span class="comment">// 关播</span></span><br><span class="line">                    RedisConfig</span><br><span class="line">                            .get()</span><br><span class="line">                            .expire(c.getLiveStreamId(), <span class="number">2</span> * <span class="number">24</span> * <span class="number">60</span> * <span class="number">60</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        env.execute();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Data</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">CommonModel</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> String liveStreamId; <span class="comment">// 直播间 id</span></span><br><span class="line">        <span class="keyword">private</span> String type; <span class="comment">// 直播间类型</span></span><br><span class="line">        <span class="keyword">private</span> String client; <span class="comment">// 开播客户端</span></span><br><span class="line">        <span class="keyword">private</span> String title; <span class="comment">// 直播间标题</span></span><br><span class="line">        <span class="keyword">private</span> String address; <span class="comment">// 直播间开播地址</span></span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> CommonModel <span class="title">parseFrom</span><span class="params">(<span class="keyword">byte</span>[] bytes)</span> </span>&#123;</span><br><span class="line">            <span class="comment">// 逻辑根据业务逻辑判定</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isStartLiveStream</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="comment">// 逻辑根据业务逻辑判定</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isEndLiveStream</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="comment">// 逻辑根据业务逻辑判定</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="解决方案以及原理"><a href="#解决方案以及原理" class="headerlink" title="解决方案以及原理"></a>解决方案以及原理</h2><h3 id="丢数故障解决方案"><a href="#丢数故障解决方案" class="headerlink" title="丢数故障解决方案"></a>丢数故障解决方案</h3><p>解决方案是以下游 <strong>flink 任务 B</strong> 作为切入点，直接给出 <strong>flink 任务 B</strong> 的 sql 代码解决方案，java code 也可以按照这个方案实现，其本质原理相同。下文进行原理解释。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  to_unix_timestamp(server_timestamp <span class="operator">/</span> bucket) <span class="keyword">AS</span> <span class="type">timestamp</span>, <span class="comment">-- format 成原有的事件时间戳</span></span><br><span class="line">  <span class="built_in">count</span>(id) <span class="keyword">as</span> id_cnt,</span><br><span class="line">  <span class="built_in">sum</span>(duration) <span class="keyword">as</span> duration_sum</span><br><span class="line"><span class="keyword">FROM</span></span><br><span class="line">  source_table</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">  TUMBLE(proctime, <span class="type">INTERVAL</span> <span class="string">&#x27;1&#x27;</span> <span class="keyword">MINUTE</span>),</span><br><span class="line">  server_timestamp <span class="operator">/</span> bucket <span class="comment">-- 根据事件时间分桶计算，将相同范围（比如 1 分钟）事件时间的数据分到一个桶内</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="主播-amp-观众用户画像维表-离线"><a href="#主播-amp-观众用户画像维表-离线" class="headerlink" title="主播 &amp; 观众用户画像维表-离线"></a>主播 &amp; 观众用户画像维表-离线</h3><p>离线画像维表的建设。主要包含主播和观众的用户画像，性别，年龄等信息。如下图<strong>蓝色</strong>的字体为离线画像维表的应用过程。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-2/live-stream-life-cycle.png" alt="生命周期"></p>
-<h4 id="主播-amp-观众画像数据流转"><a href="#主播-amp-观众画像数据流转" class="headerlink" title="主播 &amp; 观众画像数据流转"></a>主播 &amp; 观众画像数据流转</h4><p>在产出直播间生产侧、消费侧实时数据时，使用主播 &amp; 观众画像进行了画像维度填充。</p>
-<h4 id="存储组件"><a href="#存储组件" class="headerlink" title="存储组件"></a>存储组件</h4><p>其中离线画像维表的存储组件选型与实时相同，同为 redis，画像信息存储方式也是使用 redis hash 结构进行存储。</p>
-<p>以 t + 1 的方式进行画像数据建设并进行数据同步，将建设好的全量主播和观众用户画像同步到 redis 高速缓存当中。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文衔接上文，主要介绍直播间实时维表的建设过程。提出几个建设的问题，以这几个问题出发，引出了一下三小节。</p>
-<p>第一节简单介绍了实时 &amp; 离线公共画像维表的概念。</p>
-<p>第二节从数据应用场景的角度出发，介绍了为什么需要建设实时的公共画像维表。</p>
-<p>第三节主要介绍了实时画像维表的建设过程以及详细的技术方案。</p>
-<p>最后一节对本文进行了总结。</p>
-<p>如果你也建设过实时画像维表，或者有相同的需求，欢迎留言或者留下你的文章链接，相互交流~</p>
+<h3 id="解决方案原理"><a href="#解决方案原理" class="headerlink" title="解决方案原理"></a>解决方案原理</h3><p>首先明确一个无法避免的问题，在不考虑 watermark 允许延迟设置特别大的情况下，只要上游使用到了处理时间语义，下游使用事件时间语义，一旦上游发生故障重启并在短时间内消费大量数据，就不可避免的会出现上述错误以及故障。</p>
+<p>在下游消费方仍然需要将对应事件时间戳的数据展示在 BI 平台报表中、并且全链路时间语义都为处理时间保障不丢数的前提下。解决方案就是在聚合并最终产出对应事件时间戳的数据。</p>
+<p>最后的方案如下：<br>整条链路全部为处理时间语义，窗口计算也使用处理时间，但是产出数据中的时间戳全部为事件时间戳。<br>在出现故障的场景下，一分钟的窗口内的数据的事件时间戳可能相差几个小时，但在最终窗口聚合时可以根据事件时间戳划分到对应的事件时间窗口内，下游 BI 应用展示时使用此事件时间戳即可。</p>
+<blockquote>
+<p>注意：sql 中的 bucket 需要根据具体使用场景进行设置，如果设置过于小，比如非故障场景下按照处理时间开 1 分钟的窗口，bucket<br>设为 60000（1 分钟），那么极有可能，这个时间窗口中所有数据的 server_timestamp 都集中在某两分钟内，那么这些数据就会被分到两个桶（bucket）内，则会导致严重的数据倾斜。</p>
+</blockquote>
+<h3 id="输入数据样例"><a href="#输入数据样例" class="headerlink" title="输入数据样例"></a>输入数据样例</h3><p>模拟上述故障，<strong>flink B</strong> 的任务某一个窗口内的数据输入如下。</p>
+<table>
+    <thead>
+        <tr>
+            <th style="width: 10%; text-align: center;">server_timestamp</th>
+            <th style="width: 20%; text-align: center;">id</th>
+            <th style="width: 20%; text-align: center;">duration</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:14:38</td>
+            <td>1</td>
+            <td>300</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:14:50</td>
+            <td>1</td>
+            <td>500</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:25:38</td>
+            <td>2</td>
+            <td>600</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:25:38</td>
+            <td>3</td>
+            <td>900</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:25:38</td>
+            <td>2</td>
+            <td>800</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3 id="输出数据样例"><a href="#输出数据样例" class="headerlink" title="输出数据样例"></a>输出数据样例</h3><p>按照上述解决方案中的 sql 处理过后，输出数据如下，则可以解决此类型丢数故障。</p>
+<table>
+    <thead>
+        <tr>
+            <th style="width: 10%; text-align: center;">timestamp</th>
+            <th style="width: 20%; text-align: center;">id_cnt</th>
+            <th style="width: 20%; text-align: center;">duration_sum</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:14:00</td>
+            <td>2</td>
+            <td>900</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:25:00</td>
+            <td>3</td>
+            <td>2300</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文分析了在 flink 应用中：</p>
+<ul>
+<li><strong>上游使用处理时间语义的 flink 任务出现故障、重启消费大量积压数据并产出至下游数据乱序特别严重时，下游使用事件时间语义时遇到的大量丢数问题</strong></li>
+<li><strong>以整条链路为处理时间语义的前提下，产出的数据时间戳为事件时间戳解决上述问题</strong></li>
+<li><strong>以 sql 代码给出了丢数故障解决方案样例</strong></li>
+</ul>
+<h2 id="学习资料"><a href="#学习资料" class="headerlink" title="学习资料"></a>学习资料</h2><h3 id="flink"><a href="#flink" class="headerlink" title="flink"></a>flink</h3><ul>
+<li><a href="https://github.com/flink-china/flink-training-course/blob/master/README.md">https://github.com/flink-china/flink-training-course/blob/master/README.md</a></li>
+<li><a href="https://ververica.cn/developers-resources/">https://ververica.cn/developers-resources/</a></li>
+<li><a href="https://space.bilibili.com/33807709">https://space.bilibili.com/33807709</a></li>
+</ul>
+<p><img src="/blog-img/gzh/wechat.png" alt="公众号"></p>
 ]]></content>
       <categories>
         <category>Apache Flink</category>
@@ -2570,137 +2701,6 @@
 <p>Redis bit 方案：</p>
 <p><img src="/blog-img/new/new_did_redis_bit.png" alt="使用 Redis bit 特性的 多 uv 指标计算链路"></p>
 <p>这样做的一个优点，就是这几十场活动的 uv 计算都使用了相同的 Redis key 来计算，可以大幅度减少 Redis 的容量占用。使用此方案的话，以上述相同的用户和活动场数，理论上最大<br>key 数量仅仅为 1 亿，只是 value 数量会多占几十个 bit。</p>
-]]></content>
-      <categories>
-        <category>Apache Flink</category>
-      </categories>
-      <tags>
-        <tag>Apache Flink</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑</title>
-    <url>/2020/09/11/wechat-blog/apache-flink:realtime-out-of-order/</url>
-    <content><![CDATA[<h1 id="踩坑记-Flink-事件时间语义下数据乱序丢数踩坑"><a href="#踩坑记-Flink-事件时间语义下数据乱序丢数踩坑" class="headerlink" title="踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑"></a>踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑</h1><blockquote>
-<p>本文详细介绍了在上游使用处理时间语义的 flink 任务出现故障后，重启消费大量积压在上游的数据并产出至下游数据乱序特别严重时，下游 flink 任务使用事件时间语义时遇到的大量丢数问题以及相关的解决方案。</p>
-</blockquote>
-<p>本文分为以下几个部分：</p>
-<ul>
-<li><strong>1.本次踩坑的应用场景</strong></li>
-<li><strong>2.应用场景中发生的丢数故障分析</strong></li>
-<li><strong>3.待修复的故障点</strong></li>
-<li><strong>4.丢数故障解决方案及原理</strong></li>
-<li><strong>5.总结</strong></li>
-</ul>
-<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>应用场景如下：</p>
-<ul>
-<li><strong>flink 任务 A</strong> 以<strong>处理时间</strong>语义做过滤产出新增 xx 明细数据至 <strong>Kafka Y</strong></li>
-<li><strong>flink 任务 B</strong> 以<strong>事件时间</strong>语义消费 <strong>Kafka Y</strong> 做窗口聚合操作产出分钟级别聚合指标至 <strong>Kafka Z</strong></li>
-<li><strong>Kafka Z</strong> 实时导入至 <strong>Druid</strong> 以做即时 OLAP 分析，并且展示在 BI 应用看板</li>
-</ul>
-<p><img src="/blog-img/apache-flink:realtime-out-of-order/stream.png" alt="场景"></p>
-<h2 id="丢数故障分析"><a href="#丢数故障分析" class="headerlink" title="丢数故障分析"></a>丢数故障分析</h2><p>简要介绍下这次生产中故障场景。整条故障追踪链路如下：</p>
-<p>故障一：</p>
-<ul>
-<li>收到报警反馈 <strong>flink 任务 A</strong> 入口流量为 0</li>
-<li>定位 <strong>flink 任务 A</strong> 中某个算子的故障导致整个 job 卡住</li>
-<li>导致此 <strong>flink 任务 A</strong> 上游 <strong>kafka X</strong> 积压了大量数据</li>
-<li>重启 <strong>flink 任务 A</strong>后，消费大量积压在上游 <strong>kafka X</strong> 数据完成，任务恢复正常</li>
-</ul>
-<p>故障一从而引发下游的故障二：</p>
-<ul>
-<li>由于 <strong>flink 任务 A</strong> 使用了<strong>处理时间</strong>语义处理数据，并且有过滤和 keyBy 分桶窗口逻辑，在重启后消费大量积压在上游的数据时，导致 sink rebalance 后产出到下游 <strong>kafka Y</strong> 各个分区数据中的 server_timestamp 是乱序的</li>
-<li>下游 <strong>flink 任务 B</strong> 在消费 <strong>Kafka Y</strong> 时使用了<strong>事件时间</strong>语义处理数据，并且使用了数据中的 server_timestamp 作为<strong>事件时间</strong>时间戳</li>
-<li><strong>flink 任务 B</strong> 消费了乱序很严重的数据之后，导致在窗口聚合计算时丢失了大量数据</li>
-<li>最终展示在 BI 应用中的报表有丢失数据的情况</li>
-</ul>
-<p><img src="/blog-img/apache-flink:realtime-out-of-order/bug_stream.png" alt="故障场景"></p>
-<h2 id="待修复的故障点"><a href="#待修复的故障点" class="headerlink" title="待修复的故障点"></a>待修复的故障点</h2><ul>
-<li>1.<strong>flink 任务 A</strong> 的稳定性故障，这部分解决方案暂不在本文中介绍</li>
-<li>2.<strong>flink 任务 B</strong> 消费上游乱序丢数故障，解决方案在下文介绍</li>
-</ul>
-<h2 id="解决方案以及原理"><a href="#解决方案以及原理" class="headerlink" title="解决方案以及原理"></a>解决方案以及原理</h2><h3 id="丢数故障解决方案"><a href="#丢数故障解决方案" class="headerlink" title="丢数故障解决方案"></a>丢数故障解决方案</h3><p>解决方案是以下游 <strong>flink 任务 B</strong> 作为切入点，直接给出 <strong>flink 任务 B</strong> 的 sql 代码解决方案，java code 也可以按照这个方案实现，其本质原理相同。下文进行原理解释。</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  to_unix_timestamp(server_timestamp <span class="operator">/</span> bucket) <span class="keyword">AS</span> <span class="type">timestamp</span>, <span class="comment">-- format 成原有的事件时间戳</span></span><br><span class="line">  <span class="built_in">count</span>(id) <span class="keyword">as</span> id_cnt,</span><br><span class="line">  <span class="built_in">sum</span>(duration) <span class="keyword">as</span> duration_sum</span><br><span class="line"><span class="keyword">FROM</span></span><br><span class="line">  source_table</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">  TUMBLE(proctime, <span class="type">INTERVAL</span> <span class="string">&#x27;1&#x27;</span> <span class="keyword">MINUTE</span>),</span><br><span class="line">  server_timestamp <span class="operator">/</span> bucket <span class="comment">-- 根据事件时间分桶计算，将相同范围（比如 1 分钟）事件时间的数据分到一个桶内</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="解决方案原理"><a href="#解决方案原理" class="headerlink" title="解决方案原理"></a>解决方案原理</h3><p>首先明确一个无法避免的问题，在不考虑 watermark 允许延迟设置特别大的情况下，只要上游使用到了处理时间语义，下游使用事件时间语义，一旦上游发生故障重启并在短时间内消费大量数据，就不可避免的会出现上述错误以及故障。</p>
-<p>在下游消费方仍然需要将对应事件时间戳的数据展示在 BI 平台报表中、并且全链路时间语义都为处理时间保障不丢数的前提下。解决方案就是在聚合并最终产出对应事件时间戳的数据。</p>
-<p>最后的方案如下：<br>整条链路全部为处理时间语义，窗口计算也使用处理时间，但是产出数据中的时间戳全部为事件时间戳。<br>在出现故障的场景下，一分钟的窗口内的数据的事件时间戳可能相差几个小时，但在最终窗口聚合时可以根据事件时间戳划分到对应的事件时间窗口内，下游 BI 应用展示时使用此事件时间戳即可。</p>
-<blockquote>
-<p>注意：sql 中的 bucket 需要根据具体使用场景进行设置，如果设置过于小，比如非故障场景下按照处理时间开 1 分钟的窗口，bucket<br>设为 60000（1 分钟），那么极有可能，这个时间窗口中所有数据的 server_timestamp 都集中在某两分钟内，那么这些数据就会被分到两个桶（bucket）内，则会导致严重的数据倾斜。</p>
-</blockquote>
-<h3 id="输入数据样例"><a href="#输入数据样例" class="headerlink" title="输入数据样例"></a>输入数据样例</h3><p>模拟上述故障，<strong>flink B</strong> 的任务某一个窗口内的数据输入如下。</p>
-<table>
-    <thead>
-        <tr>
-            <th style="width: 10%; text-align: center;">server_timestamp</th>
-            <th style="width: 20%; text-align: center;">id</th>
-            <th style="width: 20%; text-align: center;">duration</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td style="text-align: center;">2020/9/01 21:14:38</td>
-            <td>1</td>
-            <td>300</td>
-        </tr>
-        <tr>
-            <td style="text-align: center;">2020/9/01 21:14:50</td>
-            <td>1</td>
-            <td>500</td>
-        </tr>
-        <tr>
-            <td style="text-align: center;">2020/9/01 21:25:38</td>
-            <td>2</td>
-            <td>600</td>
-        </tr>
-        <tr>
-            <td style="text-align: center;">2020/9/01 21:25:38</td>
-            <td>3</td>
-            <td>900</td>
-        </tr>
-        <tr>
-            <td style="text-align: center;">2020/9/01 21:25:38</td>
-            <td>2</td>
-            <td>800</td>
-        </tr>
-    </tbody>
-</table>
-
-<h3 id="输出数据样例"><a href="#输出数据样例" class="headerlink" title="输出数据样例"></a>输出数据样例</h3><p>按照上述解决方案中的 sql 处理过后，输出数据如下，则可以解决此类型丢数故障。</p>
-<table>
-    <thead>
-        <tr>
-            <th style="width: 10%; text-align: center;">timestamp</th>
-            <th style="width: 20%; text-align: center;">id_cnt</th>
-            <th style="width: 20%; text-align: center;">duration_sum</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td style="text-align: center;">2020/9/01 21:14:00</td>
-            <td>2</td>
-            <td>900</td>
-        </tr>
-        <tr>
-            <td style="text-align: center;">2020/9/01 21:25:00</td>
-            <td>3</td>
-            <td>2300</td>
-        </tr>
-    </tbody>
-</table>
-
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文分析了在 flink 应用中：</p>
-<ul>
-<li><strong>上游使用处理时间语义的 flink 任务出现故障、重启消费大量积压数据并产出至下游数据乱序特别严重时，下游使用事件时间语义时遇到的大量丢数问题</strong></li>
-<li><strong>以整条链路为处理时间语义的前提下，产出的数据时间戳为事件时间戳解决上述问题</strong></li>
-<li><strong>以 sql 代码给出了丢数故障解决方案样例</strong></li>
-</ul>
-<h2 id="学习资料"><a href="#学习资料" class="headerlink" title="学习资料"></a>学习资料</h2><h3 id="flink"><a href="#flink" class="headerlink" title="flink"></a>flink</h3><ul>
-<li><a href="https://github.com/flink-china/flink-training-course/blob/master/README.md">https://github.com/flink-china/flink-training-course/blob/master/README.md</a></li>
-<li><a href="https://ververica.cn/developers-resources/">https://ververica.cn/developers-resources/</a></li>
-<li><a href="https://space.bilibili.com/33807709">https://space.bilibili.com/33807709</a></li>
-</ul>
-<p><img src="/blog-img/gzh/wechat.png" alt="公众号"></p>
 ]]></content>
       <categories>
         <category>Apache Flink</category>
@@ -3643,7 +3643,7 @@
 <p><img src="/blog-img/apache-flink:state-1/5.png" alt="5"></p>
 <h2 id="实时案例"><a href="#实时案例" class="headerlink" title="实时案例"></a>实时案例</h2><ol>
 <li>做检查点（全局一致性快照）用来故障恢复，<strong><font color=red>重点！！！重点！！！重点！！！就在于我们不必要从历史起点开始重跑所有的数据（其实这就是我们需要检查点的目的！！！）</font></strong>；因为<ul>
-<li>流式应用的上游存储介质一般都不支持存储历史所有数据（kafka 不可能存储历史所有数据）</li>
+<li>流式应用的上游存储介质一般都不支持存储历史所有数据（比如上游为 kafka，kafka 不可能存储历史所有数据）</li>
 <li>重跑时效性不能满足时效性要求（重跑历史数据的情况下，时效性是达不到要求的）</li>
 </ul>
 </li>
@@ -3651,17 +3651,21 @@
 <ol start="2">
 <li>可以做任务的死锁检测</li>
 </ol>
-<h2 id="全局一致性快照和-flink-的关系"><a href="#全局一致性快照和-flink-的关系" class="headerlink" title="全局一致性快照和 flink 的关系"></a>全局一致性快照和 flink 的关系</h2><p>flink 的 cp 和 sp 实际上就是全局一致性快照在分布式应用中的一个具体实现。</p>
+<h2 id="全局一致性快照和-flink-的关系"><a href="#全局一致性快照和-flink-的关系" class="headerlink" title="全局一致性快照和 flink 的关系"></a>全局一致性快照和 flink 的关系</h2><p>flink 的 cp 和 sp 实际上就是全局一致性快照在分布式应用中 flink 的一个具体实现。</p>
 <p><img src="/blog-img/apache-flink:state-1/6.png" alt="6"></p>
 <h1 id="全局一致性快照的分布式应用案例？"><a href="#全局一致性快照的分布式应用案例？" class="headerlink" title="全局一致性快照的分布式应用案例？"></a>全局一致性快照的分布式应用案例？</h1><p>通过一个简单分布式应用介绍一下全局一致性状态是每时每刻都存在的。时间轴上的每一个时刻都存在一个全局一致性快照（可以用拍照片去类比）。</p>
 <h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><p>下面分布式应用的一个示例：</p>
 <p><img src="/blog-img/apache-flink:state-1/7.jpeg" alt="7"><br><img src="/blog-img/apache-flink:state-1/8.jpeg" alt="8"><br><img src="/blog-img/apache-flink:state-1/9.jpeg" alt="9"><br><img src="/blog-img/apache-flink:state-1/10.jpeg" alt="10"></p>
 <h2 id="每时每刻都存在全局一致性快照"><a href="#每时每刻都存在全局一致性快照" class="headerlink" title="每时每刻都存在全局一致性快照"></a>每时每刻都存在全局一致性快照</h2><p>上面这个只是四个时刻的四个快照，其实应用的每一个时刻都存在一个全局一致性快照。</p>
 <p><img src="/blog-img/apache-flink:state-1/11.png" alt="11"></p>
-<h1 id="全局一致性快照的标准定义"><a href="#全局一致性快照的标准定义" class="headerlink" title="全局一致性快照的标准定义"></a>全局一致性快照的标准定义</h1><h2 id="定义-1"><a href="#定义-1" class="headerlink" title="定义"></a>定义</h2><p>假如说有两个事件，a和b，在绝对时间下，如果a发生在b之前，且b被包含在快照当中，那么则a也被包含在快照当中。满足这个条件的全局快照，就称为全局一致性快照。</p>
+<h1 id="全局一致性快照的标准定义"><a href="#全局一致性快照的标准定义" class="headerlink" title="全局一致性快照的标准定义"></a>全局一致性快照的标准定义</h1><h2 id="定义-1"><a href="#定义-1" class="headerlink" title="定义"></a>定义</h2><p>假如说有两个事件，a 和 b，在绝对时间下，如果 a 发生在 b 之前，且 b 被包含在快照当中，那么则 a 也被包含在快照当中。满足这个条件的全局快照，就称为全局一致性快照。</p>
 <p><img src="/blog-img/apache-flink:state-1/12.png" alt="12"><br><img src="/blog-img/apache-flink:state-1/13.png" alt="13"></p>
-<h2 id="本质"><a href="#本质" class="headerlink" title="本质"></a>本质</h2><p>就是如果将做了绝对时刻 T 的一个快照，那么这个绝对时刻 T 之前发生的所有事件以及其影响都会被包含在这个快照中</p>
-<h1 id="怎么实现全局一致性快照？"><a href="#怎么实现全局一致性快照？" class="headerlink" title="怎么实现全局一致性快照？"></a>怎么实现全局一致性快照？</h1><h2 id="同步实现方式"><a href="#同步实现方式" class="headerlink" title="同步实现方式"></a>同步实现方式</h2><p><img src="/blog-img/apache-flink:state-1/14.jpeg" alt="14"></p>
+<h2 id="楼主理解"><a href="#楼主理解" class="headerlink" title="楼主理解"></a>楼主理解</h2><p>就是如果将做了绝对时刻 T 的一个快照，那么这个绝对时刻 T 之前发生的所有事件以及其影响都会被包含在这个快照中</p>
+<p>上文已经介绍了全局一致性快照的定义以及为什么我们需要全局一致性快照，那我们来放眼实际应用中，怎么才能做出一个满足生产实际要求的全局一致性快照呢？</p>
+<h1 id="怎么实现全局一致性快照？"><a href="#怎么实现全局一致性快照？" class="headerlink" title="怎么实现全局一致性快照？"></a>怎么实现全局一致性快照？</h1><br>
+实现方式主要分为同步实现方式和异步实现方式两类。
+
+<h2 id="同步实现方式"><a href="#同步实现方式" class="headerlink" title="同步实现方式"></a>同步实现方式</h2><p><img src="/blog-img/apache-flink:state-1/14.jpeg" alt="14"></p>
 <ul>
 <li><a href="https://baike.baidu.com/item/NTP%E6%9C%8D%E5%8A%A1%E5%99%A8/8633994?fr=aladdin">NTP</a>: NTP服务器[Network Time Protocol（NTP）]是用来使计算机时间同步化的一种协议，它可以使计算机对其服务器或时钟源（如石英钟，GPS等等)做同步化，它可以提供高精准度的时间校正（LAN上与标准间差小于1毫秒，WAN上几十毫秒）<br>结论：无法实现</li>
 <li><a href="https://www.jianshu.com/p/b210f9db19a3">Stop-The-World</a></li>
@@ -3671,8 +3675,8 @@
 <h2 id="异步实现方式"><a href="#异步实现方式" class="headerlink" title="异步实现方式"></a>异步实现方式</h2><ul>
 <li><a href="https://www.microsoft.com/en-us/research/uploads/prod/2016/12/Determining-Global-States-of-a-Distributed-System.pdf?ranMID=24542&ranEAID=J84DHJLQkR4&ranSiteID=J84DHJLQkR4-mVoVymFnAblBx3zwyf98Pw&epi=J84DHJLQkR4-mVoVymFnAblBx3zwyf98Pw&irgwc=1&OCID=AID2000142_aff_7593_1243925&tduid=%28ir__1hs2uuow6wkfq3oxkk0sohzzwm2xpc33lxd0o6g200%29%287593%29%281243925%29%28J84DHJLQkR4-mVoVymFnAblBx3zwyf98Pw%29%28%29&irclickid=_1hs2uuow6wkfq3oxkk0sohzzwm2xpc33lxd0o6g200">Chandy-Lamport</a></li>
 </ul>
-<p><strong><font color=red>在介绍 Chandy-Lamport 算法之前，我们先介绍一些理论和数学上的概念铺垫铺垫，帮助我们理解 Chandy-Lamport 算法。楼主也是看了很多博客才总结得到了这些条件！！！</font></strong></p>
-<h1 id="分布式应用的全局一致性快照其-Process-状态和-Channel-状态记录了什么？怎么记录-Channel-的状态？"><a href="#分布式应用的全局一致性快照其-Process-状态和-Channel-状态记录了什么？怎么记录-Channel-的状态？" class="headerlink" title="分布式应用的全局一致性快照其 Process 状态和 Channel 状态记录了什么？怎么记录 Channel 的状态？"></a>分布式应用的全局一致性快照其 Process 状态和 Channel 状态记录了什么？怎么记录 Channel 的状态？</h1><h2 id="分布式应用要记录的状态"><a href="#分布式应用要记录的状态" class="headerlink" title="分布式应用要记录的状态"></a>分布式应用要记录的状态</h2><p>如下图案例 <strong>Single-Token conservation</strong>，是一个分布式应用，有 p 和 q 两个进程，p 可以通过 Channel pq（记为 Cpq） 向 q 发消息，q 可以通过 Channel qp（记为 Cqp） 向 p 发消息，其中有一个叫 token 的消息，在这个系统中一直不停的流转<br><img src="/blog-img/apache-flink:state-1/15.png" alt="15"></p>
+<p><strong><font color=red>在介绍 Chandy-Lamport 算法之前，我们先介绍一些理论和数学上的概念铺垫铺垫，帮助我们理解 Chandy-Lamport 算法。</font></strong><br><strong><font color=red>这些概念主要就是介绍分布式应用的 Process 和 Channel 应该存储什么内容？以及怎样去存储这些内容？只有我们知道了要存储什么东西才好去设计和介绍具体算法嘛~</font></strong><br><strong>楼主也是看了很多博客才总结得到了这些条件！！！</strong></p>
+<h1 id="分布式应用的全局一致性快照其-Process-状态和-Channel-状态记录了什么？怎么记录-Channel-的状态？"><a href="#分布式应用的全局一致性快照其-Process-状态和-Channel-状态记录了什么？怎么记录-Channel-的状态？" class="headerlink" title="分布式应用的全局一致性快照其 Process 状态和 Channel 状态记录了什么？怎么记录 Channel 的状态？"></a>分布式应用的全局一致性快照其 Process 状态和 Channel 状态记录了什么？怎么记录 Channel 的状态？</h1><h2 id="分布式应用要记录的状态"><a href="#分布式应用要记录的状态" class="headerlink" title="分布式应用要记录的状态"></a>分布式应用要记录的状态</h2><p>如下图案例 <strong>Single-Token conservation</strong>，是一个分布式应用，有 p 和 q 两个进程，p 可以通过 Channel pq（记为 Cpq） 向 q 发消息，q 可以通过 Channel qp（记为 Cqp） 向 p 发消息，其中有一个叫 token 的消息，在这个系统中一直不停的流转。<br><img src="/blog-img/apache-flink:state-1/15.png" alt="15"></p>
 <p>如之前所述，分布式应用的全局一致性快照包含 Process 状态和 Channel 状态<br>那么上图 <strong>Single-Token conservation</strong> 示例中的全局一致性快照 <strong><kbd>S = S(p) + S(Cpq) + S(q) + S(Cqp)</kbd></strong></p>
 <p>其中：</p>
 <ul>
@@ -3684,8 +3688,8 @@
 </ul>
 <p><img src="/blog-img/apache-flink:state-1/15.png" alt="15"></p>
 <p><strong><font color=red>问题：</font></strong><br><strong><font color=red>这里就碰到了我们要分析的关键问题：做全局一致性快照时，其中 <kbd>S(p)</kbd>，<kbd>S(q)</kbd> 好理解，但是 <kbd>S(Cpq)</kbd>，<kbd>S(Cqp)</kbd> 到底记录了什么东西？应该记录什么东西？接下来详细讲讲我的理解</font></strong></p>
-<h2 id="Process-状态应该记录什么内容？"><a href="#Process-状态应该记录什么内容？" class="headerlink" title="Process 状态应该记录什么内容？"></a>Process 状态应该记录什么内容？</h2><p>记录和用户业务需求相关的状态内容，用到了关于状态的地方，进行记录就好了<br>举例：uid 去重就存储历史所有的 uid 就可以了</p>
-<h2 id="Channel-状态应该记录什么内容？"><a href="#Channel-状态应该记录什么内容？" class="headerlink" title="Channel 状态应该记录什么内容？"></a>Channel 状态应该记录什么内容？</h2><h3 id="一个全局一致性状态记录的-token-都在相同的地方"><a href="#一个全局一致性状态记录的-token-都在相同的地方" class="headerlink" title="一个全局一致性状态记录的 token 都在相同的地方"></a>一个全局一致性状态记录的 token 都在相同的地方</h3><h4 id="Single-Token-conservation-的全局一致性快照"><a href="#Single-Token-conservation-的全局一致性快照" class="headerlink" title="Single-Token conservation 的全局一致性快照"></a>Single-Token conservation 的全局一致性快照</h4><p>token 在 p 时（对应第一张图），这时的全局一致性快照为：<br><kbd>S(token-in-p) = S(p-token-in-p) + S(Cpq-token-in-p) + S(q-token-in-p) + S(Cqp-token-in-p) </kbd></p>
+<h2 id="Process-状态应该记录什么内容？"><a href="#Process-状态应该记录什么内容？" class="headerlink" title="Process 状态应该记录什么内容？"></a>Process 状态应该记录什么内容？</h2><p>记录和用户业务需求相关的状态内容，用到了关于状态的地方，进行记录就好了，这部分是好理解的。<br>举例：uid 去重就存储历史所有的 uid 就可以了</p>
+<h2 id="Channel-状态应该记录什么内容？"><a href="#Channel-状态应该记录什么内容？" class="headerlink" title="Channel 状态应该记录什么内容？"></a>Channel 状态应该记录什么内容？</h2><h3 id="Single-Token-conservation-的全局一致性快照"><a href="#Single-Token-conservation-的全局一致性快照" class="headerlink" title="Single-Token conservation 的全局一致性快照"></a>Single-Token conservation 的全局一致性快照</h3><p>token 在 p 时（对应第一张图），这时的全局一致性快照为：<br><kbd>S(token-in-p) = S(p-token-in-p) + S(Cpq-token-in-p) + S(q-token-in-p) + S(Cqp-token-in-p) </kbd></p>
 <p>其中：</p>
 <ul>
 <li><kbd>S(token-in-p)</kbd>：token 在 p 时，做的全局一致性快照</li>
@@ -3694,11 +3698,18 @@
 <li><kbd>S(q-token-in-p)</kbd>：token 在 p 时，q 进程的状态</li>
 <li><kbd>S(Cqp-token-in-p)</kbd>：token 在 p 时，q 进程到 p 进程的 Channel 状态</li>
 </ul>
-<p>注意，上述这个表达式其实是结论，这个结论是很好理解的，但是你有想过站在实际应用的角度去思考怎样才能做一个实际快照时下面的问题吗？</p>
+<h3 id="提出问题"><a href="#提出问题" class="headerlink" title="提出问题"></a>提出问题</h3><p>注意，上述这个表达式其实是结论，这个结论是很好理解的，但是你有想过站在实际应用的角度去思考下面的问题吗？</p>
+<ol>
+<li><p>问题1：为什么第一张图的全局一致性状态是 Process 和 Channel 做的快照都有 token-in-p 呢？<br>根据之前的拍照片的类比，当前这个绝对时刻做快照时，token 在 p；那么所有的 process 和 channel 记录状态时，token 都应该在 p。</p>
+</li>
+<li><p>问题2：S(p-token-in-p) 好理解，在这个时刻 token 还没有从 p 发出去，p 做快照时肯定知道 token 还在 p；但是站在 Cpq 做状态的角度来说：</p>
+</li>
+</ol>
 <ul>
-<li>问题1：为什么第一张图的全局一致性状态是 Process 和 Channel 做的快照都有 token-in-p 呢？<br>根据之前的拍照片的类比，当前这个绝对时刻做快照时，token 在 p；那么所有的 process 和 channel 记录状态时，token 都应该在 p。</li>
+<li>Cpq 做状态时，怎么保障 Cpq 知道 token in p？需要我们探索下有什么方法怎么让 Cpq 在做状态时知道 token in p？</li>
+<li>站在实际在应用中实现的角度时，满足怎样的数学条件（我们要开始实现一个真实的全局一致性快照啦，肯定会涉及到一些数据知识，别急，往后看，用到的数学知识并不复杂）才能做出一个 S(Cpq) ？</li>
 </ul>
-<h3 id="S-Cpq-记录了什么内容？"><a href="#S-Cpq-记录了什么内容？" class="headerlink" title="S(Cpq) 记录了什么内容？"></a><kbd>S(Cpq)</kbd> 记录了什么内容？</h3><h4 id="简单的理解"><a href="#简单的理解" class="headerlink" title="简单的理解"></a>简单的理解</h4><p>这里我们简单先理解下，<kbd>S(Cpq)</kbd> 其实就是在 <kbd>S(p)</kbd> 和 <kbd>S(q)</kbd> 自己的状态做成时，还在 Channel pq 之间发送的那些消息。</p>
+<h3 id="解决问题"><a href="#解决问题" class="headerlink" title="解决问题"></a>解决问题</h3><h4 id="分析-S-Cpq-记录了什么内容？"><a href="#分析-S-Cpq-记录了什么内容？" class="headerlink" title="分析 S(Cpq) 记录了什么内容？"></a>分析 <kbd>S(Cpq)</kbd> 记录了什么内容？</h4><p>这里我们简单先理解下，<kbd>S(Cpq)</kbd> 其实就是在 <kbd>S(p)</kbd> 和 <kbd>S(q)</kbd> 自己的状态做成时，还在 Channel pq 之间发送的那些消息。</p>
 <p>那么我们怎么用数学的方式理解 Cpq 记录的这些消息以及 Process 和 Channel 做状态时需要满足的条件呢？让我们往下看</p>
 <h4 id="变量定义"><a href="#变量定义" class="headerlink" title="变量定义"></a>变量定义</h4><ul>
 <li>n：在 p 的状态记录前，p 记录的 p 发往 Cpq 的 msg 数；</li>
@@ -3733,7 +3744,9 @@
 </li>
 </ol>
 <p>最后是 n’ ≥ m’ and n ≥ m：在任何一种情况下，做全局一致性快照时，都会有 Cpq 下游接收到的 msg 数不可能超过 p 发送给 Channel 的 msg 条数，即：n’ ≥ m’ 以及 n ≥ m（也可使用反证法证明）</p>
-<h3 id="来段伪代码描述全局一致快照"><a href="#来段伪代码描述全局一致快照" class="headerlink" title="来段伪代码描述全局一致快照"></a>来段伪代码描述全局一致快照</h3><h4 id="伪代码"><a href="#伪代码" class="headerlink" title="伪代码"></a>伪代码</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// S_all 即全局一致性快照</span></span><br><span class="line">S_all = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 假设总共有 x 个 process</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= x; i++) &#123;</span><br><span class="line">	<span class="comment">// 第 i 个 process 的状态为 S_i，直接按照 += 写，勿喷</span></span><br><span class="line">  S_all += S_i;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 假设总共有 y 个 channel</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= y; i++) &#123;</span><br><span class="line">  <span class="comment">// 1.S_C_out_in_i：第 i 个 channel 的状态，in 代表第 i 个 channel 的输入，out 含义为第 i 个 channel 的输出</span></span><br><span class="line">  <span class="comment">// 2.m_out_in_i 和 n_out_in_i 其实就是上文中的 n 和 m</span></span><br><span class="line">  <span class="comment">// 2.m_out_in_i：第 i 个 channel 做快照前，发往 in process（下游）的消息个数</span></span><br><span class="line">  <span class="comment">// 3.n_out_in_i：第 i 个 channel 做快照前，接受到 out process（上游） 的消息个数</span></span><br><span class="line">  <span class="comment">// 4.需要注意，每一个 channel 的 m_out_in_i 和 n_out_in_i 都可能是不一样的，这里是伪代码所以直接按照下面的方式写了</span></span><br><span class="line">  S_C_out_in_i = Message[m_out_in_i + <span class="number">1</span>] + ... + Message[n_out_in_i];</span><br><span class="line">  </span><br><span class="line">  S_all += S_C_out_in_i;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 状态做完啦~</span></span><br></pre></td></tr></table></figure>
+<p><strong>分析到这里，上节提的两个问题也就被解决了。</strong></p>
+<p><strong>为了帮大家更容易的理解全局一致性快照包含的内容，接下来我用伪代码描述一下，会比文字更好理解~</strong></p>
+<h3 id="来段伪代码描述全局一致快照包含的内容"><a href="#来段伪代码描述全局一致快照包含的内容" class="headerlink" title="来段伪代码描述全局一致快照包含的内容"></a>来段伪代码描述全局一致快照包含的内容</h3><h4 id="伪代码"><a href="#伪代码" class="headerlink" title="伪代码"></a>伪代码</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// S_all 即全局一致性快照</span></span><br><span class="line">S_all = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 假设总共有 x 个 process</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= x; i++) &#123;</span><br><span class="line">	<span class="comment">// 第 i 个 process 的状态为 S_i，直接按照 += 写，勿喷</span></span><br><span class="line">  S_all += S_i;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 假设总共有 y 个 channel</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= y; i++) &#123;</span><br><span class="line">  <span class="comment">// 1.S_C_out_in_i：第 i 个 channel 的状态，in 代表第 i 个 channel 的输入，out 含义为第 i 个 channel 的输出</span></span><br><span class="line">  <span class="comment">// 2.m_out_in_i 和 n_out_in_i 其实就是上文中的 n 和 m</span></span><br><span class="line">  <span class="comment">// 2.m_out_in_i：第 i 个 channel 做快照前，发往 in process（下游）的消息个数</span></span><br><span class="line">  <span class="comment">// 3.n_out_in_i：第 i 个 channel 做快照前，接受到 out process（上游） 的消息个数</span></span><br><span class="line">  <span class="comment">// 4.需要注意，每一个 channel 的 m_out_in_i 和 n_out_in_i 都可能是不一样的，这里是伪代码所以直接按照下面的方式写了</span></span><br><span class="line">  S_C_out_in_i = Message[m_out_in_i + <span class="number">1</span>] + ... + Message[n_out_in_i];</span><br><span class="line">  </span><br><span class="line">  S_all += S_C_out_in_i;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 状态做完啦~</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="怎样去记录-S-Cpq-？"><a href="#怎样去记录-S-Cpq-？" class="headerlink" title="怎样去记录 S(Cpq)？"></a>怎样去记录 <kbd>S(Cpq)</kbd>？</h2><p>通过上面的分析，我们已经讨论得到了 <kbd>S(Cpq)</kbd> 都包含了什么内容，并且其之间要满足什么样的数学关系。但是在现实实际生活中，消息在 Channel 上乱飞时，我们是无法记录这些消息作为 Channel 的状态的。<br><strong><font color=red>但是这些消息终究会到达目的地，我们可以在消息的目的地去记录这些消息作为 Channel 的状态。即我们可以在 q 中记录 Channel pq 的 <kbd>S(Cpq)</kbd>，在 p 中记录 Channel pq 的 <kbd>S(Cqp)</kbd>。</font></strong></p>
 <h3 id="伪代码-1"><a href="#伪代码-1" class="headerlink" title="伪代码"></a>伪代码</h3><p>顺便那么上面那段伪代码就可以简化为下面这样：</p>
@@ -3741,18 +3754,18 @@
 
 <h3 id="记录-S-Cpq-需要满足的条件"><a href="#记录-S-Cpq-需要满足的条件" class="headerlink" title="记录 S(Cpq) 需要满足的条件"></a>记录 <kbd>S(Cpq)</kbd> 需要满足的条件</h3><p><strong><font color=red>重点重点重点！！！</font></strong><br><strong><font color=red>分析上面的伪代码后，我们可以发现，要得到 S_all，其中只有一个变量在进程做快照时不知道的，那就是 n_j_i（即第 i 个 channel 做快照前，接受到 j（上游） 的消息个数），别忘了 n = n‘，即也可以定义为 j 做快照前，j 发往 channel 的消息个数。那么实际上这个值 j process 是知道的，就代表 i 进程需要知道 j 告诉他 n_j_i 的值是多少。重点来了，当 i process 做完快照之后，直接发一个 marker 下去，这个 marker 不会对计算有任何影响（即不会对状态产生任何影响），marker 只是一个标识，j process 做完自己的快照之后，直到接收到 marker 之间的消息就是Channel ij 的状态。i 就是通过 marker 来告诉 j process n_j_i 的值是多少的。（其他的变量为什么都知道就不详细分析了，很容易理解）</font></strong></p>
 <h1 id="分布式应用全局一致性快照算法流程总结"><a href="#分布式应用全局一致性快照算法流程总结" class="headerlink" title="分布式应用全局一致性快照算法流程总结"></a>分布式应用全局一致性快照算法流程总结</h1><h2 id="算法流程总结"><a href="#算法流程总结" class="headerlink" title="算法流程总结"></a>算法流程总结</h2><ol>
-<li>发起快照：有一个 manager process（这个 manager 可以是所有 process 中的任意一个 process，也可以是一个单独的中央管理者）告诉所有的 process 说可以开始做状态了；</li>
-<li>执行快照：所有 process 就开始记录自己本地的状态（非所有 input channel）了，记录完本地状态，然后发 marker 给下游所有的 channel，然后开始记录上游所有 input channel 的消息（直到接收到上游所有的 marker）；</li>
-<li>执行快照：每个 process 对于每一个 input channel 来说，都将自己做完状态后直到收到 marker 之间的消息记录下来，作为这个 input channel 的状态；这里注意，其实每接收到一个消息，process 都是可以进行处理的，这和记录 input channel 的状态并不冲突；</li>
-<li>执行快照：当收到上游所有 marker 之后，这个 process 要记录的状态就全部得到了，然后告诉 manager process 说做完状态了；</li>
-<li>终止快照：manager process 接收到所有 process 做完的消息之后，就标记所有的状态以及完成了。</li>
+<li><strong>发起快照</strong>：有一个 manager process（这个 manager 可以是所有 process 中的任意一个 process，也可以是一个单独的中央管理者）告诉所有的 process 说可以开始做状态了；</li>
+<li><strong>执行快照</strong>：所有 process 就开始记录自己本地的状态（非所有 input channel）了，记录完本地状态，然后发 marker 给下游所有的 channel，然后开始记录上游所有 input channel 的消息（直到接收到上游所有的 marker）；</li>
+<li><strong>执行快照</strong>：每个 process 对于每一个 input channel 来说，都将自己做完状态后直到收到 marker 之间的消息记录下来，作为这个 input channel 的状态；</li>
+<li><strong>执行快照</strong>：当收到上游所有 marker 之后，这个 process 要记录的状态就全部得到了，然后告诉 manager process 说做完状态了；</li>
+<li><strong>终止快照</strong>：manager process 接收到所有 process 做完的消息之后，就标记所有的状态以及完成了。</li>
 </ol>
 <h2 id="算法流程示例"><a href="#算法流程示例" class="headerlink" title="算法流程示例"></a>算法流程示例</h2><h3 id="发起快照"><a href="#发起快照" class="headerlink" title="发起快照"></a>发起快照</h3><ul>
 <li>有一个 manager process（这个 manager 可以是所有 process 中的任意一个 process，也可以是一个单独的中央管理者）告诉所有的 process 说可以开始做状态了；<br><img src="/blog-img/apache-flink:state-1/41.png" alt="41"></li>
 </ul>
 <h3 id="执行快照"><a href="#执行快照" class="headerlink" title="执行快照"></a>执行快照</h3><ul>
 <li>所有 process 就开始记录自己本地的状态（非所有 input channel）了，记录完本地状态，然后发 marker 给下游所有的 channel，然后开始记录上游所有 input channel 的消息（直到接收到上游所有的 marker）；<br><img src="/blog-img/apache-flink:state-1/42.png" alt="42"></li>
-<li>每个 process 对于每一个 input channel 来说，都将自己做完状态后直到收到 marker 之间的消息记录下来，作为这个 input channel 的状态；这里注意，其实每接收到一个消息，process 都是可以进行处理的，这和记录 input channel 的状态并不冲突；<br><img src="/blog-img/apache-flink:state-1/43.png" alt="43"></li>
+<li>每个 process 对于每一个 input channel 来说，都将自己做完状态后直到收到 marker 之间的消息记录下来，作为这个 input channel 的状态；<br><img src="/blog-img/apache-flink:state-1/43.png" alt="43"></li>
 <li>当收到上游所有 marker 之后，这个 process 要记录的状态就全部得到了，然后告诉 manager process 说做完状态了；</li>
 </ul>
 <h3 id="终止快照"><a href="#终止快照" class="headerlink" title="终止快照"></a>终止快照</h3><ul>
