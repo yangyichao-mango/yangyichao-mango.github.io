@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Apache Common 包学习：常用集合类Collections4学习</title>
+    <url>/2019/11/06/apache-common:study-apache-common-collections4/</url>
+    <content><![CDATA[<p>Apache Common 包学习：常用集合类Collections4学习</p>
+<span id="more"></span>
+
+<h2 id="Maven依赖"><a href="#Maven依赖" class="headerlink" title="Maven依赖"></a><strong>Maven依赖</strong></h2><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.commons<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-collections4<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="CollectionUtils"><a href="#CollectionUtils" class="headerlink" title="CollectionUtils"></a><strong>CollectionUtils</strong></h2><h3 id="lt-O-gt-Collection-lt-O-gt-subtract-final-Iterable-lt-extends-O-gt-a-final-Iterable-lt-extends-O-gt-b"><a href="#lt-O-gt-Collection-lt-O-gt-subtract-final-Iterable-lt-extends-O-gt-a-final-Iterable-lt-extends-O-gt-b" class="headerlink" title="&lt;O&gt; Collection&lt;O&gt; subtract(final Iterable&lt;? extends O&gt; a, final Iterable&lt;? extends O&gt; b)"></a>&lt;O<O>&gt; Collection&lt;O<O>&gt; subtract(final Iterable&lt;? extends O&gt; a, final Iterable&lt;? extends O&gt; b)</h3><p>a是做差集运算的左集，b是做差集运算的右集，下面是一个例子</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger LOGGER = LoggerFactory.getLogger(Demo.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        Set&lt;Pair&lt;String, String&gt;&gt; allProductDevices = Sets.newHashSet(Pair.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>), Pair.of(<span class="string">&quot;c&quot;</span>, <span class="string">&quot;d&quot;</span>));</span><br><span class="line"></span><br><span class="line">        Set&lt;Pair&lt;String, String&gt;&gt; oldProductDevices = Sets.newHashSet(Pair.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>), Pair.of(<span class="string">&quot;e&quot;</span>, <span class="string">&quot;f&quot;</span>));</span><br><span class="line"></span><br><span class="line">        List&lt;Pair&lt;String, String&gt;&gt; newProductDevices =</span><br><span class="line">                (ArrayList&lt;Pair&lt;String, String&gt;&gt;) CollectionUtils.subtract(allProductDevices, oldProductDevices);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list1 = Lists.newArrayList(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list2 = Lists.newArrayList(<span class="string">&quot;c&quot;</span>, <span class="string">&quot;b&quot;</span>);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list3 = (ArrayList&lt;String&gt;) CollectionUtils.subtract(list1, list2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Apache Common包</category>
+      </categories>
+      <tags>
+        <tag>Apache Common包</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Mac安装Apache Druid-0.16.0-incubating</title>
     <url>/2019/10/21/apache-druid:0.16.0-incubating-mac-install/</url>
     <content><![CDATA[<p>Mac安装Apache Druid-0.16.0-incubating教程</p>
@@ -34,39 +51,6 @@
       <tags>
         <tag>Apache Druid</tag>
         <tag>Apache Zookeeper</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Apache Common 包学习：常用集合类Collections4学习</title>
-    <url>/2019/11/06/apache-common:study-apache-common-collections4/</url>
-    <content><![CDATA[<p>Apache Common 包学习：常用集合类Collections4学习</p>
-<span id="more"></span>
-
-<h2 id="Maven依赖"><a href="#Maven依赖" class="headerlink" title="Maven依赖"></a><strong>Maven依赖</strong></h2><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.commons<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-collections4<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="CollectionUtils"><a href="#CollectionUtils" class="headerlink" title="CollectionUtils"></a><strong>CollectionUtils</strong></h2><h3 id="lt-O-gt-Collection-lt-O-gt-subtract-final-Iterable-lt-extends-O-gt-a-final-Iterable-lt-extends-O-gt-b"><a href="#lt-O-gt-Collection-lt-O-gt-subtract-final-Iterable-lt-extends-O-gt-a-final-Iterable-lt-extends-O-gt-b" class="headerlink" title="&lt;O&gt; Collection&lt;O&gt; subtract(final Iterable&lt;? extends O&gt; a, final Iterable&lt;? extends O&gt; b)"></a>&lt;O<O>&gt; Collection&lt;O<O>&gt; subtract(final Iterable&lt;? extends O&gt; a, final Iterable&lt;? extends O&gt; b)</h3><p>a是做差集运算的左集，b是做差集运算的右集，下面是一个例子</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger LOGGER = LoggerFactory.getLogger(Demo.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        Set&lt;Pair&lt;String, String&gt;&gt; allProductDevices = Sets.newHashSet(Pair.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>), Pair.of(<span class="string">&quot;c&quot;</span>, <span class="string">&quot;d&quot;</span>));</span><br><span class="line"></span><br><span class="line">        Set&lt;Pair&lt;String, String&gt;&gt; oldProductDevices = Sets.newHashSet(Pair.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>), Pair.of(<span class="string">&quot;e&quot;</span>, <span class="string">&quot;f&quot;</span>));</span><br><span class="line"></span><br><span class="line">        List&lt;Pair&lt;String, String&gt;&gt; newProductDevices =</span><br><span class="line">                (ArrayList&lt;Pair&lt;String, String&gt;&gt;) CollectionUtils.subtract(allProductDevices, oldProductDevices);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list1 = Lists.newArrayList(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list2 = Lists.newArrayList(<span class="string">&quot;c&quot;</span>, <span class="string">&quot;b&quot;</span>);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list3 = (ArrayList&lt;String&gt;) CollectionUtils.subtract(list1, list2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Apache Common包</category>
-      </categories>
-      <tags>
-        <tag>Apache Common包</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Apache Druid 学习：kafka to druid</title>
-    <url>/2019/10/21/apache-druid:study-kafka-to-druid/</url>
-    <content><![CDATA[<p>Apache Druid 学习：kafka to druid demo</p>
-<span id="more"></span>
-
-<h3 id="Druid-Web操作"><a href="#Druid-Web操作" class="headerlink" title="Druid Web操作"></a><strong>Druid Web操作</strong></h3><p><a href="http://druid.apache.org/docs/latest/tutorials/tutorial-kafka.html">官网教程</a></p>
-<h3 id="Java-Demo"><a href="#Java-Demo" class="headerlink" title="Java Demo"></a><strong>Java Demo</strong></h3>]]></content>
-      <categories>
-        <category>Apache Druid</category>
-      </categories>
-      <tags>
-        <tag>Apache Druid</tag>
-        <tag>Apache Kafka</tag>
       </tags>
   </entry>
   <entry>
@@ -631,6 +615,22 @@
       </tags>
   </entry>
   <entry>
+    <title>Apache Druid 学习：kafka to druid</title>
+    <url>/2019/10/21/apache-druid:study-kafka-to-druid/</url>
+    <content><![CDATA[<p>Apache Druid 学习：kafka to druid demo</p>
+<span id="more"></span>
+
+<h3 id="Druid-Web操作"><a href="#Druid-Web操作" class="headerlink" title="Druid Web操作"></a><strong>Druid Web操作</strong></h3><p><a href="http://druid.apache.org/docs/latest/tutorials/tutorial-kafka.html">官网教程</a></p>
+<h3 id="Java-Demo"><a href="#Java-Demo" class="headerlink" title="Java Demo"></a><strong>Java Demo</strong></h3>]]></content>
+      <categories>
+        <category>Apache Druid</category>
+      </categories>
+      <tags>
+        <tag>Apache Druid</tag>
+        <tag>Apache Kafka</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Apache Flink 零基础入门（四）：DataStream API 编程 学习心得</title>
     <url>/2019/10/15/apache-flink:study-4-datastream-api/</url>
     <content><![CDATA[<p>学习心得</p>
@@ -684,11 +684,6 @@
       </tags>
   </entry>
   <entry>
-    <title>apache-flink:study-allowedLateness-and-maxOutOfOrderness</title>
-    <url>/2019/11/11/apache-flink:study-allowedLateness-and-maxOutOfOrderness/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
     <title>Apache Flink 学习：异步IO之RichAsyncFunction</title>
     <url>/2019/11/06/apache-flink:study-async-io-RichAsyncFunction/</url>
     <content><![CDATA[<p>Apache Flink 学习：异步IO之RichAsyncFunction</p>
@@ -725,6 +720,11 @@
       <tags>
         <tag>Apache Flink</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>apache-flink:study-allowedLateness-and-maxOutOfOrderness</title>
+    <url>/2019/11/11/apache-flink:study-allowedLateness-and-maxOutOfOrderness/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Apache Flink 学习：系统特性学习</title>
@@ -1132,89 +1132,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Mac安装Apache Hadoop-3.2.1</title>
-    <url>/2019/10/17/apache-hadoop:3.2.1-mac-install/</url>
-    <content><![CDATA[<p>Mac安装Apache hadoop-3.2.1教程</p>
-<span id="more"></span>
-
-
-<h2 id="Java环境配置"><a href="#Java环境配置" class="headerlink" title="Java环境配置"></a><strong>Java环境配置</strong></h2><h3 id="安装Java，查看Java版本以测试是否安装成功"><a href="#安装Java，查看Java版本以测试是否安装成功" class="headerlink" title="安装Java，查看Java版本以测试是否安装成功"></a>安装Java，查看Java版本以测试是否安装成功</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ java -version</span><br><span class="line">java version <span class="string">&quot;1.8.0_191&quot;</span></span><br><span class="line">Java(TM) SE Runtime Environment (build 1.8.0_191-b12)</span><br><span class="line">Java HotSpot(TM) 64-Bit Server VM (build 25.191-b12, mixed mode)</span><br></pre></td></tr></table></figure>
-
-<h3 id="查看Java安装位置信息，之后配置Hadoop运行环境需要使用"><a href="#查看Java安装位置信息，之后配置Hadoop运行环境需要使用" class="headerlink" title="查看Java安装位置信息，之后配置Hadoop运行环境需要使用"></a>查看Java安装位置信息，之后配置Hadoop运行环境需要使用</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ /usr/libexec/java_home</span><br><span class="line">/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="ssh配置"><a href="#ssh配置" class="headerlink" title="ssh配置"></a><strong>ssh配置</strong></h2><h3 id="配置ssh"><a href="#配置ssh" class="headerlink" title="配置ssh"></a>配置ssh</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys</span><br><span class="line">$ chmod 0600 ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
-
-<h3 id="创建ssh公钥"><a href="#创建ssh公钥" class="headerlink" title="创建ssh公钥"></a>创建ssh公钥</h3><p>如果没有ssh公钥，执行以下命令创建</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ssh-keygen -t rsa</span><br></pre></td></tr></table></figure>
-
-<h3 id="开启远程登录"><a href="#开启远程登录" class="headerlink" title="开启远程登录"></a>开启远程登录</h3><p><img src="/blog-img/apache-hadoop:3.2.1-mac-install/remote-login.png" alt="系统偏好设置-&gt;共享"></p>
-<h3 id="测试远程登录是否开启"><a href="#测试远程登录是否开启" class="headerlink" title="测试远程登录是否开启"></a>测试远程登录是否开启</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ssh localhost</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="安装hadoop"><a href="#安装hadoop" class="headerlink" title="安装hadoop"></a><strong>安装hadoop</strong></h2><h3 id="brew安装hadoop"><a href="#brew安装hadoop" class="headerlink" title="brew安装hadoop"></a>brew安装hadoop</h3><p>brew安装的一般都是最新的hadoop，我这里是hadoop 3.2.1 <br>如果需要安装其他版本的hadoop，通过<a href="https://www.jianshu.com/p/aadb54eac0a8">brew安装指定版本的软件</a>进行安装</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ brew install hadoop</span><br><span class="line">Updating Homebrew...</span><br><span class="line">==&gt; Downloading https://www.apache.org/dyn/closer.cgi?path=hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz</span><br><span class="line">==&gt; Downloading from http://mirrors.tuna.tsinghua.edu.cn/apache/hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz</span><br><span class="line"><span class="comment">######################################################################## 100.0%</span></span><br><span class="line">🍺  /usr/<span class="built_in">local</span>/Cellar/hadoop/3.2.1: 21,686 files, 774.1MB, built <span class="keyword">in</span> 10 minutes 1 second</span><br></pre></td></tr></table></figure>
-<p>注意上面的下载信息中 <br>默认brew是会从apache官方的镜像中下载</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">==&gt; Downloading https://www.apache.org/dyn/closer.cgi?path=hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz</span><br></pre></td></tr></table></figure>
-<p>如果下载很慢，可以配置国内镜像进行下载(<a href="https://mirror.tuna.tsinghua.edu.cn/help/homebrew/">清华大学开源软件镜像站</a>)</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">==&gt; Downloading from http://mirrors.tuna.tsinghua.edu.cn/apache/hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz</span><br></pre></td></tr></table></figure>
-
-<p>安装完之后查看hadoop安装位置</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ brew info hadoop</span><br><span class="line">hadoop: stable 3.2.1</span><br><span class="line">Framework <span class="keyword">for</span> distributed processing of large data sets</span><br><span class="line">https://hadoop.apache.org/</span><br><span class="line">Conflicts with:</span><br><span class="line">  yarn (because both install `yarn` binaries)</span><br><span class="line">/usr/<span class="built_in">local</span>/Cellar/hadoop/hdfs (20 files, 1MB)</span><br><span class="line">  Built from <span class="built_in">source</span></span><br><span class="line">/usr/<span class="built_in">local</span>/Cellar/hadoop/3.2.1 (22,408 files, 815.8MB)</span><br><span class="line">  Built from <span class="built_in">source</span> on 2019-10-17 at 09:46:37</span><br><span class="line">From: https://github.com/Homebrew/homebrew-core/blob/master/Formula/hadoop.rb</span><br><span class="line">==&gt; Requirements</span><br><span class="line">Required: java &gt;= 1.8 ✔</span><br><span class="line">==&gt; Analytics</span><br><span class="line">install: 4,572 (30 days), 10,774 (90 days), 44,762 (365 days)</span><br><span class="line">install_on_request: 3,822 (30 days), 9,128 (90 days), 38,206 (365 days)</span><br><span class="line">build_error: 0 (30 days)</span><br></pre></td></tr></table></figure>
-
-<h3 id="配置hadoop"><a href="#配置hadoop" class="headerlink" title="配置hadoop"></a>配置hadoop</h3><p>需要修改的配置文件都在<font color=red>/usr/local/Cellar/hadoop/3.2.1/libexec/etc/hadoop</font>这个目录下</p>
-<h4 id="hadoop-env-sh"><a href="#hadoop-env-sh" class="headerlink" title="hadoop-env.sh"></a>hadoop-env.sh</h4><p>配置 export JAVA_HOME</p>
-<p>将/usr/libexec/java_home查到的 Java 路径配置进去，记得去掉注释 #。</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home</span><br></pre></td></tr></table></figure>
-
-<h4 id="core-site-xml"><a href="#core-site-xml" class="headerlink" title="core-site.xml"></a>core-site.xml</h4><p>修改core-site.xml 文件参数,配置NameNode的主机名和端口号</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>hadoop.tmp.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>/usr/local/Cellar/hadoop/hdfs/tmp<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">description</span>&gt;</span>A base for other temporary directories<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>fs.default.name<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://localhost:9000<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="hdfs-site-xml"><a href="#hdfs-site-xml" class="headerlink" title="hdfs-site.xml"></a>hdfs-site.xml</h4><p>变量dfs.replication指定了每个HDFS数据库的复制次数。 通常为3, 由于我们只有一台主机和一个伪分布式模式的DataNode，将此值修改为1</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.replication<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>1<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="格式化"><a href="#格式化" class="headerlink" title="格式化"></a>格式化</h4><p>格式化hdfs操作只要第一次才使用，否则会造成数据全部丢失</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hdfs namenode -format</span><br></pre></td></tr></table></figure>
-
-<h3 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h3><p>启动服务</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./start-all.sh</span><br></pre></td></tr></table></figure>
-
-<p>启动成功后，可以在<br><a href="http://localhost:9870/">http://localhost:9870/</a><br><a href="http://localhost:8088/cluster">http://localhost:8088/cluster</a><br>进行查看</p>
-<p>关闭服务</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./stop-all.sh</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Apache Hadoop</category>
-      </categories>
-      <tags>
-        <tag>Apache Hadoop</tag>
-        <tag>Mac安装</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Apache Hadoop错误：Unable to load native-hadoop library for your platform</title>
-    <url>/2019/10/17/apache-hadoop:error-unable-to-load-native-hadoop-library-from-you-platform/</url>
-    <content><![CDATA[<p>Apache Hadoop错误：Unable to load native-hadoop library for your platform</p>
-<span id="more"></span>
-
-
-<h3 id="错误场景详情"><a href="#错误场景详情" class="headerlink" title="错误场景详情"></a><strong>错误场景详情</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hadoop fs -ls /</span><br><span class="line">WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using builtin-java classes <span class="built_in">where</span> applicable</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="错误原因"><a href="#错误原因" class="headerlink" title="错误原因"></a><strong>错误原因</strong></h3><p>Hadoop是使用Java语言开发的,但是有一些需求和操作并不适合使用java所以会引入了本地库（Native Libraries）的概念，通过本地库，Hadoop可以更加高效地执行某一些操作.<br>当我们在linux 输入 hdoop fs -ls / 去查看 hdfs 文件系统上的资源时会出现下面错误</p>
-<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a><strong>解决方案</strong></h3><h4 id="解决方案1"><a href="#解决方案1" class="headerlink" title="解决方案1"></a>解决方案1</h4><p>在Hadoop的配置文件core-site.xml中可以设置是否使用本地库：（Hadoop默认的配置为启用本地库）</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>hadoop.native.lib<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">value</span>&gt;</span>false<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">description</span>&gt;</span>Should native hadoop libraries, if present, be used.<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="解决方案2"><a href="#解决方案2" class="headerlink" title="解决方案2"></a>解决方案2</h4><p>有博客说可以直接下载编译好的位包，替换原来的native包<br>由于在我本地安装的Apache Hadoop 3.2.1版本中没有找到lib文件夹，所以在3.2.1版本中暂时不能使用此种方法</p>
-<p>执行查看文件命令</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hadoop fs -ls /</span><br><span class="line">2019-10-17 11:33:09,369 WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using builtin-java classes <span class="built_in">where</span> applicable</span><br><span class="line">Found 1 items</span><br><span class="line">drwxr-xr-x   - xxx supergroup          0 2019-10-17 11:23 /tmp</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Apache Hadoop</category>
-      </categories>
-      <tags>
-        <tag>Apache Hadoop</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Apache Flink 学习：实时场景下的应用</title>
     <url>/2019/11/03/apache-flink:study-realtime-scenario/</url>
     <content><![CDATA[<p>Apache Flink 学习：实时场景下的应用</p>
@@ -1368,6 +1285,89 @@
       </tags>
   </entry>
   <entry>
+    <title>Mac安装Apache Hadoop-3.2.1</title>
+    <url>/2019/10/17/apache-hadoop:3.2.1-mac-install/</url>
+    <content><![CDATA[<p>Mac安装Apache hadoop-3.2.1教程</p>
+<span id="more"></span>
+
+
+<h2 id="Java环境配置"><a href="#Java环境配置" class="headerlink" title="Java环境配置"></a><strong>Java环境配置</strong></h2><h3 id="安装Java，查看Java版本以测试是否安装成功"><a href="#安装Java，查看Java版本以测试是否安装成功" class="headerlink" title="安装Java，查看Java版本以测试是否安装成功"></a>安装Java，查看Java版本以测试是否安装成功</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ java -version</span><br><span class="line">java version <span class="string">&quot;1.8.0_191&quot;</span></span><br><span class="line">Java(TM) SE Runtime Environment (build 1.8.0_191-b12)</span><br><span class="line">Java HotSpot(TM) 64-Bit Server VM (build 25.191-b12, mixed mode)</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看Java安装位置信息，之后配置Hadoop运行环境需要使用"><a href="#查看Java安装位置信息，之后配置Hadoop运行环境需要使用" class="headerlink" title="查看Java安装位置信息，之后配置Hadoop运行环境需要使用"></a>查看Java安装位置信息，之后配置Hadoop运行环境需要使用</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ /usr/libexec/java_home</span><br><span class="line">/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="ssh配置"><a href="#ssh配置" class="headerlink" title="ssh配置"></a><strong>ssh配置</strong></h2><h3 id="配置ssh"><a href="#配置ssh" class="headerlink" title="配置ssh"></a>配置ssh</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys</span><br><span class="line">$ chmod 0600 ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建ssh公钥"><a href="#创建ssh公钥" class="headerlink" title="创建ssh公钥"></a>创建ssh公钥</h3><p>如果没有ssh公钥，执行以下命令创建</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ssh-keygen -t rsa</span><br></pre></td></tr></table></figure>
+
+<h3 id="开启远程登录"><a href="#开启远程登录" class="headerlink" title="开启远程登录"></a>开启远程登录</h3><p><img src="/blog-img/apache-hadoop:3.2.1-mac-install/remote-login.png" alt="系统偏好设置-&gt;共享"></p>
+<h3 id="测试远程登录是否开启"><a href="#测试远程登录是否开启" class="headerlink" title="测试远程登录是否开启"></a>测试远程登录是否开启</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ssh localhost</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="安装hadoop"><a href="#安装hadoop" class="headerlink" title="安装hadoop"></a><strong>安装hadoop</strong></h2><h3 id="brew安装hadoop"><a href="#brew安装hadoop" class="headerlink" title="brew安装hadoop"></a>brew安装hadoop</h3><p>brew安装的一般都是最新的hadoop，我这里是hadoop 3.2.1 <br>如果需要安装其他版本的hadoop，通过<a href="https://www.jianshu.com/p/aadb54eac0a8">brew安装指定版本的软件</a>进行安装</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ brew install hadoop</span><br><span class="line">Updating Homebrew...</span><br><span class="line">==&gt; Downloading https://www.apache.org/dyn/closer.cgi?path=hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz</span><br><span class="line">==&gt; Downloading from http://mirrors.tuna.tsinghua.edu.cn/apache/hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz</span><br><span class="line"><span class="comment">######################################################################## 100.0%</span></span><br><span class="line">🍺  /usr/<span class="built_in">local</span>/Cellar/hadoop/3.2.1: 21,686 files, 774.1MB, built <span class="keyword">in</span> 10 minutes 1 second</span><br></pre></td></tr></table></figure>
+<p>注意上面的下载信息中 <br>默认brew是会从apache官方的镜像中下载</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">==&gt; Downloading https://www.apache.org/dyn/closer.cgi?path=hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz</span><br></pre></td></tr></table></figure>
+<p>如果下载很慢，可以配置国内镜像进行下载(<a href="https://mirror.tuna.tsinghua.edu.cn/help/homebrew/">清华大学开源软件镜像站</a>)</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">==&gt; Downloading from http://mirrors.tuna.tsinghua.edu.cn/apache/hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>安装完之后查看hadoop安装位置</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ brew info hadoop</span><br><span class="line">hadoop: stable 3.2.1</span><br><span class="line">Framework <span class="keyword">for</span> distributed processing of large data sets</span><br><span class="line">https://hadoop.apache.org/</span><br><span class="line">Conflicts with:</span><br><span class="line">  yarn (because both install `yarn` binaries)</span><br><span class="line">/usr/<span class="built_in">local</span>/Cellar/hadoop/hdfs (20 files, 1MB)</span><br><span class="line">  Built from <span class="built_in">source</span></span><br><span class="line">/usr/<span class="built_in">local</span>/Cellar/hadoop/3.2.1 (22,408 files, 815.8MB)</span><br><span class="line">  Built from <span class="built_in">source</span> on 2019-10-17 at 09:46:37</span><br><span class="line">From: https://github.com/Homebrew/homebrew-core/blob/master/Formula/hadoop.rb</span><br><span class="line">==&gt; Requirements</span><br><span class="line">Required: java &gt;= 1.8 ✔</span><br><span class="line">==&gt; Analytics</span><br><span class="line">install: 4,572 (30 days), 10,774 (90 days), 44,762 (365 days)</span><br><span class="line">install_on_request: 3,822 (30 days), 9,128 (90 days), 38,206 (365 days)</span><br><span class="line">build_error: 0 (30 days)</span><br></pre></td></tr></table></figure>
+
+<h3 id="配置hadoop"><a href="#配置hadoop" class="headerlink" title="配置hadoop"></a>配置hadoop</h3><p>需要修改的配置文件都在<font color=red>/usr/local/Cellar/hadoop/3.2.1/libexec/etc/hadoop</font>这个目录下</p>
+<h4 id="hadoop-env-sh"><a href="#hadoop-env-sh" class="headerlink" title="hadoop-env.sh"></a>hadoop-env.sh</h4><p>配置 export JAVA_HOME</p>
+<p>将/usr/libexec/java_home查到的 Java 路径配置进去，记得去掉注释 #。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home</span><br></pre></td></tr></table></figure>
+
+<h4 id="core-site-xml"><a href="#core-site-xml" class="headerlink" title="core-site.xml"></a>core-site.xml</h4><p>修改core-site.xml 文件参数,配置NameNode的主机名和端口号</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>hadoop.tmp.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>/usr/local/Cellar/hadoop/hdfs/tmp<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">description</span>&gt;</span>A base for other temporary directories<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>fs.default.name<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://localhost:9000<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="hdfs-site-xml"><a href="#hdfs-site-xml" class="headerlink" title="hdfs-site.xml"></a>hdfs-site.xml</h4><p>变量dfs.replication指定了每个HDFS数据库的复制次数。 通常为3, 由于我们只有一台主机和一个伪分布式模式的DataNode，将此值修改为1</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.replication<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>1<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="格式化"><a href="#格式化" class="headerlink" title="格式化"></a>格式化</h4><p>格式化hdfs操作只要第一次才使用，否则会造成数据全部丢失</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hdfs namenode -format</span><br></pre></td></tr></table></figure>
+
+<h3 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h3><p>启动服务</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./start-all.sh</span><br></pre></td></tr></table></figure>
+
+<p>启动成功后，可以在<br><a href="http://localhost:9870/">http://localhost:9870/</a><br><a href="http://localhost:8088/cluster">http://localhost:8088/cluster</a><br>进行查看</p>
+<p>关闭服务</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./stop-all.sh</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Apache Hadoop</category>
+      </categories>
+      <tags>
+        <tag>Apache Hadoop</tag>
+        <tag>Mac安装</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Apache Hadoop错误：Unable to load native-hadoop library for your platform</title>
+    <url>/2019/10/17/apache-hadoop:error-unable-to-load-native-hadoop-library-from-you-platform/</url>
+    <content><![CDATA[<p>Apache Hadoop错误：Unable to load native-hadoop library for your platform</p>
+<span id="more"></span>
+
+
+<h3 id="错误场景详情"><a href="#错误场景详情" class="headerlink" title="错误场景详情"></a><strong>错误场景详情</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hadoop fs -ls /</span><br><span class="line">WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using builtin-java classes <span class="built_in">where</span> applicable</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="错误原因"><a href="#错误原因" class="headerlink" title="错误原因"></a><strong>错误原因</strong></h3><p>Hadoop是使用Java语言开发的,但是有一些需求和操作并不适合使用java所以会引入了本地库（Native Libraries）的概念，通过本地库，Hadoop可以更加高效地执行某一些操作.<br>当我们在linux 输入 hdoop fs -ls / 去查看 hdfs 文件系统上的资源时会出现下面错误</p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a><strong>解决方案</strong></h3><h4 id="解决方案1"><a href="#解决方案1" class="headerlink" title="解决方案1"></a>解决方案1</h4><p>在Hadoop的配置文件core-site.xml中可以设置是否使用本地库：（Hadoop默认的配置为启用本地库）</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>hadoop.native.lib<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">value</span>&gt;</span>false<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">description</span>&gt;</span>Should native hadoop libraries, if present, be used.<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="解决方案2"><a href="#解决方案2" class="headerlink" title="解决方案2"></a>解决方案2</h4><p>有博客说可以直接下载编译好的位包，替换原来的native包<br>由于在我本地安装的Apache Hadoop 3.2.1版本中没有找到lib文件夹，所以在3.2.1版本中暂时不能使用此种方法</p>
+<p>执行查看文件命令</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hadoop fs -ls /</span><br><span class="line">2019-10-17 11:33:09,369 WARN util.NativeCodeLoader: Unable to load native-hadoop library <span class="keyword">for</span> your platform... using builtin-java classes <span class="built_in">where</span> applicable</span><br><span class="line">Found 1 items</span><br><span class="line">drwxr-xr-x   - xxx supergroup          0 2019-10-17 11:23 /tmp</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Apache Hadoop</category>
+      </categories>
+      <tags>
+        <tag>Apache Hadoop</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Apache Hadoop 学习：hdfs架构</title>
     <url>/2019/11/13/apache-hadoop:study-hadoop-hdfs-design/</url>
     <content><![CDATA[<p>Apache Hadoop 学习：hdfs架构</p>
@@ -1459,25 +1459,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Apache Hive环境搭建错误：com.mysql.jdbc.Driver was not found in the CLASSPATH</title>
-    <url>/2019/10/17/apache-hive:error-ClassNotFoundException:com.mysql.jdbc.driver/</url>
-    <content><![CDATA[<p>Apache Hive环境搭建错误：com.mysql.jdbc.Driver was not found in the CLASSPATH</p>
-<span id="more"></span>
-
-
-<h3 id="错误场景详情"><a href="#错误场景详情" class="headerlink" title="错误场景详情"></a><strong>错误场景详情</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ <span class="variable">$HIVE_HOME</span>/bin/schematool -dbType mysql -initSchema</span><br><span class="line">SLF4J: Class path contains multiple SLF4J bindings.</span><br><span class="line">SLF4J: Found binding <span class="keyword">in</span> [jar:file:/usr/<span class="built_in">local</span>/Cellar/hive/3.1.2/libexec/lib/log4j-slf4j-impl-2.10.0.jar!/org/slf4j/impl/StaticLoggerBinder.class]</span><br><span class="line">SLF4J: Found binding <span class="keyword">in</span> [jar:file:/usr/<span class="built_in">local</span>/Cellar/hadoop/3.2.1/libexec/share/hadoop/common/lib/slf4j-log4j12-1.7.25.jar!/org/slf4j/impl/StaticLoggerBinder.class]</span><br><span class="line">SLF4J: See http://www.slf4j.org/codes.html<span class="comment">#multiple_bindings for an explanation.</span></span><br><span class="line">SLF4J: Actual binding is of <span class="built_in">type</span> [org.apache.logging.slf4j.Log4jLoggerFactory]</span><br><span class="line">Metastore connection URL:	 jdbc:mysql://localhost:3306/hive?characterEncoding=UTF-8</span><br><span class="line">Metastore Connection Driver :	 com.mysql.jdbc.Driver</span><br><span class="line">Metastore connection User:	 hadoop</span><br><span class="line">org.apache.hadoop.hive.metastore.HiveMetaException: Failed to load driver</span><br><span class="line">Underlying cause: java.lang.ClassNotFoundException : com.mysql.jdbc.Driver</span><br><span class="line">Use --verbose <span class="keyword">for</span> detailed stacktrace.</span><br><span class="line">*** schemaTool failed ***</span><br></pre></td></tr></table></figure>
-
-<h3 id="错误原因"><a href="#错误原因" class="headerlink" title="错误原因"></a><strong>错误原因</strong></h3><p>在配置hive-site.xml文件时配置了mysql驱动，而hive/lib目录下没有mysql驱动包。</p>
-<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a><strong>解决方案</strong></h3><p>官网下载mysql驱动下载地址 (<a href="https://dev.mysql.com/downloads/connector/j/">https://dev.mysql.com/downloads/connector/j/</a>)<br>把下载好的压缩包（mysql-connector-java-8.0.18.zip）进行解压<br>unzip mysql-connector-java-8.0.18.zip<br>复制到hive/lib下<br>cp mysql-connector-java-8.0.18/mysql-connector-java-8.0.18.jar hive/lib</p>
-]]></content>
-      <categories>
-        <category>Apache Hive</category>
-      </categories>
-      <tags>
-        <tag>Apache Hive</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Mac安装Apache Hive-3.2.1</title>
     <url>/2019/10/17/apache-hive:3.1.2-mac-install/</url>
     <content><![CDATA[<p>Mac安装Apache Hive-3.2.1教程</p>
@@ -1522,6 +1503,25 @@
       </categories>
       <tags>
         <tag>Mac安装</tag>
+        <tag>Apache Hive</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Apache Hive环境搭建错误：com.mysql.jdbc.Driver was not found in the CLASSPATH</title>
+    <url>/2019/10/17/apache-hive:error-ClassNotFoundException:com.mysql.jdbc.driver/</url>
+    <content><![CDATA[<p>Apache Hive环境搭建错误：com.mysql.jdbc.Driver was not found in the CLASSPATH</p>
+<span id="more"></span>
+
+
+<h3 id="错误场景详情"><a href="#错误场景详情" class="headerlink" title="错误场景详情"></a><strong>错误场景详情</strong></h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ <span class="variable">$HIVE_HOME</span>/bin/schematool -dbType mysql -initSchema</span><br><span class="line">SLF4J: Class path contains multiple SLF4J bindings.</span><br><span class="line">SLF4J: Found binding <span class="keyword">in</span> [jar:file:/usr/<span class="built_in">local</span>/Cellar/hive/3.1.2/libexec/lib/log4j-slf4j-impl-2.10.0.jar!/org/slf4j/impl/StaticLoggerBinder.class]</span><br><span class="line">SLF4J: Found binding <span class="keyword">in</span> [jar:file:/usr/<span class="built_in">local</span>/Cellar/hadoop/3.2.1/libexec/share/hadoop/common/lib/slf4j-log4j12-1.7.25.jar!/org/slf4j/impl/StaticLoggerBinder.class]</span><br><span class="line">SLF4J: See http://www.slf4j.org/codes.html<span class="comment">#multiple_bindings for an explanation.</span></span><br><span class="line">SLF4J: Actual binding is of <span class="built_in">type</span> [org.apache.logging.slf4j.Log4jLoggerFactory]</span><br><span class="line">Metastore connection URL:	 jdbc:mysql://localhost:3306/hive?characterEncoding=UTF-8</span><br><span class="line">Metastore Connection Driver :	 com.mysql.jdbc.Driver</span><br><span class="line">Metastore connection User:	 hadoop</span><br><span class="line">org.apache.hadoop.hive.metastore.HiveMetaException: Failed to load driver</span><br><span class="line">Underlying cause: java.lang.ClassNotFoundException : com.mysql.jdbc.Driver</span><br><span class="line">Use --verbose <span class="keyword">for</span> detailed stacktrace.</span><br><span class="line">*** schemaTool failed ***</span><br></pre></td></tr></table></figure>
+
+<h3 id="错误原因"><a href="#错误原因" class="headerlink" title="错误原因"></a><strong>错误原因</strong></h3><p>在配置hive-site.xml文件时配置了mysql驱动，而hive/lib目录下没有mysql驱动包。</p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a><strong>解决方案</strong></h3><p>官网下载mysql驱动下载地址 (<a href="https://dev.mysql.com/downloads/connector/j/">https://dev.mysql.com/downloads/connector/j/</a>)<br>把下载好的压缩包（mysql-connector-java-8.0.18.zip）进行解压<br>unzip mysql-connector-java-8.0.18.zip<br>复制到hive/lib下<br>cp mysql-connector-java-8.0.18/mysql-connector-java-8.0.18.jar hive/lib</p>
+]]></content>
+      <categories>
+        <category>Apache Hive</category>
+      </categories>
+      <tags>
         <tag>Apache Hive</tag>
       </tags>
   </entry>
@@ -1964,6 +1964,84 @@
       </tags>
   </entry>
   <entry>
+    <title>生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇</title>
+    <url>/2020/10/12/wechat-blog/apache-flink:realtime-live-stream-1/</url>
+    <content><![CDATA[<h1 id="生产实践-基于-Flink-的直播实时数据建设-（一）-需求和架构篇"><a href="#生产实践-基于-Flink-的直播实时数据建设-（一）-需求和架构篇" class="headerlink" title="生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇"></a>生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇</h1><blockquote>
+<p>本系列每篇文章都是从一些实际生产实践需求出发，解决一些生产实践中的问题，抛砖引玉，以帮助小伙伴们解决一些实际生产问题。相信大家或多或少都观看过直播，那大家有没有想过，如果自己负责建设公司内整体直播实时数据，会怎样去建设呢？本系列文章主要介绍直播实时数据建设的整个过程，如果对小伙伴有帮助的话，欢迎点赞 + 再看~</p>
+</blockquote>
+<h2 id="首先思考几个问题"><a href="#首先思考几个问题" class="headerlink" title="首先思考几个问题"></a>首先思考几个问题</h2><ul>
+<li><strong>WHAT：相信大家或多或少都观看过直播，甚至自己就是一名主播或负责的业务就是直播相关的，那大家有没有思考过，在直播业务场景中，你最关心什么指标以及需要关注、建设什么数据？</strong></li>
+<li><strong>WHY：为什么需要建设直播实时数据？离线建设不能满足吗？</strong></li>
+<li><strong>HOW：直播实时数据怎样赋能业务的？怎样根据公司直播场景的需求去划分直播实时数据？怎样去建设直播实时数据体？</strong></li>
+<li><strong>WHO：在建设直播实时数据的过程中，需要使用什么样的组件进行建设？每个组件都负责哪一部分？</strong></li>
+</ul>
+<p>让我们带着以上几个问题出发~</p>
+<h2 id="直播-短视频，内容运营的下一个战场"><a href="#直播-短视频，内容运营的下一个战场" class="headerlink" title="直播 + 短视频，内容运营的下一个战场"></a>直播 + 短视频，内容运营的下一个战场</h2><p>随着互联网络技术的发展，网络直播受到越来越多人的关注，直播在经过几年前的喷涌式大爆发之后，近段时间热度有所降低。内容的同质化和变现困难是直播现在面临的主要问题，随着移动终端普及和网络的提速，短视频以短平快的大流量传播方式快速获得各大平台、粉丝和资本的青睐，所以众多直播软件开始接入短视频的功能。<br>同时，一些以短视频为主发展起来的 app 也在软件中加入了直播功能，直播和短视频两者互相弥补不足，相辅相成，给用户带来了更好的使用体验，也给各大平台带来更多的流量，”直播 + 短视频”的模式已经也成为新的发展趋势。</p>
+<p>本系列文章主要围绕着直播实时数据建设而展开。本文是本系列文章的的第一篇，需求和架构篇，主要分为三个部分，按顺序为<strong>WHY - WHAT - HOW</strong>，以这三个角度出发，解答开头提出的三个问题，其中 <strong>WHO</strong>部分在本系列文章的后续建设细节章节进行介绍！</p>
+<h2 id="WHY：为什么建设直播实时数据？"><a href="#WHY：为什么建设直播实时数据？" class="headerlink" title="WHY：为什么建设直播实时数据？"></a>WHY：为什么建设直播实时数据？</h2><p>相比短视频的生产消费来说，直播的主播和观看直播的观众的纽带都是在直播间建立的，相互之间的互动行为也都只在直播间内产生，并且通常情况下，一场直播的时长也就在几个小时之内，因此直播的生产消费时效性相比短视频会更强，因而直播数据对于实时性的诉求也就更高。</p>
+<h2 id="WHAT：需要关注、建设什么直播实时数据？"><a href="#WHAT：需要关注、建设什么直播实时数据？" class="headerlink" title="WHAT：需要关注、建设什么直播实时数据？"></a>WHAT：需要关注、建设什么直播实时数据？</h2><p>需要关注、建设什么直播实时数据？换一句话来说就是根据<strong>数据分析业务的需求</strong>出发，决定建设什么样的直播实时数据？</p>
+<p>直播就是一个主播和观众联络互动的纽带，其中一切操作都是围绕着主播和观众而展开的，数据分析的同学都会以这个最基础的角度出发进行分析，因此首先我们就可以将整个直播的数据按照<strong>直播生产</strong>和<strong>直播消费</strong>进最基本的划分。</p>
+<p>除此角度之外，数据分析的同学也还会从<strong>全局直播业务洞察</strong>和<strong>单个直播间洞察</strong>不同粒度上进行分析洞察，因此还可以按照<strong>大盘数据</strong>、<strong>单直播间数据</strong>进行划分。</p>
+<p>从这两个角度出发，基本可以涵盖对于直播业务分析场景的诉求，因此直播实时数据也自然可以从这两个角度进行划分和建设。</p>
+<p>综上则整体<strong>直播实时数据业务划分和赋能应用架构</strong>如下图所示。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-1/biz-arc.png" alt="业务划分和应用架构"></p>
+<p>其中</p>
+<p><strong>直播大盘实时数据</strong>在宏观上监控直播业务，提供预测大盘的能力；其中分钟粒度时间序列可快速定位直播各行为的高峰时刻，可以基于该时刻进行详细归因。除此之外，当直播在做运营活动时，也能快速基于实时数据来看运营活动的活动效果，赋能活动策略实时优化。</p>
+<p><strong>单直播间直播实时数据</strong>可以以细粒度监控单直播间的直播业务，用来在直播过程中对外输出直播数据战报、以及可基于数据战报效果实时对单直播间进资源投放进行实时效果评估和合理调配。</p>
+<p>详细的直播实时数据需求和样例如下文。</p>
+<h3 id="大盘"><a href="#大盘" class="headerlink" title="大盘"></a>大盘</h3><p><strong>生产侧</strong></p>
+<ul>
+<li><strong>指标</strong>：总体开播直播间数…</li>
+<li><strong>维度</strong>：直播间画像、主播用户画像</li>
+<li><strong>举例</strong>：[开播直播间为游戏类直播]的[总开播主播数]</li>
+</ul>
+<p><strong>消费侧</strong></p>
+<ul>
+<li><strong>指标</strong>：总体观众观看、点赞、评论数…</li>
+<li><strong>维度</strong>：观众用户画像、日志上报其他维度</li>
+<li><strong>举例</strong>：[目前在河北观看直播]的[总观众数]</li>
+</ul>
+<h3 id="单直播间"><a href="#单直播间" class="headerlink" title="单直播间"></a>单直播间</h3><p><strong>生产侧</strong><br>单直播间一般都是一些画像信息，所以此类指标较少，暂时不做讨论。</p>
+<p><strong>消费侧</strong></p>
+<ul>
+<li><strong>指标</strong>：单直播间观众观看、点赞、评论数…</li>
+<li><strong>维度</strong>：观众用户画像、日志上报其他维度</li>
+<li><strong>举例</strong>：某直播间[18-23岁年龄段]的[总观众数]</li>
+</ul>
+<p>目前已经了解了要建设直播实时数据都包含了什么内容，接下来就是大干一场的时候了。</p>
+<h2 id="HOW：怎样去建设？"><a href="#HOW：怎样去建设？" class="headerlink" title="HOW：怎样去建设？"></a>HOW：怎样去建设？</h2><p>怎样去建设？换一句话来说就是从技术的角度出发，怎样将<strong>直播实时数据的业务需求</strong>转化为<strong>直播实时数据的技术方案</strong>进行落地？</p>
+<p>从技术角度出发，上述直播实时数据需要建设的需求内容总结下来就是一个词：<strong>直播实时多维指标</strong>。</p>
+<h3 id="多维"><a href="#多维" class="headerlink" title="多维"></a>多维</h3><p>即产出指标是多维度的，包含公共维度和非公共维度。</p>
+<p>第一类是<strong>公共维度</strong>。包含三部分，直播间画像，主播用户画像，观众用户画像，公共两字代表这类维度是可以被多个指标进行共享使用的。举例：某直播间开播之后，该直播间画像只需要一次建设，就可以被多个指标多次重复使用，不但可以作为大盘侧生产、消费指标的维度，也可以作为单直播间生产、消费指标的维度。</p>
+<p>第二类是<strong>非公共维度</strong>。非公共维度是和特定消费行为绑定的，也就是和某个指标绑定的，随着日志上报一同上报的维度。举例：某观众观看直播时的客户端类型（安卓？IOS？），观看直播时的省份等维度，这类维度只和当前的消费行为相关，不能被其他指标所共享。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-1/dim.png" alt="多维"></p>
+<h3 id="指标"><a href="#指标" class="headerlink" title="指标"></a>指标</h3><p>其实都是 pv，uv 类指标。简单理解就是各个维度下对应的 xx 量。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-1/metric.png" alt="指标"></p>
+<h3 id="实时数据建设技术架构"><a href="#实时数据建设技术架构" class="headerlink" title="实时数据建设技术架构"></a>实时数据建设技术架构</h3><p>对应到直播实时数据建设的过程主要包含两部分：公共部分和非公共部分。</p>
+<p>公共部分就是实时公共维表的建设。</p>
+<p>非公共部分就是指标非公共维度以及对应生产、消费指标建设。</p>
+<p>直接给出总体<strong>技术架构</strong>图，本系列后续的文章进行介绍这样进行整体架构设计的详细原因。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-1/tec-arc.png" alt="技术架构"></p>
+<p>简单说明下。</p>
+<p>其中数据源包含生产侧，消费侧数据源；</p>
+<p>数据处理部分包含公共实时维表建设，和指标建设，其中一部分公共维表的建设也使用了离线的方式提供了支持；</p>
+<p>最后就是数据汇部分，产出了生产侧，消费侧的多维指标供数据分析师使用。</p>
+<h2 id="下节预告"><a href="#下节预告" class="headerlink" title="下节预告"></a>下节预告</h2><p>下节主要介绍<strong>直播实时公共画像的建设</strong>，其中是技术架构图中的<strong>主播用户、关注用户画像、以及直播间画像</strong>的建设方案。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文首先提出了几个关于直播实时数据建设的问题。以这几个问题触发，引出了一下三小节。</p>
+<p>第一节简单介绍了直播时效性强的原因，因此直播对于实时数据的需求更加强烈。</p>
+<p>第二节从数据分析的角度出发，引出了我们需要建设的直播实时数据都包含哪些内容，并且从大盘/单直播间，生产/消费角度进行了模块划分。</p>
+<p>第三节对数据需求进行了技术方案的整体架构设计。</p>
+<p>最后一节对本文进行了总结。</p>
+<p>如果你也有相同的建设需求或者你以及建设了直播实时数据，欢迎留言或者留下你的文章链接，相互交流~</p>
+]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>实时开发需求确认模板</title>
     <url>/2019/09/01/wechat-blog/apache-flink:realtime-demand-template/</url>
     <content><![CDATA[<h1 id="实时开发需求确认模板"><a href="#实时开发需求确认模板" class="headerlink" title="实时开发需求确认模板"></a>实时开发需求确认模板</h1><blockquote>
@@ -2124,84 +2202,6 @@
 </table>
 
 <h2 id="技术方案评估"><a href="#技术方案评估" class="headerlink" title="技术方案评估"></a>技术方案评估</h2>]]></content>
-      <categories>
-        <category>Apache Flink</category>
-      </categories>
-      <tags>
-        <tag>Apache Flink</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇</title>
-    <url>/2020/10/12/wechat-blog/apache-flink:realtime-live-stream-1/</url>
-    <content><![CDATA[<h1 id="生产实践-基于-Flink-的直播实时数据建设-（一）-需求和架构篇"><a href="#生产实践-基于-Flink-的直播实时数据建设-（一）-需求和架构篇" class="headerlink" title="生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇"></a>生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇</h1><blockquote>
-<p>本系列每篇文章都是从一些实际生产实践需求出发，解决一些生产实践中的问题，抛砖引玉，以帮助小伙伴们解决一些实际生产问题。相信大家或多或少都观看过直播，那大家有没有想过，如果自己负责建设公司内整体直播实时数据，会怎样去建设呢？本系列文章主要介绍直播实时数据建设的整个过程，如果对小伙伴有帮助的话，欢迎点赞 + 再看~</p>
-</blockquote>
-<h2 id="首先思考几个问题"><a href="#首先思考几个问题" class="headerlink" title="首先思考几个问题"></a>首先思考几个问题</h2><ul>
-<li><strong>WHAT：相信大家或多或少都观看过直播，甚至自己就是一名主播或负责的业务就是直播相关的，那大家有没有思考过，在直播业务场景中，你最关心什么指标以及需要关注、建设什么数据？</strong></li>
-<li><strong>WHY：为什么需要建设直播实时数据？离线建设不能满足吗？</strong></li>
-<li><strong>HOW：直播实时数据怎样赋能业务的？怎样根据公司直播场景的需求去划分直播实时数据？怎样去建设直播实时数据体？</strong></li>
-<li><strong>WHO：在建设直播实时数据的过程中，需要使用什么样的组件进行建设？每个组件都负责哪一部分？</strong></li>
-</ul>
-<p>让我们带着以上几个问题出发~</p>
-<h2 id="直播-短视频，内容运营的下一个战场"><a href="#直播-短视频，内容运营的下一个战场" class="headerlink" title="直播 + 短视频，内容运营的下一个战场"></a>直播 + 短视频，内容运营的下一个战场</h2><p>随着互联网络技术的发展，网络直播受到越来越多人的关注，直播在经过几年前的喷涌式大爆发之后，近段时间热度有所降低。内容的同质化和变现困难是直播现在面临的主要问题，随着移动终端普及和网络的提速，短视频以短平快的大流量传播方式快速获得各大平台、粉丝和资本的青睐，所以众多直播软件开始接入短视频的功能。<br>同时，一些以短视频为主发展起来的 app 也在软件中加入了直播功能，直播和短视频两者互相弥补不足，相辅相成，给用户带来了更好的使用体验，也给各大平台带来更多的流量，”直播 + 短视频”的模式已经也成为新的发展趋势。</p>
-<p>本系列文章主要围绕着直播实时数据建设而展开。本文是本系列文章的的第一篇，需求和架构篇，主要分为三个部分，按顺序为<strong>WHY - WHAT - HOW</strong>，以这三个角度出发，解答开头提出的三个问题，其中 <strong>WHO</strong>部分在本系列文章的后续建设细节章节进行介绍！</p>
-<h2 id="WHY：为什么建设直播实时数据？"><a href="#WHY：为什么建设直播实时数据？" class="headerlink" title="WHY：为什么建设直播实时数据？"></a>WHY：为什么建设直播实时数据？</h2><p>相比短视频的生产消费来说，直播的主播和观看直播的观众的纽带都是在直播间建立的，相互之间的互动行为也都只在直播间内产生，并且通常情况下，一场直播的时长也就在几个小时之内，因此直播的生产消费时效性相比短视频会更强，因而直播数据对于实时性的诉求也就更高。</p>
-<h2 id="WHAT：需要关注、建设什么直播实时数据？"><a href="#WHAT：需要关注、建设什么直播实时数据？" class="headerlink" title="WHAT：需要关注、建设什么直播实时数据？"></a>WHAT：需要关注、建设什么直播实时数据？</h2><p>需要关注、建设什么直播实时数据？换一句话来说就是根据<strong>数据分析业务的需求</strong>出发，决定建设什么样的直播实时数据？</p>
-<p>直播就是一个主播和观众联络互动的纽带，其中一切操作都是围绕着主播和观众而展开的，数据分析的同学都会以这个最基础的角度出发进行分析，因此首先我们就可以将整个直播的数据按照<strong>直播生产</strong>和<strong>直播消费</strong>进最基本的划分。</p>
-<p>除此角度之外，数据分析的同学也还会从<strong>全局直播业务洞察</strong>和<strong>单个直播间洞察</strong>不同粒度上进行分析洞察，因此还可以按照<strong>大盘数据</strong>、<strong>单直播间数据</strong>进行划分。</p>
-<p>从这两个角度出发，基本可以涵盖对于直播业务分析场景的诉求，因此直播实时数据也自然可以从这两个角度进行划分和建设。</p>
-<p>综上则整体<strong>直播实时数据业务划分和赋能应用架构</strong>如下图所示。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-1/biz-arc.png" alt="业务划分和应用架构"></p>
-<p>其中</p>
-<p><strong>直播大盘实时数据</strong>在宏观上监控直播业务，提供预测大盘的能力；其中分钟粒度时间序列可快速定位直播各行为的高峰时刻，可以基于该时刻进行详细归因。除此之外，当直播在做运营活动时，也能快速基于实时数据来看运营活动的活动效果，赋能活动策略实时优化。</p>
-<p><strong>单直播间直播实时数据</strong>可以以细粒度监控单直播间的直播业务，用来在直播过程中对外输出直播数据战报、以及可基于数据战报效果实时对单直播间进资源投放进行实时效果评估和合理调配。</p>
-<p>详细的直播实时数据需求和样例如下文。</p>
-<h3 id="大盘"><a href="#大盘" class="headerlink" title="大盘"></a>大盘</h3><p><strong>生产侧</strong></p>
-<ul>
-<li><strong>指标</strong>：总体开播直播间数…</li>
-<li><strong>维度</strong>：直播间画像、主播用户画像</li>
-<li><strong>举例</strong>：[开播直播间为游戏类直播]的[总开播主播数]</li>
-</ul>
-<p><strong>消费侧</strong></p>
-<ul>
-<li><strong>指标</strong>：总体观众观看、点赞、评论数…</li>
-<li><strong>维度</strong>：观众用户画像、日志上报其他维度</li>
-<li><strong>举例</strong>：[目前在河北观看直播]的[总观众数]</li>
-</ul>
-<h3 id="单直播间"><a href="#单直播间" class="headerlink" title="单直播间"></a>单直播间</h3><p><strong>生产侧</strong><br>单直播间一般都是一些画像信息，所以此类指标较少，暂时不做讨论。</p>
-<p><strong>消费侧</strong></p>
-<ul>
-<li><strong>指标</strong>：单直播间观众观看、点赞、评论数…</li>
-<li><strong>维度</strong>：观众用户画像、日志上报其他维度</li>
-<li><strong>举例</strong>：某直播间[18-23岁年龄段]的[总观众数]</li>
-</ul>
-<p>目前已经了解了要建设直播实时数据都包含了什么内容，接下来就是大干一场的时候了。</p>
-<h2 id="HOW：怎样去建设？"><a href="#HOW：怎样去建设？" class="headerlink" title="HOW：怎样去建设？"></a>HOW：怎样去建设？</h2><p>怎样去建设？换一句话来说就是从技术的角度出发，怎样将<strong>直播实时数据的业务需求</strong>转化为<strong>直播实时数据的技术方案</strong>进行落地？</p>
-<p>从技术角度出发，上述直播实时数据需要建设的需求内容总结下来就是一个词：<strong>直播实时多维指标</strong>。</p>
-<h3 id="多维"><a href="#多维" class="headerlink" title="多维"></a>多维</h3><p>即产出指标是多维度的，包含公共维度和非公共维度。</p>
-<p>第一类是<strong>公共维度</strong>。包含三部分，直播间画像，主播用户画像，观众用户画像，公共两字代表这类维度是可以被多个指标进行共享使用的。举例：某直播间开播之后，该直播间画像只需要一次建设，就可以被多个指标多次重复使用，不但可以作为大盘侧生产、消费指标的维度，也可以作为单直播间生产、消费指标的维度。</p>
-<p>第二类是<strong>非公共维度</strong>。非公共维度是和特定消费行为绑定的，也就是和某个指标绑定的，随着日志上报一同上报的维度。举例：某观众观看直播时的客户端类型（安卓？IOS？），观看直播时的省份等维度，这类维度只和当前的消费行为相关，不能被其他指标所共享。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-1/dim.png" alt="多维"></p>
-<h3 id="指标"><a href="#指标" class="headerlink" title="指标"></a>指标</h3><p>其实都是 pv，uv 类指标。简单理解就是各个维度下对应的 xx 量。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-1/metric.png" alt="指标"></p>
-<h3 id="实时数据建设技术架构"><a href="#实时数据建设技术架构" class="headerlink" title="实时数据建设技术架构"></a>实时数据建设技术架构</h3><p>对应到直播实时数据建设的过程主要包含两部分：公共部分和非公共部分。</p>
-<p>公共部分就是实时公共维表的建设。</p>
-<p>非公共部分就是指标非公共维度以及对应生产、消费指标建设。</p>
-<p>直接给出总体<strong>技术架构</strong>图，本系列后续的文章进行介绍这样进行整体架构设计的详细原因。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-1/tec-arc.png" alt="技术架构"></p>
-<p>简单说明下。</p>
-<p>其中数据源包含生产侧，消费侧数据源；</p>
-<p>数据处理部分包含公共实时维表建设，和指标建设，其中一部分公共维表的建设也使用了离线的方式提供了支持；</p>
-<p>最后就是数据汇部分，产出了生产侧，消费侧的多维指标供数据分析师使用。</p>
-<h2 id="下节预告"><a href="#下节预告" class="headerlink" title="下节预告"></a>下节预告</h2><p>下节主要介绍<strong>直播实时公共画像的建设</strong>，其中是技术架构图中的<strong>主播用户、关注用户画像、以及直播间画像</strong>的建设方案。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文首先提出了几个关于直播实时数据建设的问题。以这几个问题触发，引出了一下三小节。</p>
-<p>第一节简单介绍了直播时效性强的原因，因此直播对于实时数据的需求更加强烈。</p>
-<p>第二节从数据分析的角度出发，引出了我们需要建设的直播实时数据都包含哪些内容，并且从大盘/单直播间，生产/消费角度进行了模块划分。</p>
-<p>第三节对数据需求进行了技术方案的整体架构设计。</p>
-<p>最后一节对本文进行了总结。</p>
-<p>如果你也有相同的建设需求或者你以及建设了直播实时数据，欢迎留言或者留下你的文章链接，相互交流~</p>
-]]></content>
       <categories>
         <category>Apache Flink</category>
       </categories>
@@ -3774,7 +3774,8 @@
 </ul>
 <h3 id="终止快照-1"><a href="#终止快照-1" class="headerlink" title="终止快照"></a>终止快照</h3><p><img src="/blog-img/apache-flink:state-1/20.jpeg" alt="20"></p>
 <h2 id="示例-1"><a href="#示例-1" class="headerlink" title="示例"></a>示例</h2><p><img src="/blog-img/apache-flink:state-1/21.png" alt="21"><br><img src="/blog-img/apache-flink:state-1/22.png" alt="22"><br><img src="/blog-img/apache-flink:state-1/23.png" alt="23"><br><img src="/blog-img/apache-flink:state-1/24.png" alt="24"><br><img src="/blog-img/apache-flink:state-1/25.png" alt="25"><br><img src="/blog-img/apache-flink:state-1/26.png" alt="26"><br><img src="/blog-img/apache-flink:state-1/27.png" alt="27"><br><img src="/blog-img/apache-flink:state-1/28.png" alt="28"><br><img src="/blog-img/apache-flink:state-1/29.png" alt="29"></p>
-<h2 id="Chandy-Lamport-与上节分布式应用全局一致性快照算法的异同"><a href="#Chandy-Lamport-与上节分布式应用全局一致性快照算法的异同" class="headerlink" title="Chandy-Lamport 与上节分布式应用全局一致性快照算法的异同"></a>Chandy-Lamport 与上节<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>的异同</h2><p>Chandy-Lamport 就是上节<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>的其中一种特殊形式；<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>中说的是每个 process 在接收到 manager 做快照的消息之后就直接可以开始记录状态了，而 Chandy-Lamport 其实就是把这个 manager 的消息用接收到的第一个 marker 消息给代替了，用数学表达式表示就是接收到第一个 marker 的 channel 的 n = n’ = m = m’，剩余的 channel 满足 n = n’ ≥ m = m’，并且 Chandy-Lamport 算法也都满足第 8 章节介绍的各种条件。</p>
+<h2 id="Chandy-Lamport-与上节分布式应用全局一致性快照算法的异同"><a href="#Chandy-Lamport-与上节分布式应用全局一致性快照算法的异同" class="headerlink" title="Chandy-Lamport 与上节分布式应用全局一致性快照算法的异同"></a>Chandy-Lamport 与上节<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>的异同</h2><p><img src="/blog-img/apache-flink:state-1/47.png" alt="47"></p>
+<p>Chandy-Lamport 就是上节<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>的其中一种特殊形式；<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>中说的是每个 process 在接收到 manager 做快照的消息之后就直接可以开始记录状态了，而 Chandy-Lamport 其实就是把这个 manager 的消息用接收到的第一个 marker 消息给代替了，用数学表达式表示就是接收到第一个 marker 的 channel 的 n = n’ = m = m’，剩余的 channel 满足 n = n’ ≥ m = m’，并且 Chandy-Lamport 算法也都满足第 8 章节介绍的各种条件。</p>
 <h1 id="flink-实现的全局一致性快照介绍（flink-容错机制）"><a href="#flink-实现的全局一致性快照介绍（flink-容错机制）" class="headerlink" title="flink 实现的全局一致性快照介绍（flink 容错机制）"></a>flink 实现的全局一致性快照介绍（flink 容错机制）</h1><h2 id="Chandy-Lamport-与-Flink之间的关系"><a href="#Chandy-Lamport-与-Flink之间的关系" class="headerlink" title="Chandy-Lamport 与 Flink之间的关系"></a>Chandy-Lamport 与 Flink之间的关系</h2><p><a href="https://arxiv.org/pdf/1506.08603.pdf">flink 全局一致性快照论文</a></p>
 <p>Flink 是分布式系统，所以 Flink 会采用全局一致性快照的方式形成检查点，来支持故障恢复。Flink 的异步全局一致性快照算法跟 Chandy-Lamport 算法的区别主要有以下几点：</p>
 <ul>
@@ -3786,7 +3787,8 @@
 <h2 id="端到端的Exactly-once"><a href="#端到端的Exactly-once" class="headerlink" title="端到端的Exactly once"></a>端到端的Exactly once</h2><p>Exactly once 的意思是，作业结果总是正确的，但是很可能产出多次；所以它的要求是需要有可重放的 source。<br>端到端的 Exactly once，是指作业结果正确且只会被产出一次，它的要求除了有可重放的 source 外，还要求有事务型的 sink 和可以接收幂等的产出结果。</p>
 <h2 id="flink-的全局一致性快照"><a href="#flink-的全局一致性快照" class="headerlink" title="flink 的全局一致性快照"></a>flink 的全局一致性快照</h2><p><img src="/blog-img/apache-flink:state-1/31.png" alt="31"><br><img src="/blog-img/apache-flink:state-1/32.png" alt="32"><br><img src="/blog-img/apache-flink:state-1/33.png" alt="33"></p>
 <h2 id="Barrier-对齐"><a href="#Barrier-对齐" class="headerlink" title="Barrier 对齐"></a>Barrier 对齐</h2><p><img src="/blog-img/apache-flink:state-1/34.png" alt="34"><br><img src="/blog-img/apache-flink:state-1/35.png" alt="35"><br><img src="/blog-img/apache-flink:state-1/36.png" alt="36"></p>
-<h2 id="flink-的全局一致性快照与上节分布式应用全局一致性快照算法的异同"><a href="#flink-的全局一致性快照与上节分布式应用全局一致性快照算法的异同" class="headerlink" title="flink 的全局一致性快照与上节分布式应用全局一致性快照算法的异同"></a>flink 的全局一致性快照与上节<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>的异同</h2><p>flink 的全局一致性快照就是上节<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>的其中一种特殊形式；<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>中说的是每个 process 在接收到 manager 做快照的消息之后就直接可以开始记录状态了，而 flink 其实就是将各个 process 开始做状态的时间点设为了接收到上游 input channel 所有的 barrier，这样一个好处就是由于各个 process 是接收到了上游所有 barrier 之后开始的，用数学表达式表示其实就满足了 n = n’ = m = m’，就没有必要存储 channel 中的状态了；并且 flink 算法也都满足第 8 章节介绍的各种条件。</p>
+<h2 id="flink-的全局一致性快照与上节分布式应用全局一致性快照算法的异同"><a href="#flink-的全局一致性快照与上节分布式应用全局一致性快照算法的异同" class="headerlink" title="flink 的全局一致性快照与上节分布式应用全局一致性快照算法的异同"></a>flink 的全局一致性快照与上节<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>的异同</h2><p><img src="/blog-img/apache-flink:state-1/46.png" alt="46"></p>
+<p>flink 的全局一致性快照就是上节<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>的其中一种特殊形式；<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>中说的是每个 process 在接收到 manager 做快照的消息之后就直接可以开始记录状态了，而 flink 其实就是将各个 process 开始做状态的时间点设为了接收到上游 input channel 所有的 barrier，这样一个好处就是由于各个 process 是接收到了上游所有 barrier 之后开始的，用数学表达式表示其实就满足了 n = n’ = m = m’，就没有必要存储 channel 中的状态了；并且 flink 算法也都满足第 8 章节介绍的各种条件。</p>
 <h2 id="状态后端"><a href="#状态后端" class="headerlink" title="状态后端"></a>状态后端</h2><h3 id="JVM-Heap"><a href="#JVM-Heap" class="headerlink" title="JVM Heap"></a>JVM Heap</h3><p><img src="/blog-img/apache-flink:state-1/37.png" alt="37"><br>第一种，JVM Heap，它里面的数据是以Java对象形式存在的，读写也是以对象形式去完成的，所以速度很快。但是也存在两个弊端：第一个弊端，以对象方式存储所需的空间是磁盘上序列化压缩后的数据大小的很多倍，所以占用的内存空间很大；第二个弊端，虽然读写不用做序列化，但是在形成 snapshot 时需要做序列化，所以它的异步 snapshot 过程会比较慢。</p>
 <h3 id="RocksDB"><a href="#RocksDB" class="headerlink" title="RocksDB"></a>RocksDB</h3><p><img src="/blog-img/apache-flink:state-1/38.png" alt="38"><br>第二种，RocksDB，这个类型在读写时就需要做序列化，所以它读写的速度比较慢。但是它有一个好处，基于LSM的数据结构在快照之后会形成 sst 文件，它的异步 checkpoint 过程就是文件拷贝的过程，CPU 消耗会比较低。</p>
 <h1 id="分布式应用全局一致性快照算法、Chandy-Lamport-算法、flink-全局一致性快照之间的关系"><a href="#分布式应用全局一致性快照算法、Chandy-Lamport-算法、flink-全局一致性快照之间的关系" class="headerlink" title="分布式应用全局一致性快照算法、Chandy-Lamport 算法、flink 全局一致性快照之间的关系"></a><a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>、Chandy-Lamport 算法、flink 全局一致性快照之间的关系</h1><br>

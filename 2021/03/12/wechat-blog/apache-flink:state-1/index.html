@@ -122,6 +122,7 @@
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/27.png">
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/28.png">
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/29.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/47.png">
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/30.png">
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/31.png">
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/32.png">
@@ -129,11 +130,12 @@
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/34.png">
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/35.png">
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/36.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/46.png">
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/37.png">
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/38.png">
 <meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/apache-flink:state-1/45.png">
 <meta property="article:published_time" content="2021-03-12T06:21:53.000Z">
-<meta property="article:modified_time" content="2021-04-05T06:03:14.922Z">
+<meta property="article:modified_time" content="2021-04-05T06:08:41.251Z">
 <meta property="article:author" content="yangyichao-mango">
 <meta property="article:tag" content="Apache Flink">
 <meta name="twitter:card" content="summary">
@@ -697,7 +699,8 @@
 </ul>
 <h3 id="终止快照-1"><a href="#终止快照-1" class="headerlink" title="终止快照"></a>终止快照</h3><p><img src="/blog-img/apache-flink:state-1/20.jpeg" alt="20"></p>
 <h2 id="示例-1"><a href="#示例-1" class="headerlink" title="示例"></a>示例</h2><p><img src="/blog-img/apache-flink:state-1/21.png" alt="21"><br><img src="/blog-img/apache-flink:state-1/22.png" alt="22"><br><img src="/blog-img/apache-flink:state-1/23.png" alt="23"><br><img src="/blog-img/apache-flink:state-1/24.png" alt="24"><br><img src="/blog-img/apache-flink:state-1/25.png" alt="25"><br><img src="/blog-img/apache-flink:state-1/26.png" alt="26"><br><img src="/blog-img/apache-flink:state-1/27.png" alt="27"><br><img src="/blog-img/apache-flink:state-1/28.png" alt="28"><br><img src="/blog-img/apache-flink:state-1/29.png" alt="29"></p>
-<h2 id="Chandy-Lamport-与上节分布式应用全局一致性快照算法的异同"><a href="#Chandy-Lamport-与上节分布式应用全局一致性快照算法的异同" class="headerlink" title="Chandy-Lamport 与上节分布式应用全局一致性快照算法的异同"></a>Chandy-Lamport 与上节<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>的异同</h2><p>Chandy-Lamport 就是上节<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>的其中一种特殊形式；<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>中说的是每个 process 在接收到 manager 做快照的消息之后就直接可以开始记录状态了，而 Chandy-Lamport 其实就是把这个 manager 的消息用接收到的第一个 marker 消息给代替了，用数学表达式表示就是接收到第一个 marker 的 channel 的 n = n’ = m = m’，剩余的 channel 满足 n = n’ ≥ m = m’，并且 Chandy-Lamport 算法也都满足第 8 章节介绍的各种条件。</p>
+<h2 id="Chandy-Lamport-与上节分布式应用全局一致性快照算法的异同"><a href="#Chandy-Lamport-与上节分布式应用全局一致性快照算法的异同" class="headerlink" title="Chandy-Lamport 与上节分布式应用全局一致性快照算法的异同"></a>Chandy-Lamport 与上节<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>的异同</h2><p><img src="/blog-img/apache-flink:state-1/47.png" alt="47"></p>
+<p>Chandy-Lamport 就是上节<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>的其中一种特殊形式；<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>中说的是每个 process 在接收到 manager 做快照的消息之后就直接可以开始记录状态了，而 Chandy-Lamport 其实就是把这个 manager 的消息用接收到的第一个 marker 消息给代替了，用数学表达式表示就是接收到第一个 marker 的 channel 的 n = n’ = m = m’，剩余的 channel 满足 n = n’ ≥ m = m’，并且 Chandy-Lamport 算法也都满足第 8 章节介绍的各种条件。</p>
 <h1 id="flink-实现的全局一致性快照介绍（flink-容错机制）"><a href="#flink-实现的全局一致性快照介绍（flink-容错机制）" class="headerlink" title="flink 实现的全局一致性快照介绍（flink 容错机制）"></a>flink 实现的全局一致性快照介绍（flink 容错机制）</h1><h2 id="Chandy-Lamport-与-Flink之间的关系"><a href="#Chandy-Lamport-与-Flink之间的关系" class="headerlink" title="Chandy-Lamport 与 Flink之间的关系"></a>Chandy-Lamport 与 Flink之间的关系</h2><p><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1506.08603.pdf">flink 全局一致性快照论文</a></p>
 <p>Flink 是分布式系统，所以 Flink 会采用全局一致性快照的方式形成检查点，来支持故障恢复。Flink 的异步全局一致性快照算法跟 Chandy-Lamport 算法的区别主要有以下几点：</p>
 <ul>
@@ -709,7 +712,8 @@
 <h2 id="端到端的Exactly-once"><a href="#端到端的Exactly-once" class="headerlink" title="端到端的Exactly once"></a>端到端的Exactly once</h2><p>Exactly once 的意思是，作业结果总是正确的，但是很可能产出多次；所以它的要求是需要有可重放的 source。<br>端到端的 Exactly once，是指作业结果正确且只会被产出一次，它的要求除了有可重放的 source 外，还要求有事务型的 sink 和可以接收幂等的产出结果。</p>
 <h2 id="flink-的全局一致性快照"><a href="#flink-的全局一致性快照" class="headerlink" title="flink 的全局一致性快照"></a>flink 的全局一致性快照</h2><p><img src="/blog-img/apache-flink:state-1/31.png" alt="31"><br><img src="/blog-img/apache-flink:state-1/32.png" alt="32"><br><img src="/blog-img/apache-flink:state-1/33.png" alt="33"></p>
 <h2 id="Barrier-对齐"><a href="#Barrier-对齐" class="headerlink" title="Barrier 对齐"></a>Barrier 对齐</h2><p><img src="/blog-img/apache-flink:state-1/34.png" alt="34"><br><img src="/blog-img/apache-flink:state-1/35.png" alt="35"><br><img src="/blog-img/apache-flink:state-1/36.png" alt="36"></p>
-<h2 id="flink-的全局一致性快照与上节分布式应用全局一致性快照算法的异同"><a href="#flink-的全局一致性快照与上节分布式应用全局一致性快照算法的异同" class="headerlink" title="flink 的全局一致性快照与上节分布式应用全局一致性快照算法的异同"></a>flink 的全局一致性快照与上节<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>的异同</h2><p>flink 的全局一致性快照就是上节<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>的其中一种特殊形式；<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>中说的是每个 process 在接收到 manager 做快照的消息之后就直接可以开始记录状态了，而 flink 其实就是将各个 process 开始做状态的时间点设为了接收到上游 input channel 所有的 barrier，这样一个好处就是由于各个 process 是接收到了上游所有 barrier 之后开始的，用数学表达式表示其实就满足了 n = n’ = m = m’，就没有必要存储 channel 中的状态了；并且 flink 算法也都满足第 8 章节介绍的各种条件。</p>
+<h2 id="flink-的全局一致性快照与上节分布式应用全局一致性快照算法的异同"><a href="#flink-的全局一致性快照与上节分布式应用全局一致性快照算法的异同" class="headerlink" title="flink 的全局一致性快照与上节分布式应用全局一致性快照算法的异同"></a>flink 的全局一致性快照与上节<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>的异同</h2><p><img src="/blog-img/apache-flink:state-1/46.png" alt="46"></p>
+<p>flink 的全局一致性快照就是上节<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>的其中一种特殊形式；<a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>中说的是每个 process 在接收到 manager 做快照的消息之后就直接可以开始记录状态了，而 flink 其实就是将各个 process 开始做状态的时间点设为了接收到上游 input channel 所有的 barrier，这样一个好处就是由于各个 process 是接收到了上游所有 barrier 之后开始的，用数学表达式表示其实就满足了 n = n’ = m = m’，就没有必要存储 channel 中的状态了；并且 flink 算法也都满足第 8 章节介绍的各种条件。</p>
 <h2 id="状态后端"><a href="#状态后端" class="headerlink" title="状态后端"></a>状态后端</h2><h3 id="JVM-Heap"><a href="#JVM-Heap" class="headerlink" title="JVM Heap"></a>JVM Heap</h3><p><img src="/blog-img/apache-flink:state-1/37.png" alt="37"><br>第一种，JVM Heap，它里面的数据是以Java对象形式存在的，读写也是以对象形式去完成的，所以速度很快。但是也存在两个弊端：第一个弊端，以对象方式存储所需的空间是磁盘上序列化压缩后的数据大小的很多倍，所以占用的内存空间很大；第二个弊端，虽然读写不用做序列化，但是在形成 snapshot 时需要做序列化，所以它的异步 snapshot 过程会比较慢。</p>
 <h3 id="RocksDB"><a href="#RocksDB" class="headerlink" title="RocksDB"></a>RocksDB</h3><p><img src="/blog-img/apache-flink:state-1/38.png" alt="38"><br>第二种，RocksDB，这个类型在读写时就需要做序列化，所以它读写的速度比较慢。但是它有一个好处，基于LSM的数据结构在快照之后会形成 sst 文件，它的异步 checkpoint 过程就是文件拷贝的过程，CPU 消耗会比较低。</p>
 <h1 id="分布式应用全局一致性快照算法、Chandy-Lamport-算法、flink-全局一致性快照之间的关系"><a href="#分布式应用全局一致性快照算法、Chandy-Lamport-算法、flink-全局一致性快照之间的关系" class="headerlink" title="分布式应用全局一致性快照算法、Chandy-Lamport 算法、flink 全局一致性快照之间的关系"></a><a href="#分布式应用全局一致性快照算法流程总结">分布式应用全局一致性快照算法</a>、Chandy-Lamport 算法、flink 全局一致性快照之间的关系</h1><br>
