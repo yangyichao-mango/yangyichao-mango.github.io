@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Apache Common 包学习：常用集合类Collections4学习</title>
+    <url>/2019/11/06/apache-common:study-apache-common-collections4/</url>
+    <content><![CDATA[<p>Apache Common 包学习：常用集合类Collections4学习</p>
+<span id="more"></span>
+
+<h2 id="Maven依赖"><a href="#Maven依赖" class="headerlink" title="Maven依赖"></a><strong>Maven依赖</strong></h2><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.commons<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-collections4<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="CollectionUtils"><a href="#CollectionUtils" class="headerlink" title="CollectionUtils"></a><strong>CollectionUtils</strong></h2><h3 id="lt-O-gt-Collection-lt-O-gt-subtract-final-Iterable-lt-extends-O-gt-a-final-Iterable-lt-extends-O-gt-b"><a href="#lt-O-gt-Collection-lt-O-gt-subtract-final-Iterable-lt-extends-O-gt-a-final-Iterable-lt-extends-O-gt-b" class="headerlink" title="&lt;O&gt; Collection&lt;O&gt; subtract(final Iterable&lt;? extends O&gt; a, final Iterable&lt;? extends O&gt; b)"></a>&lt;O<O>&gt; Collection&lt;O<O>&gt; subtract(final Iterable&lt;? extends O&gt; a, final Iterable&lt;? extends O&gt; b)</h3><p>a是做差集运算的左集，b是做差集运算的右集，下面是一个例子</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger LOGGER = LoggerFactory.getLogger(Demo.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        Set&lt;Pair&lt;String, String&gt;&gt; allProductDevices = Sets.newHashSet(Pair.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>), Pair.of(<span class="string">&quot;c&quot;</span>, <span class="string">&quot;d&quot;</span>));</span><br><span class="line"></span><br><span class="line">        Set&lt;Pair&lt;String, String&gt;&gt; oldProductDevices = Sets.newHashSet(Pair.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>), Pair.of(<span class="string">&quot;e&quot;</span>, <span class="string">&quot;f&quot;</span>));</span><br><span class="line"></span><br><span class="line">        List&lt;Pair&lt;String, String&gt;&gt; newProductDevices =</span><br><span class="line">                (ArrayList&lt;Pair&lt;String, String&gt;&gt;) CollectionUtils.subtract(allProductDevices, oldProductDevices);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list1 = Lists.newArrayList(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list2 = Lists.newArrayList(<span class="string">&quot;c&quot;</span>, <span class="string">&quot;b&quot;</span>);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list3 = (ArrayList&lt;String&gt;) CollectionUtils.subtract(list1, list2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Apache Common包</category>
+      </categories>
+      <tags>
+        <tag>Apache Common包</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Mac安装Apache Druid-0.16.0-incubating</title>
     <url>/2019/10/21/apache-druid:0.16.0-incubating-mac-install/</url>
     <content><![CDATA[<p>Mac安装Apache Druid-0.16.0-incubating教程</p>
@@ -34,23 +51,6 @@
       <tags>
         <tag>Apache Druid</tag>
         <tag>Apache Zookeeper</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Apache Common 包学习：常用集合类Collections4学习</title>
-    <url>/2019/11/06/apache-common:study-apache-common-collections4/</url>
-    <content><![CDATA[<p>Apache Common 包学习：常用集合类Collections4学习</p>
-<span id="more"></span>
-
-<h2 id="Maven依赖"><a href="#Maven依赖" class="headerlink" title="Maven依赖"></a><strong>Maven依赖</strong></h2><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.commons<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-collections4<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="CollectionUtils"><a href="#CollectionUtils" class="headerlink" title="CollectionUtils"></a><strong>CollectionUtils</strong></h2><h3 id="lt-O-gt-Collection-lt-O-gt-subtract-final-Iterable-lt-extends-O-gt-a-final-Iterable-lt-extends-O-gt-b"><a href="#lt-O-gt-Collection-lt-O-gt-subtract-final-Iterable-lt-extends-O-gt-a-final-Iterable-lt-extends-O-gt-b" class="headerlink" title="&lt;O&gt; Collection&lt;O&gt; subtract(final Iterable&lt;? extends O&gt; a, final Iterable&lt;? extends O&gt; b)"></a>&lt;O<O>&gt; Collection&lt;O<O>&gt; subtract(final Iterable&lt;? extends O&gt; a, final Iterable&lt;? extends O&gt; b)</h3><p>a是做差集运算的左集，b是做差集运算的右集，下面是一个例子</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger LOGGER = LoggerFactory.getLogger(Demo.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        Set&lt;Pair&lt;String, String&gt;&gt; allProductDevices = Sets.newHashSet(Pair.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>), Pair.of(<span class="string">&quot;c&quot;</span>, <span class="string">&quot;d&quot;</span>));</span><br><span class="line"></span><br><span class="line">        Set&lt;Pair&lt;String, String&gt;&gt; oldProductDevices = Sets.newHashSet(Pair.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>), Pair.of(<span class="string">&quot;e&quot;</span>, <span class="string">&quot;f&quot;</span>));</span><br><span class="line"></span><br><span class="line">        List&lt;Pair&lt;String, String&gt;&gt; newProductDevices =</span><br><span class="line">                (ArrayList&lt;Pair&lt;String, String&gt;&gt;) CollectionUtils.subtract(allProductDevices, oldProductDevices);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list1 = Lists.newArrayList(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list2 = Lists.newArrayList(<span class="string">&quot;c&quot;</span>, <span class="string">&quot;b&quot;</span>);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list3 = (ArrayList&lt;String&gt;) CollectionUtils.subtract(list1, list2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Apache Common包</category>
-      </categories>
-      <tags>
-        <tag>Apache Common包</tag>
       </tags>
   </entry>
   <entry>
@@ -727,62 +727,6 @@
     <content><![CDATA[]]></content>
   </entry>
   <entry>
-    <title>Apache Flink 学习：系统特性学习</title>
-    <url>/2019/11/03/apache-flink:study-features/</url>
-    <content><![CDATA[<p>Apache Flink 学习：系统特性学习</p>
-<span id="more"></span>
-
-<p><a href="https://github.com/flink-china/flink-training-course">教程</a></p>
-<h2 id="window窗口"><a href="#window窗口" class="headerlink" title="window窗口"></a><strong>window窗口</strong></h2><h3 id="窗口大小"><a href="#窗口大小" class="headerlink" title="窗口大小"></a>窗口大小</h3><p>窗口大小是用户自己设定的，但是窗口的起始和结束时间点是系统根据窗口大小和自然数进行设定的，不会出现设置了一分钟的窗口，统计的数据是2:30到3:30的数据</p>
-<p>[window_start_time, window_end_time)根据窗口大小和自然数进行设定</p>
-<p>如果window大小是3秒，那么1分钟内会把window划分为如下的形式:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[00:00:00,00:00:03)</span><br><span class="line">[00:00:03,00:00:06)</span><br><span class="line">...</span><br><span class="line">[00:00:57,00:01:00)</span><br></pre></td></tr></table></figure>
-
-<p>如果window大小是10秒，则window会被分为如下的形式：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[00:00:00,00:00:10)</span><br><span class="line">[00:00:10,00:00:20)</span><br><span class="line">...</span><br><span class="line">[00:00:50,00:01:00)</span><br></pre></td></tr></table></figure>
-
-<h3 id="watermark"><a href="#watermark" class="headerlink" title="watermark"></a>watermark</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Watermark <span class="title">getCurrentWatermark</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// this guarantees that the watermark never goes backwards.</span></span><br><span class="line">    <span class="keyword">long</span> potentialWM = currentMaxTimestamp - maxOutOfOrderness;</span><br><span class="line">    <span class="keyword">if</span> (potentialWM &gt;= lastEmittedWatermark) &#123;</span><br><span class="line">        lastEmittedWatermark = potentialWM;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Watermark(lastEmittedWatermark);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><strong>watermark = max( [当前已到达的时间戳最新的数据(currentMaxTimestamp)] - [最大乱序等待时间(maxOutOfOrderness)], watermark )</strong></p>
-<h3 id="触发窗口运算条件"><a href="#触发窗口运算条件" class="headerlink" title="触发窗口运算条件"></a>触发窗口运算条件</h3><p>1.当前最新数据到达进行判断：当前到达event的time(timestamp) ＜ watermark则触发，表示数据是超过了最大等待时间，已经延迟到达的，则会触发</p>
-<p>2.当前最新数据到达进行判断：最新的watermark &gt;= window_end_time（对于out-of-order以及正常的数据而言），在[window_start_time, window_end_time)中有数据存在</p>
-<p>3.而且，这里要强调一点，watermark和currentMaxTimestamp是一个全局的值，不是某一个key下的值，所以即使不是同一个key的数据，其warmark也会增加</p>
-<p>语义是：currentMaxTimestamp是当前到达的最大时间戳数据，代表时间戳为currentMaxTimestamp的数据已经到达了，所以所能等待的数据的时间戳（max_out_of_orderness）只能为watermark = currentMaxTimestamp - maxOutOfOrderness</p>
-<h3 id="窗口计算"><a href="#窗口计算" class="headerlink" title="窗口计算"></a>窗口计算</h3><p>Window reduce，Window aggregate 和 Window Fold 是增量聚合，每来一条数据就计算一次，高效</p>
-<p>Window apply（Window process 的老版本） 和 Window process 是全量聚合，触发窗口计算时全量计算</p>
-<h3 id="被Keys化与非被Keys化Windows"><a href="#被Keys化与非被Keys化Windows" class="headerlink" title="被Keys化与非被Keys化Windows"></a>被Keys化与非被Keys化Windows</h3><p>要指定的第一件事是您的流是否应该使用keyedWindow，一般都与业务逻辑有关，比如说使用一分钟的窗口进行去重。使用keyBy(…)将您的无限流分成逻辑Key化的数据流。如果keyBy(…)未调用，则表示您的流不是被Keys化的。</p>
-<p>对于被Key化的数据流，可以将传入数据（Object）的的任何属性用作键）。拥有被Key化的数据流将允许您的窗口计算由多个任务并行执行，因为每个Key化的数据流可以独立于其余任务进行处理。引用相同Keys的所有数据将被发送到同一个并行任务进行计算。</p>
-<p>在非被Key化的数据流的情况下，您的原始流将不会被拆分为多个逻辑流，并且所有窗口逻辑将由单个任务执行，即并行度为1。</p>
-<h2 id="sql"><a href="#sql" class="headerlink" title="sql"></a><strong>sql</strong></h2><p>1.在flinkSql中，如果使用groupBy，尽量使用窗口，否则会认为被groupBy的数据会默认人为整个窗口内的数据还没有到达，所以会一直等待，不会产出数据</p>
-<p>update-mode: append / update</p>
-<p>分为 update stream 模式和 append stream 模式</p>
-<p>window聚合为append mode stream，groupby聚合为update mode stream</p>
-<h2 id="Flink生成-Timestamps-和-Watermarks"><a href="#Flink生成-Timestamps-和-Watermarks" class="headerlink" title="Flink生成 Timestamps 和 Watermarks"></a><strong>Flink生成 Timestamps 和 Watermarks</strong></h2><p>为了让event time工作，Flink需要知道事件的时间戳，这意味着流中的每个元素都需要分配其事件时间戳。这个通常是通过抽取或者访问事件中某些字段的时间戳来获取的。</p>
-<p>时间戳的分配伴随着水印的生成，告诉系统事件时间中的进度。</p>
-<p>这里有两种方式来分配时间戳和生成水印:</p>
-<ol>
-<li>直接在数据流源中进行。</li>
-<li>通过timestamp assigner和watermark generator生成:在Flink中，timestamp分配器也定义了用来发射的水印。</li>
-</ol>
-<h3 id="数据流源生成Timestamps和Watermarks"><a href="#数据流源生成Timestamps和Watermarks" class="headerlink" title="数据流源生成Timestamps和Watermarks"></a>数据流源生成Timestamps和Watermarks</h3><p>数据流源可以直接为它们产生的数据元素分配timestamp，并且他们也能发送水印。这样做的话，就没必要再去定义timestamp分配器了，需要注意的是:如果一个timestamp分配器被使用的话，由源提供的任何timestamp和watermark都会被重写。</p>
-<h3 id="时间戳分配器-水印生成器（Timestamp-Assigners-Watermark-Generators）"><a href="#时间戳分配器-水印生成器（Timestamp-Assigners-Watermark-Generators）" class="headerlink" title="时间戳分配器/水印生成器（Timestamp Assigners / Watermark Generators）"></a>时间戳分配器/水印生成器（Timestamp Assigners / Watermark Generators）</h3><p>Timestamp分配器获取一个流并生成一个新的带有Timestamp元素和水印的流。如果原始流已经有时间戳和/或水印，则Timestamp分配程序将覆盖它们</p>
-<p>Timestamp分配器通常在数据源之后立即指定，但这并不是严格要求的。通常是在timestamp分配器之前先解析(MapFunction)和过滤(FilterFunction)。在任何情况下，都需要在事件时间上的第一个操作(例如第一个窗口操作)之前指定timestamp分配程序。有一个特殊情况，当使用Kafka作为流作业的数据源时，Flink允许在源内部指定timestamp分配器和watermark生成器。更多关于如何进行的信息请参考Kafka Connector的文档。</p>
-<p>直接在FlinkKafkaConsumer010上面使用assignTimestampsAndWatermarks可以根据kafka source的partitions的特性进行设置Timestamps和Watermarks，让用户做一些特殊的处理</p>
-<p>Running timestamp extractors / watermark generators directly inside the Kafka source, per Kafka<br>partition, allows users to let them exploit the per-partition characteristics.</p>
-<h2 id="log"><a href="#log" class="headerlink" title="log"></a><strong>log</strong></h2><h3 id="Web-UI查找log"><a href="#Web-UI查找log" class="headerlink" title="Web UI查找log"></a>Web UI查找log</h3><p>JobManger log： 展示整个作业的状态变化（例如，从create 到deploy到running再到failed），通过jobManger log可以查看作业历史失败的记录和直接原因。</p>
-<p>TaskManager log： 调度到该TaskManager上的task 的打印的相关log。</p>
-<h2 id="shuffle"><a href="#shuffle" class="headerlink" title="shuffle"></a><strong>shuffle</strong></h2><p>被keyBy的数据流中，相同的key的数据会被发送到同一个slot中运行（partitiner决定），也就是TaskManager中slot进行shuffle的过程<br>如果有多个producer并且producer的数量和partition数量相同，则每个producer写一个partition</p>
-<h2 id="Savepoints和Checkpoints"><a href="#Savepoints和Checkpoints" class="headerlink" title="Savepoints和Checkpoints"></a><strong>Savepoints和Checkpoints</strong></h2><p>用 Data Stream API 编写的程序可以从 savepoint 继续执行。Savepoints 允许在不丢失任何状态的情况下升级程序和 Flink 集群。</p>
-<p>Savepoints 是手动触发的 Checkpoints，它依靠常规的 Checkpoint 机制获取程序的快照并将其写入 state backend。在执行期间，程序会定期在 worker 节点上创建快照并生成 Checkpoints。对于恢复，Flink 仅需要最后完成的 Checkpoint，而一旦完成了新的 Checkpoint，旧的就可以被丢弃。</p>
-<p>Savepoints 类似于这些定期的 Checkpoints，除了它们是由用户触发并且在新的 Checkpoints 完成时不会自动过期。你可以通过命令行 或在取消一个 job 时通过 REST API 来创建 Savepoints。</p>
-]]></content>
-      <categories>
-        <category>Apache Flink</category>
-      </categories>
-      <tags>
-        <tag>Apache Flink</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Apache Flink 学习：DataStream Api 中 EventTime</title>
     <url>/2019/11/09/apache-flink:study-flink-datastream-eventtime/</url>
     <content><![CDATA[<p>Apache Flink 学习：DataStream Api 中 EventTime</p>
@@ -847,6 +791,62 @@
 <p>其中 lowerBound 和 upperBound 可正可负，只要 lowerBound &lt;= upperBound。</p>
 <p><img src="/blog-img/apache-flink:study-flink-datastream-operators-joining/interval-join.svg" alt="interval-join"></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.flink.api.java.functions.KeySelector;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.functions.co.ProcessJoinFunction;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.windowing.time.Time;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">DataStream&lt;Integer&gt; orangeStream = ...</span><br><span class="line">DataStream&lt;Integer&gt; greenStream = ...</span><br><span class="line"></span><br><span class="line">orangeStream</span><br><span class="line">    .keyBy(&lt;KeySelector&gt;)</span><br><span class="line">    .intervalJoin(greenStream.keyBy(&lt;KeySelector&gt;))</span><br><span class="line">    .between(Time.milliseconds(-<span class="number">2</span>), Time.milliseconds(<span class="number">1</span>))</span><br><span class="line">    .process (<span class="keyword">new</span> ProcessJoinFunction&lt;Integer, Integer, String()&#123;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processElement</span><span class="params">(Integer left, Integer right, Context ctx, Collector&lt;String&gt; out)</span> </span>&#123;</span><br><span class="line">            out.collect(first + <span class="string">&quot;,&quot;</span> + second);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Apache Flink 学习：系统特性学习</title>
+    <url>/2019/11/03/apache-flink:study-features/</url>
+    <content><![CDATA[<p>Apache Flink 学习：系统特性学习</p>
+<span id="more"></span>
+
+<p><a href="https://github.com/flink-china/flink-training-course">教程</a></p>
+<h2 id="window窗口"><a href="#window窗口" class="headerlink" title="window窗口"></a><strong>window窗口</strong></h2><h3 id="窗口大小"><a href="#窗口大小" class="headerlink" title="窗口大小"></a>窗口大小</h3><p>窗口大小是用户自己设定的，但是窗口的起始和结束时间点是系统根据窗口大小和自然数进行设定的，不会出现设置了一分钟的窗口，统计的数据是2:30到3:30的数据</p>
+<p>[window_start_time, window_end_time)根据窗口大小和自然数进行设定</p>
+<p>如果window大小是3秒，那么1分钟内会把window划分为如下的形式:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[00:00:00,00:00:03)</span><br><span class="line">[00:00:03,00:00:06)</span><br><span class="line">...</span><br><span class="line">[00:00:57,00:01:00)</span><br></pre></td></tr></table></figure>
+
+<p>如果window大小是10秒，则window会被分为如下的形式：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[00:00:00,00:00:10)</span><br><span class="line">[00:00:10,00:00:20)</span><br><span class="line">...</span><br><span class="line">[00:00:50,00:01:00)</span><br></pre></td></tr></table></figure>
+
+<h3 id="watermark"><a href="#watermark" class="headerlink" title="watermark"></a>watermark</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Watermark <span class="title">getCurrentWatermark</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// this guarantees that the watermark never goes backwards.</span></span><br><span class="line">    <span class="keyword">long</span> potentialWM = currentMaxTimestamp - maxOutOfOrderness;</span><br><span class="line">    <span class="keyword">if</span> (potentialWM &gt;= lastEmittedWatermark) &#123;</span><br><span class="line">        lastEmittedWatermark = potentialWM;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Watermark(lastEmittedWatermark);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>watermark = max( [当前已到达的时间戳最新的数据(currentMaxTimestamp)] - [最大乱序等待时间(maxOutOfOrderness)], watermark )</strong></p>
+<h3 id="触发窗口运算条件"><a href="#触发窗口运算条件" class="headerlink" title="触发窗口运算条件"></a>触发窗口运算条件</h3><p>1.当前最新数据到达进行判断：当前到达event的time(timestamp) ＜ watermark则触发，表示数据是超过了最大等待时间，已经延迟到达的，则会触发</p>
+<p>2.当前最新数据到达进行判断：最新的watermark &gt;= window_end_time（对于out-of-order以及正常的数据而言），在[window_start_time, window_end_time)中有数据存在</p>
+<p>3.而且，这里要强调一点，watermark和currentMaxTimestamp是一个全局的值，不是某一个key下的值，所以即使不是同一个key的数据，其warmark也会增加</p>
+<p>语义是：currentMaxTimestamp是当前到达的最大时间戳数据，代表时间戳为currentMaxTimestamp的数据已经到达了，所以所能等待的数据的时间戳（max_out_of_orderness）只能为watermark = currentMaxTimestamp - maxOutOfOrderness</p>
+<h3 id="窗口计算"><a href="#窗口计算" class="headerlink" title="窗口计算"></a>窗口计算</h3><p>Window reduce，Window aggregate 和 Window Fold 是增量聚合，每来一条数据就计算一次，高效</p>
+<p>Window apply（Window process 的老版本） 和 Window process 是全量聚合，触发窗口计算时全量计算</p>
+<h3 id="被Keys化与非被Keys化Windows"><a href="#被Keys化与非被Keys化Windows" class="headerlink" title="被Keys化与非被Keys化Windows"></a>被Keys化与非被Keys化Windows</h3><p>要指定的第一件事是您的流是否应该使用keyedWindow，一般都与业务逻辑有关，比如说使用一分钟的窗口进行去重。使用keyBy(…)将您的无限流分成逻辑Key化的数据流。如果keyBy(…)未调用，则表示您的流不是被Keys化的。</p>
+<p>对于被Key化的数据流，可以将传入数据（Object）的的任何属性用作键）。拥有被Key化的数据流将允许您的窗口计算由多个任务并行执行，因为每个Key化的数据流可以独立于其余任务进行处理。引用相同Keys的所有数据将被发送到同一个并行任务进行计算。</p>
+<p>在非被Key化的数据流的情况下，您的原始流将不会被拆分为多个逻辑流，并且所有窗口逻辑将由单个任务执行，即并行度为1。</p>
+<h2 id="sql"><a href="#sql" class="headerlink" title="sql"></a><strong>sql</strong></h2><p>1.在flinkSql中，如果使用groupBy，尽量使用窗口，否则会认为被groupBy的数据会默认人为整个窗口内的数据还没有到达，所以会一直等待，不会产出数据</p>
+<p>update-mode: append / update</p>
+<p>分为 update stream 模式和 append stream 模式</p>
+<p>window聚合为append mode stream，groupby聚合为update mode stream</p>
+<h2 id="Flink生成-Timestamps-和-Watermarks"><a href="#Flink生成-Timestamps-和-Watermarks" class="headerlink" title="Flink生成 Timestamps 和 Watermarks"></a><strong>Flink生成 Timestamps 和 Watermarks</strong></h2><p>为了让event time工作，Flink需要知道事件的时间戳，这意味着流中的每个元素都需要分配其事件时间戳。这个通常是通过抽取或者访问事件中某些字段的时间戳来获取的。</p>
+<p>时间戳的分配伴随着水印的生成，告诉系统事件时间中的进度。</p>
+<p>这里有两种方式来分配时间戳和生成水印:</p>
+<ol>
+<li>直接在数据流源中进行。</li>
+<li>通过timestamp assigner和watermark generator生成:在Flink中，timestamp分配器也定义了用来发射的水印。</li>
+</ol>
+<h3 id="数据流源生成Timestamps和Watermarks"><a href="#数据流源生成Timestamps和Watermarks" class="headerlink" title="数据流源生成Timestamps和Watermarks"></a>数据流源生成Timestamps和Watermarks</h3><p>数据流源可以直接为它们产生的数据元素分配timestamp，并且他们也能发送水印。这样做的话，就没必要再去定义timestamp分配器了，需要注意的是:如果一个timestamp分配器被使用的话，由源提供的任何timestamp和watermark都会被重写。</p>
+<h3 id="时间戳分配器-水印生成器（Timestamp-Assigners-Watermark-Generators）"><a href="#时间戳分配器-水印生成器（Timestamp-Assigners-Watermark-Generators）" class="headerlink" title="时间戳分配器/水印生成器（Timestamp Assigners / Watermark Generators）"></a>时间戳分配器/水印生成器（Timestamp Assigners / Watermark Generators）</h3><p>Timestamp分配器获取一个流并生成一个新的带有Timestamp元素和水印的流。如果原始流已经有时间戳和/或水印，则Timestamp分配程序将覆盖它们</p>
+<p>Timestamp分配器通常在数据源之后立即指定，但这并不是严格要求的。通常是在timestamp分配器之前先解析(MapFunction)和过滤(FilterFunction)。在任何情况下，都需要在事件时间上的第一个操作(例如第一个窗口操作)之前指定timestamp分配程序。有一个特殊情况，当使用Kafka作为流作业的数据源时，Flink允许在源内部指定timestamp分配器和watermark生成器。更多关于如何进行的信息请参考Kafka Connector的文档。</p>
+<p>直接在FlinkKafkaConsumer010上面使用assignTimestampsAndWatermarks可以根据kafka source的partitions的特性进行设置Timestamps和Watermarks，让用户做一些特殊的处理</p>
+<p>Running timestamp extractors / watermark generators directly inside the Kafka source, per Kafka<br>partition, allows users to let them exploit the per-partition characteristics.</p>
+<h2 id="log"><a href="#log" class="headerlink" title="log"></a><strong>log</strong></h2><h3 id="Web-UI查找log"><a href="#Web-UI查找log" class="headerlink" title="Web UI查找log"></a>Web UI查找log</h3><p>JobManger log： 展示整个作业的状态变化（例如，从create 到deploy到running再到failed），通过jobManger log可以查看作业历史失败的记录和直接原因。</p>
+<p>TaskManager log： 调度到该TaskManager上的task 的打印的相关log。</p>
+<h2 id="shuffle"><a href="#shuffle" class="headerlink" title="shuffle"></a><strong>shuffle</strong></h2><p>被keyBy的数据流中，相同的key的数据会被发送到同一个slot中运行（partitiner决定），也就是TaskManager中slot进行shuffle的过程<br>如果有多个producer并且producer的数量和partition数量相同，则每个producer写一个partition</p>
+<h2 id="Savepoints和Checkpoints"><a href="#Savepoints和Checkpoints" class="headerlink" title="Savepoints和Checkpoints"></a><strong>Savepoints和Checkpoints</strong></h2><p>用 Data Stream API 编写的程序可以从 savepoint 继续执行。Savepoints 允许在不丢失任何状态的情况下升级程序和 Flink 集群。</p>
+<p>Savepoints 是手动触发的 Checkpoints，它依靠常规的 Checkpoint 机制获取程序的快照并将其写入 state backend。在执行期间，程序会定期在 worker 节点上创建快照并生成 Checkpoints。对于恢复，Flink 仅需要最后完成的 Checkpoint，而一旦完成了新的 Checkpoint，旧的就可以被丢弃。</p>
+<p>Savepoints 类似于这些定期的 Checkpoints，除了它们是由用户触发并且在新的 Checkpoints 完成时不会自动过期。你可以通过命令行 或在取消一个 job 时通过 REST API 来创建 Savepoints。</p>
+]]></content>
       <categories>
         <category>Apache Flink</category>
       </categories>
@@ -1053,13 +1053,6 @@
       </tags>
   </entry>
   <entry>
-    <title>apache-flink:study-flink</title>
-    <url>/2019/11/22/apache-flink:study-flink/</url>
-    <content><![CDATA[<p>所有operator中的初始化如果写在构造函数当中就会出错，问题是序列化时的问题<br>flink从jobmanager序列化到各个 taskmanager时可能会出问题</p>
-<p>split组件功能可以减少多个flatmap的性能损失<br>多个flatmap数据每个都是使用全部的流进行filter<br>split一个就可以满足</p>
-]]></content>
-  </entry>
-  <entry>
     <title>Apache Flink 学习：Table Api &amp; SQL</title>
     <url>/2019/11/12/apache-flink:study-flink-table-api-and-sql/</url>
     <content><![CDATA[<p>Apache Flink 学习：Table Api &amp; SQL</p>
@@ -1070,6 +1063,13 @@
       <tags>
         <tag>Apache Flink</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>apache-flink:study-flink</title>
+    <url>/2019/11/22/apache-flink:study-flink/</url>
+    <content><![CDATA[<p>所有operator中的初始化如果写在构造函数当中就会出错，问题是序列化时的问题<br>flink从jobmanager序列化到各个 taskmanager时可能会出问题</p>
+<p>split组件功能可以减少多个flatmap的性能损失<br>多个flatmap数据每个都是使用全部的流进行filter<br>split一个就可以满足</p>
+]]></content>
   </entry>
   <entry>
     <title>Apache Flink 学习：hbase作为sink</title>
@@ -1821,26 +1821,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Vue学习：Vue前端项目部署到SpringBoot工程下</title>
-    <url>/2019/10/26/vue:study-vue-project-deploy-in-springboot-project/</url>
-    <content><![CDATA[<p>Vue项目部署到SpringBoot工程下</p>
-<span id="more"></span>
-
-<h2 id="Vue前端项目"><a href="#Vue前端项目" class="headerlink" title="Vue前端项目"></a><strong>Vue前端项目</strong></h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm run build</span><br></pre></td></tr></table></figure>
-
-<p>运行上述命令，将前端Vue项目打包，命令运行完成之后会在项目根目录下生成一个生成一个dist文件夹, 编译好的静态文件就在这里面</p>
-<h2 id="部署在SpringBoot项目下"><a href="#部署在SpringBoot项目下" class="headerlink" title="部署在SpringBoot项目下"></a><strong>部署在SpringBoot项目下</strong></h2><p>将前端项目中dist文件夹下的所有文件拷贝到SpringBoot工程的<strong>src/main/resources/static</strong>文件夹下</p>
-<p>运行后端项目，可以看到控制台会有这样的输出，证明将静态页面加入了容器中，现在就可以访问到前端页面了</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">2019-10-26 15:47:09.607  INFO 1967 --- [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Vue</category>
-      </categories>
-      <tags>
-        <tag>SpringBoot</tag>
-        <tag>Vue</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Mac安装Nginx-1.17.3以及相关配置文件</title>
     <url>/2019/10/28/nginx:1-17-3-mac-install-and-confs-set/</url>
     <content><![CDATA[<p>Mac安装Nginx-1.17.3以及相关配置文件</p>
@@ -1916,6 +1896,26 @@
       </tags>
   </entry>
   <entry>
+    <title>Vue学习：Vue前端项目部署到SpringBoot工程下</title>
+    <url>/2019/10/26/vue:study-vue-project-deploy-in-springboot-project/</url>
+    <content><![CDATA[<p>Vue项目部署到SpringBoot工程下</p>
+<span id="more"></span>
+
+<h2 id="Vue前端项目"><a href="#Vue前端项目" class="headerlink" title="Vue前端项目"></a><strong>Vue前端项目</strong></h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm run build</span><br></pre></td></tr></table></figure>
+
+<p>运行上述命令，将前端Vue项目打包，命令运行完成之后会在项目根目录下生成一个生成一个dist文件夹, 编译好的静态文件就在这里面</p>
+<h2 id="部署在SpringBoot项目下"><a href="#部署在SpringBoot项目下" class="headerlink" title="部署在SpringBoot项目下"></a><strong>部署在SpringBoot项目下</strong></h2><p>将前端项目中dist文件夹下的所有文件拷贝到SpringBoot工程的<strong>src/main/resources/static</strong>文件夹下</p>
+<p>运行后端项目，可以看到控制台会有这样的输出，证明将静态页面加入了容器中，现在就可以访问到前端页面了</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">2019-10-26 15:47:09.607  INFO 1967 --- [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Vue</category>
+      </categories>
+      <tags>
+        <tag>SpringBoot</tag>
+        <tag>Vue</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>生产实践 | 基于 Flink 的视频直播核心指标监控</title>
     <url>/2019/09/01/wechat-blog/apache-flink:learning-files/</url>
     <content><![CDATA[<h1 id="Flink-学习资料"><a href="#Flink-学习资料" class="headerlink" title="Flink 学习资料"></a>Flink 学习资料</h1><blockquote>
@@ -1955,84 +1955,6 @@
 <p>6.<a href="https://www.aboutyun.com/forum.php?mod=forumdisplay&fid=443&filter=typeid&typeid=1393。" title="彻底明白Flink系统学习系列">彻底明白Flink系统学习系列</a></p>
 <p>7.<a href="https://www.jianshu.com/p/0242f456f02a。" title="kangqi">kangqi</a></p>
 <p>8.<a href="https://www.cnblogs.com/Springmoon-venn/category/1380180.html。" title="flink菜鸟">flink菜鸟</a></p>
-]]></content>
-      <categories>
-        <category>Apache Flink</category>
-      </categories>
-      <tags>
-        <tag>Apache Flink</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇</title>
-    <url>/2020/10/12/wechat-blog/apache-flink:realtime-live-stream-1/</url>
-    <content><![CDATA[<h1 id="生产实践-基于-Flink-的直播实时数据建设-（一）-需求和架构篇"><a href="#生产实践-基于-Flink-的直播实时数据建设-（一）-需求和架构篇" class="headerlink" title="生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇"></a>生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇</h1><blockquote>
-<p>本系列每篇文章都是从一些实际生产实践需求出发，解决一些生产实践中的问题，抛砖引玉，以帮助小伙伴们解决一些实际生产问题。相信大家或多或少都观看过直播，那大家有没有想过，如果自己负责建设公司内整体直播实时数据，会怎样去建设呢？本系列文章主要介绍直播实时数据建设的整个过程，如果对小伙伴有帮助的话，欢迎点赞 + 再看~</p>
-</blockquote>
-<h2 id="首先思考几个问题"><a href="#首先思考几个问题" class="headerlink" title="首先思考几个问题"></a>首先思考几个问题</h2><ul>
-<li><strong>WHAT：相信大家或多或少都观看过直播，甚至自己就是一名主播或负责的业务就是直播相关的，那大家有没有思考过，在直播业务场景中，你最关心什么指标以及需要关注、建设什么数据？</strong></li>
-<li><strong>WHY：为什么需要建设直播实时数据？离线建设不能满足吗？</strong></li>
-<li><strong>HOW：直播实时数据怎样赋能业务的？怎样根据公司直播场景的需求去划分直播实时数据？怎样去建设直播实时数据体？</strong></li>
-<li><strong>WHO：在建设直播实时数据的过程中，需要使用什么样的组件进行建设？每个组件都负责哪一部分？</strong></li>
-</ul>
-<p>让我们带着以上几个问题出发~</p>
-<h2 id="直播-短视频，内容运营的下一个战场"><a href="#直播-短视频，内容运营的下一个战场" class="headerlink" title="直播 + 短视频，内容运营的下一个战场"></a>直播 + 短视频，内容运营的下一个战场</h2><p>随着互联网络技术的发展，网络直播受到越来越多人的关注，直播在经过几年前的喷涌式大爆发之后，近段时间热度有所降低。内容的同质化和变现困难是直播现在面临的主要问题，随着移动终端普及和网络的提速，短视频以短平快的大流量传播方式快速获得各大平台、粉丝和资本的青睐，所以众多直播软件开始接入短视频的功能。<br>同时，一些以短视频为主发展起来的 app 也在软件中加入了直播功能，直播和短视频两者互相弥补不足，相辅相成，给用户带来了更好的使用体验，也给各大平台带来更多的流量，”直播 + 短视频”的模式已经也成为新的发展趋势。</p>
-<p>本系列文章主要围绕着直播实时数据建设而展开。本文是本系列文章的的第一篇，需求和架构篇，主要分为三个部分，按顺序为<strong>WHY - WHAT - HOW</strong>，以这三个角度出发，解答开头提出的三个问题，其中 <strong>WHO</strong>部分在本系列文章的后续建设细节章节进行介绍！</p>
-<h2 id="WHY：为什么建设直播实时数据？"><a href="#WHY：为什么建设直播实时数据？" class="headerlink" title="WHY：为什么建设直播实时数据？"></a>WHY：为什么建设直播实时数据？</h2><p>相比短视频的生产消费来说，直播的主播和观看直播的观众的纽带都是在直播间建立的，相互之间的互动行为也都只在直播间内产生，并且通常情况下，一场直播的时长也就在几个小时之内，因此直播的生产消费时效性相比短视频会更强，因而直播数据对于实时性的诉求也就更高。</p>
-<h2 id="WHAT：需要关注、建设什么直播实时数据？"><a href="#WHAT：需要关注、建设什么直播实时数据？" class="headerlink" title="WHAT：需要关注、建设什么直播实时数据？"></a>WHAT：需要关注、建设什么直播实时数据？</h2><p>需要关注、建设什么直播实时数据？换一句话来说就是根据<strong>数据分析业务的需求</strong>出发，决定建设什么样的直播实时数据？</p>
-<p>直播就是一个主播和观众联络互动的纽带，其中一切操作都是围绕着主播和观众而展开的，数据分析的同学都会以这个最基础的角度出发进行分析，因此首先我们就可以将整个直播的数据按照<strong>直播生产</strong>和<strong>直播消费</strong>进最基本的划分。</p>
-<p>除此角度之外，数据分析的同学也还会从<strong>全局直播业务洞察</strong>和<strong>单个直播间洞察</strong>不同粒度上进行分析洞察，因此还可以按照<strong>大盘数据</strong>、<strong>单直播间数据</strong>进行划分。</p>
-<p>从这两个角度出发，基本可以涵盖对于直播业务分析场景的诉求，因此直播实时数据也自然可以从这两个角度进行划分和建设。</p>
-<p>综上则整体<strong>直播实时数据业务划分和赋能应用架构</strong>如下图所示。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-1/biz-arc.png" alt="业务划分和应用架构"></p>
-<p>其中</p>
-<p><strong>直播大盘实时数据</strong>在宏观上监控直播业务，提供预测大盘的能力；其中分钟粒度时间序列可快速定位直播各行为的高峰时刻，可以基于该时刻进行详细归因。除此之外，当直播在做运营活动时，也能快速基于实时数据来看运营活动的活动效果，赋能活动策略实时优化。</p>
-<p><strong>单直播间直播实时数据</strong>可以以细粒度监控单直播间的直播业务，用来在直播过程中对外输出直播数据战报、以及可基于数据战报效果实时对单直播间进资源投放进行实时效果评估和合理调配。</p>
-<p>详细的直播实时数据需求和样例如下文。</p>
-<h3 id="大盘"><a href="#大盘" class="headerlink" title="大盘"></a>大盘</h3><p><strong>生产侧</strong></p>
-<ul>
-<li><strong>指标</strong>：总体开播直播间数…</li>
-<li><strong>维度</strong>：直播间画像、主播用户画像</li>
-<li><strong>举例</strong>：[开播直播间为游戏类直播]的[总开播主播数]</li>
-</ul>
-<p><strong>消费侧</strong></p>
-<ul>
-<li><strong>指标</strong>：总体观众观看、点赞、评论数…</li>
-<li><strong>维度</strong>：观众用户画像、日志上报其他维度</li>
-<li><strong>举例</strong>：[目前在河北观看直播]的[总观众数]</li>
-</ul>
-<h3 id="单直播间"><a href="#单直播间" class="headerlink" title="单直播间"></a>单直播间</h3><p><strong>生产侧</strong><br>单直播间一般都是一些画像信息，所以此类指标较少，暂时不做讨论。</p>
-<p><strong>消费侧</strong></p>
-<ul>
-<li><strong>指标</strong>：单直播间观众观看、点赞、评论数…</li>
-<li><strong>维度</strong>：观众用户画像、日志上报其他维度</li>
-<li><strong>举例</strong>：某直播间[18-23岁年龄段]的[总观众数]</li>
-</ul>
-<p>目前已经了解了要建设直播实时数据都包含了什么内容，接下来就是大干一场的时候了。</p>
-<h2 id="HOW：怎样去建设？"><a href="#HOW：怎样去建设？" class="headerlink" title="HOW：怎样去建设？"></a>HOW：怎样去建设？</h2><p>怎样去建设？换一句话来说就是从技术的角度出发，怎样将<strong>直播实时数据的业务需求</strong>转化为<strong>直播实时数据的技术方案</strong>进行落地？</p>
-<p>从技术角度出发，上述直播实时数据需要建设的需求内容总结下来就是一个词：<strong>直播实时多维指标</strong>。</p>
-<h3 id="多维"><a href="#多维" class="headerlink" title="多维"></a>多维</h3><p>即产出指标是多维度的，包含公共维度和非公共维度。</p>
-<p>第一类是<strong>公共维度</strong>。包含三部分，直播间画像，主播用户画像，观众用户画像，公共两字代表这类维度是可以被多个指标进行共享使用的。举例：某直播间开播之后，该直播间画像只需要一次建设，就可以被多个指标多次重复使用，不但可以作为大盘侧生产、消费指标的维度，也可以作为单直播间生产、消费指标的维度。</p>
-<p>第二类是<strong>非公共维度</strong>。非公共维度是和特定消费行为绑定的，也就是和某个指标绑定的，随着日志上报一同上报的维度。举例：某观众观看直播时的客户端类型（安卓？IOS？），观看直播时的省份等维度，这类维度只和当前的消费行为相关，不能被其他指标所共享。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-1/dim.png" alt="多维"></p>
-<h3 id="指标"><a href="#指标" class="headerlink" title="指标"></a>指标</h3><p>其实都是 pv，uv 类指标。简单理解就是各个维度下对应的 xx 量。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-1/metric.png" alt="指标"></p>
-<h3 id="实时数据建设技术架构"><a href="#实时数据建设技术架构" class="headerlink" title="实时数据建设技术架构"></a>实时数据建设技术架构</h3><p>对应到直播实时数据建设的过程主要包含两部分：公共部分和非公共部分。</p>
-<p>公共部分就是实时公共维表的建设。</p>
-<p>非公共部分就是指标非公共维度以及对应生产、消费指标建设。</p>
-<p>直接给出总体<strong>技术架构</strong>图，本系列后续的文章进行介绍这样进行整体架构设计的详细原因。</p>
-<p><img src="/blog-img/apache-flink:realtime-live-stream-1/tec-arc.png" alt="技术架构"></p>
-<p>简单说明下。</p>
-<p>其中数据源包含生产侧，消费侧数据源；</p>
-<p>数据处理部分包含公共实时维表建设，和指标建设，其中一部分公共维表的建设也使用了离线的方式提供了支持；</p>
-<p>最后就是数据汇部分，产出了生产侧，消费侧的多维指标供数据分析师使用。</p>
-<h2 id="下节预告"><a href="#下节预告" class="headerlink" title="下节预告"></a>下节预告</h2><p>下节主要介绍<strong>直播实时公共画像的建设</strong>，其中是技术架构图中的<strong>主播用户、关注用户画像、以及直播间画像</strong>的建设方案。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文首先提出了几个关于直播实时数据建设的问题。以这几个问题触发，引出了一下三小节。</p>
-<p>第一节简单介绍了直播时效性强的原因，因此直播对于实时数据的需求更加强烈。</p>
-<p>第二节从数据分析的角度出发，引出了我们需要建设的直播实时数据都包含哪些内容，并且从大盘/单直播间，生产/消费角度进行了模块划分。</p>
-<p>第三节对数据需求进行了技术方案的整体架构设计。</p>
-<p>最后一节对本文进行了总结。</p>
-<p>如果你也有相同的建设需求或者你以及建设了直播实时数据，欢迎留言或者留下你的文章链接，相互交流~</p>
 ]]></content>
       <categories>
         <category>Apache Flink</category>
@@ -2202,6 +2124,211 @@
 </table>
 
 <h2 id="技术方案评估"><a href="#技术方案评估" class="headerlink" title="技术方案评估"></a>技术方案评估</h2>]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>深入浅出 | flink minicluster 启动流程</title>
+    <url>/2021/03/12/wechat-blog/apache-flink:minicluster-start/</url>
+    <content><![CDATA[<h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><p>目录</p>
+</li>
+<li><p>flink 怎么判断是本地环境从而启动 minicluster？</p>
+</li>
+<li><p>flink 的接口都是声明式的，那么到底把我们的接口解析或者封装成什么样进行执行了？</p>
+</li>
+</ol>
+<h1 id="flink-怎么判断是本地环境从而启动-minicluster？"><a href="#flink-怎么判断是本地环境从而启动-minicluster？" class="headerlink" title="flink 怎么判断是本地环境从而启动 minicluster？"></a>flink 怎么判断是本地环境从而启动 minicluster？</h1><h2 id="环境判断"><a href="#环境判断" class="headerlink" title="环境判断"></a>环境判断</h2><p><img src="/blog-img/apache-flink:minicluster-start/1.png" alt="1"></p>
+<p>通过 debug StreamExecutionEnvironment.getExecutionEnvironment(); 可以定位到下面的代码</p>
+<p><img src="/blog-img/apache-flink:minicluster-start/8.png" alt="8"></p>
+<p>我们可以看注释，解释一下，基本流程如下：</p>
+<ol>
+<li>先尝试获取本地环境，即从 threadLocalContextEnvironmentFactory 获取环境配置</li>
+<li>获取不到本地环境配置，就获取外部环境配置，即从 contextEnvironmentFactory 获取环境配置</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> StreamExecutionEnvironment <span class="title">getExecutionEnvironment</span><span class="params">(Configuration configuration)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> Utils.resolveFactory(threadLocalContextEnvironmentFactory, contextEnvironmentFactory)</span><br><span class="line">            .map(factory -&gt; factory.createExecutionEnvironment(configuration))</span><br><span class="line">            .orElseGet(() -&gt; StreamExecutionEnvironment.createLocalEnvironment(configuration));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">Optional&lt;T&gt; <span class="title">resolveFactory</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">            ThreadLocal&lt;T&gt; threadLocalFactory, <span class="meta">@Nullable</span> T staticFactory)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> T localFactory = threadLocalFactory.get();</span><br><span class="line">    <span class="keyword">final</span> T factory = localFactory == <span class="keyword">null</span> ? staticFactory : localFactory;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> Optional.ofNullable(factory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>那么问题来了，当集群环境时，是如何将 StreamExecutionEnvironmentFactory 到 ThreadLocal 中？</strong></p>
+<h2 id="集群环境"><a href="#集群环境" class="headerlink" title="集群环境"></a>集群环境</h2><p>通过 bin/flink run ….命令提交jar包到集群运行命令时，该脚本会调用org.apache.flink.client.cli.CliFrontend 来运行用户程序，如下：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> Add HADOOP_CLASSPATH to allow the usage of Hadoop file systems</span></span><br><span class="line">exec $JAVA_RUN $JVM_ARGS $FLINK_ENV_JAVA_OPTS &quot;$&#123;log_setting[@]&#125;&quot; -classpath &quot;`manglePathList &quot;$CC_CLASSPATH:$INTERNAL_HADOOP_CLASSPATHS&quot;`&quot; org.apache.flink.client.cli.CliFrontend &quot;$@&quot;</span><br></pre></td></tr></table></figure>
+
+<p>在CliFrontend中依次执行以下方法 main() -&gt;parseParameters() -&gt; run() -&gt;executeProgram()</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">executeProgram</span><span class="params">(<span class="keyword">final</span> Configuration configuration, <span class="keyword">final</span> PackagedProgram program)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> ProgramInvocationException </span>&#123;</span><br><span class="line">    ClientUtils.executeProgram(</span><br><span class="line">            <span class="keyword">new</span> DefaultExecutorServiceLoader(), configuration, program, <span class="keyword">false</span>, <span class="keyword">false</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在org.apache.flink.client.ClientUtils的executeProgram()中调用StreamContextEnvironment.setAsContext(…)，StreamContextEnvironment继承自StreamExecutionEnvironment。setAsContext()代码如下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">StreamContextEnvironment.setAsContext(</span><br><span class="line">    executorServiceLoader,</span><br><span class="line">    configuration,</span><br><span class="line">    userCodeClassLoader,</span><br><span class="line">    enforceSingleJobExecution,</span><br><span class="line">    suppressSysout);</span><br></pre></td></tr></table></figure>
+
+<p>创建生成运行环境的工厂类实例，在initializeContextEnvironment()方法中把实例放到StreamExecutionEnvironment类的静态属性threadLocalContextEnvironmentFactory 中，代码如下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">initializeContextEnvironment</span><span class="params">(StreamExecutionEnvironmentFactory ctx)</span> </span>&#123;</span><br><span class="line">    contextEnvironmentFactory = ctx;</span><br><span class="line">    threadLocalContextEnvironmentFactory.set(contextEnvironmentFactory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样在用户程序StreamExecutionEnvironment.getExecutionEnvironment()时，获取到的运行环境就是StreamContextEnvironment类的setAsContext()方法中生成的<br>本地运行环境LocalStreamEnvironment和 独立集群、flink on yarn等运行环境StreamContextEnvironment 的主要区别在于，他们的成员属性 configuration 不同。LocalStreamEnvironment 中是创建的空键值对(new Configuration())，而StreamContextEnvironment 是通过CliFrontend 生成的Configuration对象。</p>
+<h1 id="flink-的接口都是声明式的，那么到底把我们的接口解析或者封装成什么样进行执行了？"><a href="#flink-的接口都是声明式的，那么到底把我们的接口解析或者封装成什么样进行执行了？" class="headerlink" title="flink 的接口都是声明式的，那么到底把我们的接口解析或者封装成什么样进行执行了？"></a>flink 的接口都是声明式的，那么到底把我们的接口解析或者封装成什么样进行执行了？</h1><h2 id="声明式编程"><a href="#声明式编程" class="headerlink" title="声明式编程"></a>声明式编程</h2><p><a href="https://www.cnblogs.com/sirkevin/p/8283110.html">https://www.cnblogs.com/sirkevin/p/8283110.html</a></p>
+<h2 id="flink-runtime-架构概览"><a href="#flink-runtime-架构概览" class="headerlink" title="flink runtime 架构概览"></a>flink runtime 架构概览</h2><p><img src="/blog-img/apache-flink:minicluster-start/9.svg" alt="9"></p>
+<p>从上述整体的架构可以看出来，flink 的架构是区分客户端和服务端的，我们在客户端编写号代码，然后提交代码到服务端进行运行<br>而且 flink 的接口是声明式的，那么这个过程中肯定会涉及到代码的包装执行。具体代码进行了哪些包装，如下图 4 个图的流程就是 flink 从客户端提交代码到服务端具体执行的整个解析过程：</p>
+<p><img src="/blog-img/apache-flink:minicluster-start/10.png" alt="10"></p>
+<p><strong>1. StreamGraph：根据用户通过 Stream API 编写的代码生成的最初的图。</strong></p>
+<ul>
+<li>StreamNode：用来代表 operator 的类，并具有所有相关的属性，如并发度、入边和出边等。</li>
+<li>StreamEdge：表示连接两个 StreamNode 的边。</li>
+<li><strong><kbd><font color=red>是在客户端生成的，在 flink 中是一个具体的数据结构。</font></kbd></strong></li>
+</ul>
+<p><img src="/blog-img/apache-flink:minicluster-start/11.png" alt="11"></p>
+<p><strong>2. JobGraph：StreamGraph 经过优化后生成了 JobGraph，提交给 JobManager 的数据结构。</strong></p>
+<ul>
+<li>JobVertex：经过优化后符合条件的多个 StreamNode 可能会 chain 在一起生成一个 JobVertex，即一个 JobVertex 包含一个或多个 operator，JobVertex 的输入是 JobEdge，输出是 IntermediateDataSet。</li>
+<li>IntermediateDataSet：表示 JobVertex 的输出，即经过 operator 处理产生的数据集。producer 是 JobVertex，consumer 是 JobEdge。</li>
+<li>JobEdge：代表了 job graph 中的一条数据传输通道。source 是 IntermediateDataSet，target 是 JobVertex。即数据通过 JobEdge 由 IntermediateDataSet 传递给目标 JobVertex。</li>
+<li><strong><kbd><font color=red>是在客户端生成的，在 flink 中是一个具体的数据结构。</font></kbd></strong></li>
+</ul>
+<p><img src="/blog-img/apache-flink:minicluster-start/12.png" alt="12"></p>
+<p><strong>3. ExecutionGraph：JobManager 根据 JobGraph 生成 ExecutionGraph。ExecutionGraph 是 JobGraph 的并行化版本，是调度层最核心的数据结构。</strong></p>
+<ul>
+<li>ExecutionJobVertex：和 JobGraph 中的 JobVertex 一一对应。每一个 ExecutionJobVertex 都有和并发度一样多的 ExecutionVertex。</li>
+<li>ExecutionVertex：表示 ExecutionJobVertex 的其中一个并发子任务，输入是 ExecutionEdge，输出是 IntermediateResultPartition。</li>
+<li>IntermediateResult：和 JobGraph 中的 IntermediateDataSet 一一对应。一个 IntermediateResult 包含多个 IntermediateResultPartition，其个数等于该 operator 的并发度。</li>
+<li>IntermediateResultPartition：表示 ExecutionVertex 的一个输出分区，producer 是 ExecutionVertex，consumer 是若干个 ExecutionEdge。</li>
+<li>ExecutionEdge：表示 ExecutionVertex 的输入，source 是 IntermediateResultPartition，target 是 ExecutionVertex。source 和 target 都只能是一个。</li>
+<li>Execution：是执行一个 ExecutionVertex 的一次尝试。当发生故障或者数据需要重算的情况下 ExecutionVertex 可能会有多个 ExecutionAttemptID。一个 Execution 通过 ExecutionAttemptID 来唯一标识。JM 和 TM 之间关于 task 的部署和 task status 的更新都是通过 ExecutionAttemptID 来确定消息接受者。</li>
+<li><strong><kbd><font color=red>是在服务端生成的，在 flink 中是一个具体的数据结构。</font></kbd></strong></li>
+</ul>
+<p><img src="/blog-img/apache-flink:minicluster-start/13.png" alt="13"></p>
+<p><strong>4. 物理执行图：JobManager 根据 ExecutionGraph 对 Job 进行调度后，在各个TaskManager 上部署 Task 后形成的“图”，并不是一个具体的数据结构。</strong></p>
+<ul>
+<li>Task：Execution被调度后在分配的 TaskManager 中启动对应的 Task。Task 包裹了具有用户执行逻辑的 operator。</li>
+<li>ResultPartition：代表由一个Task的生成的数据，和ExecutionGraph中的IntermediateResultPartition一一对应。</li>
+<li>ResultSubpartition：是ResultPartition的一个子分区。每个ResultPartition包含多个ResultSubpartition，其数目要由下游消费 Task 数和 DistributionPattern 来决定。</li>
+<li>InputGate：代表Task的输入封装，和JobGraph中JobEdge一一对应。每个InputGate消费了一个或多个的ResultPartition。</li>
+<li>InputChannel：每个InputGate会包含一个以上的InputChannel，和ExecutionGraph中的ExecutionEdge一一对应，也和ResultSubpartition一对一地相连，即一个InputChannel接收一个ResultSubpartition的输出。</li>
+<li><strong><kbd><font color=red>是在服务端生成的，不是具体的数据结构，而是实际的物理执行的一个图描述。</font></kbd></strong></li>
+</ul>
+<p>那么 Flink 为什么要设计这4张图呢，其目的是什么呢？Spark 中也有多张图，数据依赖图以及物理执行的 DAG。其目的都是一样的，就是解耦，每张图各司其职，每张图对应了 Job 不同的阶段，更方便做该阶段的事情。我们给出更完整的 Flink Graph 的层次图。<br><img src="/blog-img/apache-flink:minicluster-start/14.png" alt="14"></p>
+<p>首先我们看到，JobGraph 之上除了 StreamGraph 还有 OptimizedPlan。OptimizedPlan 是由 Batch API 转换而来的。StreamGraph 是由 Stream API 转换而来的。为什么 API 不直接转换成 JobGraph？因为，Batch 和 Stream 的图结构和优化方法有很大的区别，比如 Batch 有很多执行前的预分析用来优化图的执行，而这种优化并不普适于 Stream，所以通过 OptimizedPlan 来做 Batch 的优化会更方便和清晰，也不会影响 Stream。JobGraph 的责任就是统一 Batch 和 Stream 的图，用来描述清楚一个拓扑图的结构，并且做了 chaining 的优化，chaining 是普适于 Batch 和 Stream 的，所以在这一层做掉。ExecutionGraph 的责任是方便调度和各个 tasks 状态的监控和跟踪，所以 ExecutionGraph 是并行化的 JobGraph。而“物理执行图”就是最终分布式在各个机器上运行着的tasks了。所以可以看到，这种解耦方式极大地方便了我们在各个层所做的工作，各个层之间是相互隔离的。</p>
+<h2 id="如何生成-StreamGraph？"><a href="#如何生成-StreamGraph？" class="headerlink" title="如何生成 StreamGraph？"></a>如何生成 StreamGraph？</h2><blockquote>
+<p>基于 1.12 源码。</p>
+</blockquote>
+<p>StreamGraph 是在客户端构造的，这意味着我们可以在本地通过调试观察 StreamGraph 的构造过程。<br>StreamGraph 生成的整个入口函数执行顺序如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 开始执行代码</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> JobExecutionResult <span class="title">execute</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> execute(getJobName());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> JobExecutionResult <span class="title">execute</span><span class="params">(String jobName)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    Preconditions.checkNotNull(jobName, <span class="string">&quot;Streaming Job name should not be null.&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> execute(getStreamGraph(jobName));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 生成 StreamGraph</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> StreamGraph <span class="title">getStreamGraph</span><span class="params">(String jobName, <span class="keyword">boolean</span> clearTransformations)</span> </span>&#123;</span><br><span class="line">    StreamGraph streamGraph = getStreamGraphGenerator().setJobName(jobName).generate();</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> streamGraph;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取 StreamGraphGenerator</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> StreamGraphGenerator <span class="title">getStreamGraphGenerator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> StreamGraphGenerator(transformations, config, checkpointCfg, getConfiguration())</span><br><span class="line">            .setRuntimeExecutionMode(executionMode)</span><br><span class="line">            .setStateBackend(defaultStateBackend)</span><br><span class="line">            .setChaining(isChainingEnabled)</span><br><span class="line">            .setUserArtifacts(cacheFile)</span><br><span class="line">            .setTimeCharacteristic(timeCharacteristic)</span><br><span class="line">            .setDefaultBufferTimeout(bufferTimeout);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 初始化 StreamGraphGenerator</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">StreamGraphGenerator</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">        List&lt;Transformation&lt;?&gt;&gt; transformations,</span></span></span><br><span class="line"><span class="function"><span class="params">        ExecutionConfig executionConfig,</span></span></span><br><span class="line"><span class="function"><span class="params">        CheckpointConfig checkpointConfig,</span></span></span><br><span class="line"><span class="function"><span class="params">        ReadableConfig configuration)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.transformations = checkNotNull(transformations);</span><br><span class="line">    <span class="keyword">this</span>.executionConfig = checkNotNull(executionConfig);</span><br><span class="line">    <span class="keyword">this</span>.checkpointConfig = <span class="keyword">new</span> CheckpointConfig(checkpointConfig);</span><br><span class="line">    <span class="keyword">this</span>.configuration = checkNotNull(configuration);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 客户端开始执行</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> JobExecutionResult <span class="title">execute</span><span class="params">(StreamGraph streamGraph)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> JobClient jobClient = executeAsync(streamGraph);</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到初始化 StreamGraphGenerator 需要传入四个参数，其中我们最需要关心的参数就是第一个 transformations；</p>
+<h3 id="Transformation-是用来干啥的？"><a href="#Transformation-是用来干啥的？" class="headerlink" title="Transformation 是用来干啥的？"></a>Transformation 是用来干啥的？</h3><p><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/stream/operators/#datastream-transformations">https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/stream/operators/#datastream-transformations</a></p>
+<p>Transformation 其实就是我们在代码中定义的各种转换操作，比如 map，filter，flatmap，keyby 等转换操作，经过 flink 的简单包装之后成为 Transformation，其之间的具体关系如下图：<br><img src="/blog-img/apache-flink:minicluster-start/16.png" alt="16"></p>
+<p>经过这么多层的封装，肯定是为用户自定义算子增强或者填充了一些功能，具体是哪些功能呢？</p>
+<p>举个例子：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">environment</span><br><span class="line">    .fromElements(Tuple2.of(<span class="number">1</span>, <span class="number">1</span>), Tuple2.of(<span class="number">2</span>, <span class="number">2</span>), Tuple2.of(<span class="number">1</span>, <span class="number">3</span>), Tuple2.of(<span class="number">2</span>, <span class="number">4</span>), Tuple2.of(<span class="number">3</span>, <span class="number">10</span>))</span><br><span class="line">    .map(t -&gt; t)</span><br><span class="line">    .keyBy(<span class="keyword">new</span> KeySelector&lt;Tuple2&lt;Integer, Integer&gt;, Integer&gt;() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Integer <span class="title">getKey</span><span class="params">(Tuple2&lt;Integer, Integer&gt; i)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> i.f0;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">    .flatMap(<span class="keyword">new</span> CountWindowAverage())</span><br><span class="line">    .print();</span><br></pre></td></tr></table></figure>
+
+<p>先 debug 到 <kbd>map(t -> t)</kbd>，然后我们来看 env 中的变量：<br><img src="/blog-img/apache-flink:minicluster-start/17.png" alt="17"></p>
+<p>从这个变量来看就可以和上面的图映射上了，分别是 <kbd>OneInputTransformation -> StreamMap -> UserFunction</kbd>；<br>我们仔细看这些变量，来查看到底哪些增强了哪些功能。</p>
+<p><strong>1. StreamMap</strong><br><img src="/blog-img/apache-flink:minicluster-start/20.png" alt="20"></p>
+<ul>
+<li>ChainingStrategy：flink 的优化策略中有本地性优化，就是会检查前一个算子和后一个算子是否能够 chain 在一起，这样的话就可以把数据的 shuffle 本地化，而 ChainingStrategy 就是这个优化的一个决定条件；</li>
+</ul>
+<p><strong>2. OneInputTransformation</strong><br><img src="/blog-img/apache-flink:minicluster-start/19.png" alt="19"></p>
+<ul>
+<li>input：负责将上游 Transformation 进行存储，之后可以利用这个上下游关系串联整个 DAG；</li>
+<li>stateKeySelector：如果是 keyBy 后接 map，则 map 算子就会作用在具体 key 的数据上，这个就是对应的 KeySelector；</li>
+<li>stateKeyType：同 stateKeySelector，存储的是具体的 key 的类型信息；</li>
+<li>outputType：输出数据的类型信息；</li>
+<li>typeUsed：TODO；</li>
+<li>parallelism：算子并发度信息；</li>
+<li>maxParallelism：算子最大并发度信息；</li>
+<li>minResources，preferredResources：用户自定义细粒度的资源配置（<strong>这个 feature 还没有开放给用户</strong>）；</li>
+<li>managedMemoryWeight：TODO</li>
+<li>uid：状态恢复时的状态唯一标识，恢复时会根据状态中的 uid 和算子中的 uid 进行匹配，匹配不到状态就不能恢复；</li>
+<li>userProvidedNodeHash：TODO</li>
+<li>bufferTimeout：TODO</li>
+<li>slotSharingGroup：可以进行 slot 分享的 group 标识；</li>
+<li>coLocationGroupKey：TODO</li>
+</ul>
+<p><strong><font color=red>结论</font></strong>：总的来说就是提供了一些<kbd>并行度</kbd>、<kbd>类型信息</kbd>、<kbd>上下游关联信息</kbd>的补充，根据用户声明的代码，形成上下游 DAG 关系；</p>
+<p>注意不同的 Transformation 做了不同的增强，常见的 Transformation 为一下几类。<br><img src="/blog-img/apache-flink:minicluster-start/15.png" alt="15"></p>
+<h1 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h1><ol>
+<li><a href="http://wuchong.me/blog/2016/05/03/flink-internals-overview/">http://wuchong.me/blog/2016/05/03/flink-internals-overview/</a></li>
+<li><a href="https://outofmemory.cn/article-201939.html">https://outofmemory.cn/article-201939.html</a></li>
+<li><a href="http://wuchong.me/blog/2016/05/04/flink-internal-how-to-build-streamgraph/">http://wuchong.me/blog/2016/05/04/flink-internal-how-to-build-streamgraph/</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇</title>
+    <url>/2020/10/12/wechat-blog/apache-flink:realtime-live-stream-1/</url>
+    <content><![CDATA[<h1 id="生产实践-基于-Flink-的直播实时数据建设-（一）-需求和架构篇"><a href="#生产实践-基于-Flink-的直播实时数据建设-（一）-需求和架构篇" class="headerlink" title="生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇"></a>生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇</h1><blockquote>
+<p>本系列每篇文章都是从一些实际生产实践需求出发，解决一些生产实践中的问题，抛砖引玉，以帮助小伙伴们解决一些实际生产问题。相信大家或多或少都观看过直播，那大家有没有想过，如果自己负责建设公司内整体直播实时数据，会怎样去建设呢？本系列文章主要介绍直播实时数据建设的整个过程，如果对小伙伴有帮助的话，欢迎点赞 + 再看~</p>
+</blockquote>
+<h2 id="首先思考几个问题"><a href="#首先思考几个问题" class="headerlink" title="首先思考几个问题"></a>首先思考几个问题</h2><ul>
+<li><strong>WHAT：相信大家或多或少都观看过直播，甚至自己就是一名主播或负责的业务就是直播相关的，那大家有没有思考过，在直播业务场景中，你最关心什么指标以及需要关注、建设什么数据？</strong></li>
+<li><strong>WHY：为什么需要建设直播实时数据？离线建设不能满足吗？</strong></li>
+<li><strong>HOW：直播实时数据怎样赋能业务的？怎样根据公司直播场景的需求去划分直播实时数据？怎样去建设直播实时数据体？</strong></li>
+<li><strong>WHO：在建设直播实时数据的过程中，需要使用什么样的组件进行建设？每个组件都负责哪一部分？</strong></li>
+</ul>
+<p>让我们带着以上几个问题出发~</p>
+<h2 id="直播-短视频，内容运营的下一个战场"><a href="#直播-短视频，内容运营的下一个战场" class="headerlink" title="直播 + 短视频，内容运营的下一个战场"></a>直播 + 短视频，内容运营的下一个战场</h2><p>随着互联网络技术的发展，网络直播受到越来越多人的关注，直播在经过几年前的喷涌式大爆发之后，近段时间热度有所降低。内容的同质化和变现困难是直播现在面临的主要问题，随着移动终端普及和网络的提速，短视频以短平快的大流量传播方式快速获得各大平台、粉丝和资本的青睐，所以众多直播软件开始接入短视频的功能。<br>同时，一些以短视频为主发展起来的 app 也在软件中加入了直播功能，直播和短视频两者互相弥补不足，相辅相成，给用户带来了更好的使用体验，也给各大平台带来更多的流量，”直播 + 短视频”的模式已经也成为新的发展趋势。</p>
+<p>本系列文章主要围绕着直播实时数据建设而展开。本文是本系列文章的的第一篇，需求和架构篇，主要分为三个部分，按顺序为<strong>WHY - WHAT - HOW</strong>，以这三个角度出发，解答开头提出的三个问题，其中 <strong>WHO</strong>部分在本系列文章的后续建设细节章节进行介绍！</p>
+<h2 id="WHY：为什么建设直播实时数据？"><a href="#WHY：为什么建设直播实时数据？" class="headerlink" title="WHY：为什么建设直播实时数据？"></a>WHY：为什么建设直播实时数据？</h2><p>相比短视频的生产消费来说，直播的主播和观看直播的观众的纽带都是在直播间建立的，相互之间的互动行为也都只在直播间内产生，并且通常情况下，一场直播的时长也就在几个小时之内，因此直播的生产消费时效性相比短视频会更强，因而直播数据对于实时性的诉求也就更高。</p>
+<h2 id="WHAT：需要关注、建设什么直播实时数据？"><a href="#WHAT：需要关注、建设什么直播实时数据？" class="headerlink" title="WHAT：需要关注、建设什么直播实时数据？"></a>WHAT：需要关注、建设什么直播实时数据？</h2><p>需要关注、建设什么直播实时数据？换一句话来说就是根据<strong>数据分析业务的需求</strong>出发，决定建设什么样的直播实时数据？</p>
+<p>直播就是一个主播和观众联络互动的纽带，其中一切操作都是围绕着主播和观众而展开的，数据分析的同学都会以这个最基础的角度出发进行分析，因此首先我们就可以将整个直播的数据按照<strong>直播生产</strong>和<strong>直播消费</strong>进最基本的划分。</p>
+<p>除此角度之外，数据分析的同学也还会从<strong>全局直播业务洞察</strong>和<strong>单个直播间洞察</strong>不同粒度上进行分析洞察，因此还可以按照<strong>大盘数据</strong>、<strong>单直播间数据</strong>进行划分。</p>
+<p>从这两个角度出发，基本可以涵盖对于直播业务分析场景的诉求，因此直播实时数据也自然可以从这两个角度进行划分和建设。</p>
+<p>综上则整体<strong>直播实时数据业务划分和赋能应用架构</strong>如下图所示。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-1/biz-arc.png" alt="业务划分和应用架构"></p>
+<p>其中</p>
+<p><strong>直播大盘实时数据</strong>在宏观上监控直播业务，提供预测大盘的能力；其中分钟粒度时间序列可快速定位直播各行为的高峰时刻，可以基于该时刻进行详细归因。除此之外，当直播在做运营活动时，也能快速基于实时数据来看运营活动的活动效果，赋能活动策略实时优化。</p>
+<p><strong>单直播间直播实时数据</strong>可以以细粒度监控单直播间的直播业务，用来在直播过程中对外输出直播数据战报、以及可基于数据战报效果实时对单直播间进资源投放进行实时效果评估和合理调配。</p>
+<p>详细的直播实时数据需求和样例如下文。</p>
+<h3 id="大盘"><a href="#大盘" class="headerlink" title="大盘"></a>大盘</h3><p><strong>生产侧</strong></p>
+<ul>
+<li><strong>指标</strong>：总体开播直播间数…</li>
+<li><strong>维度</strong>：直播间画像、主播用户画像</li>
+<li><strong>举例</strong>：[开播直播间为游戏类直播]的[总开播主播数]</li>
+</ul>
+<p><strong>消费侧</strong></p>
+<ul>
+<li><strong>指标</strong>：总体观众观看、点赞、评论数…</li>
+<li><strong>维度</strong>：观众用户画像、日志上报其他维度</li>
+<li><strong>举例</strong>：[目前在河北观看直播]的[总观众数]</li>
+</ul>
+<h3 id="单直播间"><a href="#单直播间" class="headerlink" title="单直播间"></a>单直播间</h3><p><strong>生产侧</strong><br>单直播间一般都是一些画像信息，所以此类指标较少，暂时不做讨论。</p>
+<p><strong>消费侧</strong></p>
+<ul>
+<li><strong>指标</strong>：单直播间观众观看、点赞、评论数…</li>
+<li><strong>维度</strong>：观众用户画像、日志上报其他维度</li>
+<li><strong>举例</strong>：某直播间[18-23岁年龄段]的[总观众数]</li>
+</ul>
+<p>目前已经了解了要建设直播实时数据都包含了什么内容，接下来就是大干一场的时候了。</p>
+<h2 id="HOW：怎样去建设？"><a href="#HOW：怎样去建设？" class="headerlink" title="HOW：怎样去建设？"></a>HOW：怎样去建设？</h2><p>怎样去建设？换一句话来说就是从技术的角度出发，怎样将<strong>直播实时数据的业务需求</strong>转化为<strong>直播实时数据的技术方案</strong>进行落地？</p>
+<p>从技术角度出发，上述直播实时数据需要建设的需求内容总结下来就是一个词：<strong>直播实时多维指标</strong>。</p>
+<h3 id="多维"><a href="#多维" class="headerlink" title="多维"></a>多维</h3><p>即产出指标是多维度的，包含公共维度和非公共维度。</p>
+<p>第一类是<strong>公共维度</strong>。包含三部分，直播间画像，主播用户画像，观众用户画像，公共两字代表这类维度是可以被多个指标进行共享使用的。举例：某直播间开播之后，该直播间画像只需要一次建设，就可以被多个指标多次重复使用，不但可以作为大盘侧生产、消费指标的维度，也可以作为单直播间生产、消费指标的维度。</p>
+<p>第二类是<strong>非公共维度</strong>。非公共维度是和特定消费行为绑定的，也就是和某个指标绑定的，随着日志上报一同上报的维度。举例：某观众观看直播时的客户端类型（安卓？IOS？），观看直播时的省份等维度，这类维度只和当前的消费行为相关，不能被其他指标所共享。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-1/dim.png" alt="多维"></p>
+<h3 id="指标"><a href="#指标" class="headerlink" title="指标"></a>指标</h3><p>其实都是 pv，uv 类指标。简单理解就是各个维度下对应的 xx 量。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-1/metric.png" alt="指标"></p>
+<h3 id="实时数据建设技术架构"><a href="#实时数据建设技术架构" class="headerlink" title="实时数据建设技术架构"></a>实时数据建设技术架构</h3><p>对应到直播实时数据建设的过程主要包含两部分：公共部分和非公共部分。</p>
+<p>公共部分就是实时公共维表的建设。</p>
+<p>非公共部分就是指标非公共维度以及对应生产、消费指标建设。</p>
+<p>直接给出总体<strong>技术架构</strong>图，本系列后续的文章进行介绍这样进行整体架构设计的详细原因。</p>
+<p><img src="/blog-img/apache-flink:realtime-live-stream-1/tec-arc.png" alt="技术架构"></p>
+<p>简单说明下。</p>
+<p>其中数据源包含生产侧，消费侧数据源；</p>
+<p>数据处理部分包含公共实时维表建设，和指标建设，其中一部分公共维表的建设也使用了离线的方式提供了支持；</p>
+<p>最后就是数据汇部分，产出了生产侧，消费侧的多维指标供数据分析师使用。</p>
+<h2 id="下节预告"><a href="#下节预告" class="headerlink" title="下节预告"></a>下节预告</h2><p>下节主要介绍<strong>直播实时公共画像的建设</strong>，其中是技术架构图中的<strong>主播用户、关注用户画像、以及直播间画像</strong>的建设方案。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文首先提出了几个关于直播实时数据建设的问题。以这几个问题触发，引出了一下三小节。</p>
+<p>第一节简单介绍了直播时效性强的原因，因此直播对于实时数据的需求更加强烈。</p>
+<p>第二节从数据分析的角度出发，引出了我们需要建设的直播实时数据都包含哪些内容，并且从大盘/单直播间，生产/消费角度进行了模块划分。</p>
+<p>第三节对数据需求进行了技术方案的整体架构设计。</p>
+<p>最后一节对本文进行了总结。</p>
+<p>如果你也有相同的建设需求或者你以及建设了直播实时数据，欢迎留言或者留下你的文章链接，相互交流~</p>
+]]></content>
       <categories>
         <category>Apache Flink</category>
       </categories>
@@ -2436,137 +2563,6 @@
       </tags>
   </entry>
   <entry>
-    <title>踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑</title>
-    <url>/2020/09/11/wechat-blog/apache-flink:realtime-out-of-order/</url>
-    <content><![CDATA[<h1 id="踩坑记-Flink-事件时间语义下数据乱序丢数踩坑"><a href="#踩坑记-Flink-事件时间语义下数据乱序丢数踩坑" class="headerlink" title="踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑"></a>踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑</h1><blockquote>
-<p>本文详细介绍了在上游使用处理时间语义的 flink 任务出现故障后，重启消费大量积压在上游的数据并产出至下游数据乱序特别严重时，下游 flink 任务使用事件时间语义时遇到的大量丢数问题以及相关的解决方案。</p>
-</blockquote>
-<p>本文分为以下几个部分：</p>
-<ul>
-<li><strong>1.本次踩坑的应用场景</strong></li>
-<li><strong>2.应用场景中发生的丢数故障分析</strong></li>
-<li><strong>3.待修复的故障点</strong></li>
-<li><strong>4.丢数故障解决方案及原理</strong></li>
-<li><strong>5.总结</strong></li>
-</ul>
-<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>应用场景如下：</p>
-<ul>
-<li><strong>flink 任务 A</strong> 以<strong>处理时间</strong>语义做过滤产出新增 xx 明细数据至 <strong>Kafka Y</strong></li>
-<li><strong>flink 任务 B</strong> 以<strong>事件时间</strong>语义消费 <strong>Kafka Y</strong> 做窗口聚合操作产出分钟级别聚合指标至 <strong>Kafka Z</strong></li>
-<li><strong>Kafka Z</strong> 实时导入至 <strong>Druid</strong> 以做即时 OLAP 分析，并且展示在 BI 应用看板</li>
-</ul>
-<p><img src="/blog-img/apache-flink:realtime-out-of-order/stream.png" alt="场景"></p>
-<h2 id="丢数故障分析"><a href="#丢数故障分析" class="headerlink" title="丢数故障分析"></a>丢数故障分析</h2><p>简要介绍下这次生产中故障场景。整条故障追踪链路如下：</p>
-<p>故障一：</p>
-<ul>
-<li>收到报警反馈 <strong>flink 任务 A</strong> 入口流量为 0</li>
-<li>定位 <strong>flink 任务 A</strong> 中某个算子的故障导致整个 job 卡住</li>
-<li>导致此 <strong>flink 任务 A</strong> 上游 <strong>kafka X</strong> 积压了大量数据</li>
-<li>重启 <strong>flink 任务 A</strong>后，消费大量积压在上游 <strong>kafka X</strong> 数据完成，任务恢复正常</li>
-</ul>
-<p>故障一从而引发下游的故障二：</p>
-<ul>
-<li>由于 <strong>flink 任务 A</strong> 使用了<strong>处理时间</strong>语义处理数据，并且有过滤和 keyBy 分桶窗口逻辑，在重启后消费大量积压在上游的数据时，导致 sink rebalance 后产出到下游 <strong>kafka Y</strong> 各个分区数据中的 server_timestamp 是乱序的</li>
-<li>下游 <strong>flink 任务 B</strong> 在消费 <strong>Kafka Y</strong> 时使用了<strong>事件时间</strong>语义处理数据，并且使用了数据中的 server_timestamp 作为<strong>事件时间</strong>时间戳</li>
-<li><strong>flink 任务 B</strong> 消费了乱序很严重的数据之后，导致在窗口聚合计算时丢失了大量数据</li>
-<li>最终展示在 BI 应用中的报表有丢失数据的情况</li>
-</ul>
-<p><img src="/blog-img/apache-flink:realtime-out-of-order/bug_stream.png" alt="故障场景"></p>
-<h2 id="待修复的故障点"><a href="#待修复的故障点" class="headerlink" title="待修复的故障点"></a>待修复的故障点</h2><ul>
-<li>1.<strong>flink 任务 A</strong> 的稳定性故障，这部分解决方案暂不在本文中介绍</li>
-<li>2.<strong>flink 任务 B</strong> 消费上游乱序丢数故障，解决方案在下文介绍</li>
-</ul>
-<h2 id="解决方案以及原理"><a href="#解决方案以及原理" class="headerlink" title="解决方案以及原理"></a>解决方案以及原理</h2><h3 id="丢数故障解决方案"><a href="#丢数故障解决方案" class="headerlink" title="丢数故障解决方案"></a>丢数故障解决方案</h3><p>解决方案是以下游 <strong>flink 任务 B</strong> 作为切入点，直接给出 <strong>flink 任务 B</strong> 的 sql 代码解决方案，java code 也可以按照这个方案实现，其本质原理相同。下文进行原理解释。</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  to_unix_timestamp(server_timestamp <span class="operator">/</span> bucket) <span class="keyword">AS</span> <span class="type">timestamp</span>, <span class="comment">-- format 成原有的事件时间戳</span></span><br><span class="line">  <span class="built_in">count</span>(id) <span class="keyword">as</span> id_cnt,</span><br><span class="line">  <span class="built_in">sum</span>(duration) <span class="keyword">as</span> duration_sum</span><br><span class="line"><span class="keyword">FROM</span></span><br><span class="line">  source_table</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">  TUMBLE(proctime, <span class="type">INTERVAL</span> <span class="string">&#x27;1&#x27;</span> <span class="keyword">MINUTE</span>),</span><br><span class="line">  server_timestamp <span class="operator">/</span> bucket <span class="comment">-- 根据事件时间分桶计算，将相同范围（比如 1 分钟）事件时间的数据分到一个桶内</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="解决方案原理"><a href="#解决方案原理" class="headerlink" title="解决方案原理"></a>解决方案原理</h3><p>首先明确一个无法避免的问题，在不考虑 watermark 允许延迟设置特别大的情况下，只要上游使用到了处理时间语义，下游使用事件时间语义，一旦上游发生故障重启并在短时间内消费大量数据，就不可避免的会出现上述错误以及故障。</p>
-<p>在下游消费方仍然需要将对应事件时间戳的数据展示在 BI 平台报表中、并且全链路时间语义都为处理时间保障不丢数的前提下。解决方案就是在聚合并最终产出对应事件时间戳的数据。</p>
-<p>最后的方案如下：<br>整条链路全部为处理时间语义，窗口计算也使用处理时间，但是产出数据中的时间戳全部为事件时间戳。<br>在出现故障的场景下，一分钟的窗口内的数据的事件时间戳可能相差几个小时，但在最终窗口聚合时可以根据事件时间戳划分到对应的事件时间窗口内，下游 BI 应用展示时使用此事件时间戳即可。</p>
-<blockquote>
-<p>注意：sql 中的 bucket 需要根据具体使用场景进行设置，如果设置过于小，比如非故障场景下按照处理时间开 1 分钟的窗口，bucket<br>设为 60000（1 分钟），那么极有可能，这个时间窗口中所有数据的 server_timestamp 都集中在某两分钟内，那么这些数据就会被分到两个桶（bucket）内，则会导致严重的数据倾斜。</p>
-</blockquote>
-<h3 id="输入数据样例"><a href="#输入数据样例" class="headerlink" title="输入数据样例"></a>输入数据样例</h3><p>模拟上述故障，<strong>flink B</strong> 的任务某一个窗口内的数据输入如下。</p>
-<table>
-    <thead>
-        <tr>
-            <th style="width: 10%; text-align: center;">server_timestamp</th>
-            <th style="width: 20%; text-align: center;">id</th>
-            <th style="width: 20%; text-align: center;">duration</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td style="text-align: center;">2020/9/01 21:14:38</td>
-            <td>1</td>
-            <td>300</td>
-        </tr>
-        <tr>
-            <td style="text-align: center;">2020/9/01 21:14:50</td>
-            <td>1</td>
-            <td>500</td>
-        </tr>
-        <tr>
-            <td style="text-align: center;">2020/9/01 21:25:38</td>
-            <td>2</td>
-            <td>600</td>
-        </tr>
-        <tr>
-            <td style="text-align: center;">2020/9/01 21:25:38</td>
-            <td>3</td>
-            <td>900</td>
-        </tr>
-        <tr>
-            <td style="text-align: center;">2020/9/01 21:25:38</td>
-            <td>2</td>
-            <td>800</td>
-        </tr>
-    </tbody>
-</table>
-
-<h3 id="输出数据样例"><a href="#输出数据样例" class="headerlink" title="输出数据样例"></a>输出数据样例</h3><p>按照上述解决方案中的 sql 处理过后，输出数据如下，则可以解决此类型丢数故障。</p>
-<table>
-    <thead>
-        <tr>
-            <th style="width: 10%; text-align: center;">timestamp</th>
-            <th style="width: 20%; text-align: center;">id_cnt</th>
-            <th style="width: 20%; text-align: center;">duration_sum</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td style="text-align: center;">2020/9/01 21:14:00</td>
-            <td>2</td>
-            <td>900</td>
-        </tr>
-        <tr>
-            <td style="text-align: center;">2020/9/01 21:25:00</td>
-            <td>3</td>
-            <td>2300</td>
-        </tr>
-    </tbody>
-</table>
-
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文分析了在 flink 应用中：</p>
-<ul>
-<li><strong>上游使用处理时间语义的 flink 任务出现故障、重启消费大量积压数据并产出至下游数据乱序特别严重时，下游使用事件时间语义时遇到的大量丢数问题</strong></li>
-<li><strong>以整条链路为处理时间语义的前提下，产出的数据时间戳为事件时间戳解决上述问题</strong></li>
-<li><strong>以 sql 代码给出了丢数故障解决方案样例</strong></li>
-</ul>
-<h2 id="学习资料"><a href="#学习资料" class="headerlink" title="学习资料"></a>学习资料</h2><h3 id="flink"><a href="#flink" class="headerlink" title="flink"></a>flink</h3><ul>
-<li><a href="https://github.com/flink-china/flink-training-course/blob/master/README.md">https://github.com/flink-china/flink-training-course/blob/master/README.md</a></li>
-<li><a href="https://ververica.cn/developers-resources/">https://ververica.cn/developers-resources/</a></li>
-<li><a href="https://space.bilibili.com/33807709">https://space.bilibili.com/33807709</a></li>
-</ul>
-<p><img src="/blog-img/gzh/wechat.png" alt="公众号"></p>
-]]></content>
-      <categories>
-        <category>Apache Flink</category>
-      </categories>
-      <tags>
-        <tag>Apache Flink</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>生产实践 | 基于 Flink 的短视频生产消费监控</title>
     <url>/2020/09/01/wechat-blog/apache-flink:realtime-monitor-video/</url>
     <content><![CDATA[<h1 id="生产实践-基于-Flink-的短视频生产消费监控"><a href="#生产实践-基于-Flink-的短视频生产消费监控" class="headerlink" title="生产实践 | 基于 Flink 的短视频生产消费监控"></a>生产实践 | 基于 Flink 的短视频生产消费监控</h1><blockquote>
@@ -2701,6 +2697,137 @@
 <p>Redis bit 方案：</p>
 <p><img src="/blog-img/new/new_did_redis_bit.png" alt="使用 Redis bit 特性的 多 uv 指标计算链路"></p>
 <p>这样做的一个优点，就是这几十场活动的 uv 计算都使用了相同的 Redis key 来计算，可以大幅度减少 Redis 的容量占用。使用此方案的话，以上述相同的用户和活动场数，理论上最大<br>key 数量仅仅为 1 亿，只是 value 数量会多占几十个 bit。</p>
+]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑</title>
+    <url>/2020/09/11/wechat-blog/apache-flink:realtime-out-of-order/</url>
+    <content><![CDATA[<h1 id="踩坑记-Flink-事件时间语义下数据乱序丢数踩坑"><a href="#踩坑记-Flink-事件时间语义下数据乱序丢数踩坑" class="headerlink" title="踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑"></a>踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑</h1><blockquote>
+<p>本文详细介绍了在上游使用处理时间语义的 flink 任务出现故障后，重启消费大量积压在上游的数据并产出至下游数据乱序特别严重时，下游 flink 任务使用事件时间语义时遇到的大量丢数问题以及相关的解决方案。</p>
+</blockquote>
+<p>本文分为以下几个部分：</p>
+<ul>
+<li><strong>1.本次踩坑的应用场景</strong></li>
+<li><strong>2.应用场景中发生的丢数故障分析</strong></li>
+<li><strong>3.待修复的故障点</strong></li>
+<li><strong>4.丢数故障解决方案及原理</strong></li>
+<li><strong>5.总结</strong></li>
+</ul>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>应用场景如下：</p>
+<ul>
+<li><strong>flink 任务 A</strong> 以<strong>处理时间</strong>语义做过滤产出新增 xx 明细数据至 <strong>Kafka Y</strong></li>
+<li><strong>flink 任务 B</strong> 以<strong>事件时间</strong>语义消费 <strong>Kafka Y</strong> 做窗口聚合操作产出分钟级别聚合指标至 <strong>Kafka Z</strong></li>
+<li><strong>Kafka Z</strong> 实时导入至 <strong>Druid</strong> 以做即时 OLAP 分析，并且展示在 BI 应用看板</li>
+</ul>
+<p><img src="/blog-img/apache-flink:realtime-out-of-order/stream.png" alt="场景"></p>
+<h2 id="丢数故障分析"><a href="#丢数故障分析" class="headerlink" title="丢数故障分析"></a>丢数故障分析</h2><p>简要介绍下这次生产中故障场景。整条故障追踪链路如下：</p>
+<p>故障一：</p>
+<ul>
+<li>收到报警反馈 <strong>flink 任务 A</strong> 入口流量为 0</li>
+<li>定位 <strong>flink 任务 A</strong> 中某个算子的故障导致整个 job 卡住</li>
+<li>导致此 <strong>flink 任务 A</strong> 上游 <strong>kafka X</strong> 积压了大量数据</li>
+<li>重启 <strong>flink 任务 A</strong>后，消费大量积压在上游 <strong>kafka X</strong> 数据完成，任务恢复正常</li>
+</ul>
+<p>故障一从而引发下游的故障二：</p>
+<ul>
+<li>由于 <strong>flink 任务 A</strong> 使用了<strong>处理时间</strong>语义处理数据，并且有过滤和 keyBy 分桶窗口逻辑，在重启后消费大量积压在上游的数据时，导致 sink rebalance 后产出到下游 <strong>kafka Y</strong> 各个分区数据中的 server_timestamp 是乱序的</li>
+<li>下游 <strong>flink 任务 B</strong> 在消费 <strong>Kafka Y</strong> 时使用了<strong>事件时间</strong>语义处理数据，并且使用了数据中的 server_timestamp 作为<strong>事件时间</strong>时间戳</li>
+<li><strong>flink 任务 B</strong> 消费了乱序很严重的数据之后，导致在窗口聚合计算时丢失了大量数据</li>
+<li>最终展示在 BI 应用中的报表有丢失数据的情况</li>
+</ul>
+<p><img src="/blog-img/apache-flink:realtime-out-of-order/bug_stream.png" alt="故障场景"></p>
+<h2 id="待修复的故障点"><a href="#待修复的故障点" class="headerlink" title="待修复的故障点"></a>待修复的故障点</h2><ul>
+<li>1.<strong>flink 任务 A</strong> 的稳定性故障，这部分解决方案暂不在本文中介绍</li>
+<li>2.<strong>flink 任务 B</strong> 消费上游乱序丢数故障，解决方案在下文介绍</li>
+</ul>
+<h2 id="解决方案以及原理"><a href="#解决方案以及原理" class="headerlink" title="解决方案以及原理"></a>解决方案以及原理</h2><h3 id="丢数故障解决方案"><a href="#丢数故障解决方案" class="headerlink" title="丢数故障解决方案"></a>丢数故障解决方案</h3><p>解决方案是以下游 <strong>flink 任务 B</strong> 作为切入点，直接给出 <strong>flink 任务 B</strong> 的 sql 代码解决方案，java code 也可以按照这个方案实现，其本质原理相同。下文进行原理解释。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  to_unix_timestamp(server_timestamp <span class="operator">/</span> bucket) <span class="keyword">AS</span> <span class="type">timestamp</span>, <span class="comment">-- format 成原有的事件时间戳</span></span><br><span class="line">  <span class="built_in">count</span>(id) <span class="keyword">as</span> id_cnt,</span><br><span class="line">  <span class="built_in">sum</span>(duration) <span class="keyword">as</span> duration_sum</span><br><span class="line"><span class="keyword">FROM</span></span><br><span class="line">  source_table</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">  TUMBLE(proctime, <span class="type">INTERVAL</span> <span class="string">&#x27;1&#x27;</span> <span class="keyword">MINUTE</span>),</span><br><span class="line">  server_timestamp <span class="operator">/</span> bucket <span class="comment">-- 根据事件时间分桶计算，将相同范围（比如 1 分钟）事件时间的数据分到一个桶内</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="解决方案原理"><a href="#解决方案原理" class="headerlink" title="解决方案原理"></a>解决方案原理</h3><p>首先明确一个无法避免的问题，在不考虑 watermark 允许延迟设置特别大的情况下，只要上游使用到了处理时间语义，下游使用事件时间语义，一旦上游发生故障重启并在短时间内消费大量数据，就不可避免的会出现上述错误以及故障。</p>
+<p>在下游消费方仍然需要将对应事件时间戳的数据展示在 BI 平台报表中、并且全链路时间语义都为处理时间保障不丢数的前提下。解决方案就是在聚合并最终产出对应事件时间戳的数据。</p>
+<p>最后的方案如下：<br>整条链路全部为处理时间语义，窗口计算也使用处理时间，但是产出数据中的时间戳全部为事件时间戳。<br>在出现故障的场景下，一分钟的窗口内的数据的事件时间戳可能相差几个小时，但在最终窗口聚合时可以根据事件时间戳划分到对应的事件时间窗口内，下游 BI 应用展示时使用此事件时间戳即可。</p>
+<blockquote>
+<p>注意：sql 中的 bucket 需要根据具体使用场景进行设置，如果设置过于小，比如非故障场景下按照处理时间开 1 分钟的窗口，bucket<br>设为 60000（1 分钟），那么极有可能，这个时间窗口中所有数据的 server_timestamp 都集中在某两分钟内，那么这些数据就会被分到两个桶（bucket）内，则会导致严重的数据倾斜。</p>
+</blockquote>
+<h3 id="输入数据样例"><a href="#输入数据样例" class="headerlink" title="输入数据样例"></a>输入数据样例</h3><p>模拟上述故障，<strong>flink B</strong> 的任务某一个窗口内的数据输入如下。</p>
+<table>
+    <thead>
+        <tr>
+            <th style="width: 10%; text-align: center;">server_timestamp</th>
+            <th style="width: 20%; text-align: center;">id</th>
+            <th style="width: 20%; text-align: center;">duration</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:14:38</td>
+            <td>1</td>
+            <td>300</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:14:50</td>
+            <td>1</td>
+            <td>500</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:25:38</td>
+            <td>2</td>
+            <td>600</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:25:38</td>
+            <td>3</td>
+            <td>900</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:25:38</td>
+            <td>2</td>
+            <td>800</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3 id="输出数据样例"><a href="#输出数据样例" class="headerlink" title="输出数据样例"></a>输出数据样例</h3><p>按照上述解决方案中的 sql 处理过后，输出数据如下，则可以解决此类型丢数故障。</p>
+<table>
+    <thead>
+        <tr>
+            <th style="width: 10%; text-align: center;">timestamp</th>
+            <th style="width: 20%; text-align: center;">id_cnt</th>
+            <th style="width: 20%; text-align: center;">duration_sum</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:14:00</td>
+            <td>2</td>
+            <td>900</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">2020/9/01 21:25:00</td>
+            <td>3</td>
+            <td>2300</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文分析了在 flink 应用中：</p>
+<ul>
+<li><strong>上游使用处理时间语义的 flink 任务出现故障、重启消费大量积压数据并产出至下游数据乱序特别严重时，下游使用事件时间语义时遇到的大量丢数问题</strong></li>
+<li><strong>以整条链路为处理时间语义的前提下，产出的数据时间戳为事件时间戳解决上述问题</strong></li>
+<li><strong>以 sql 代码给出了丢数故障解决方案样例</strong></li>
+</ul>
+<h2 id="学习资料"><a href="#学习资料" class="headerlink" title="学习资料"></a>学习资料</h2><h3 id="flink"><a href="#flink" class="headerlink" title="flink"></a>flink</h3><ul>
+<li><a href="https://github.com/flink-china/flink-training-course/blob/master/README.md">https://github.com/flink-china/flink-training-course/blob/master/README.md</a></li>
+<li><a href="https://ververica.cn/developers-resources/">https://ververica.cn/developers-resources/</a></li>
+<li><a href="https://space.bilibili.com/33807709">https://space.bilibili.com/33807709</a></li>
+</ul>
+<p><img src="/blog-img/gzh/wechat.png" alt="公众号"></p>
 ]]></content>
       <categories>
         <category>Apache Flink</category>
