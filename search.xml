@@ -1,23 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Apache Common 包学习：常用集合类Collections4学习</title>
-    <url>/2019/11/06/apache-common:study-apache-common-collections4/</url>
-    <content><![CDATA[<p>Apache Common 包学习：常用集合类Collections4学习</p>
-<span id="more"></span>
-
-<h2 id="Maven依赖"><a href="#Maven依赖" class="headerlink" title="Maven依赖"></a><strong>Maven依赖</strong></h2><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.commons<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-collections4<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="CollectionUtils"><a href="#CollectionUtils" class="headerlink" title="CollectionUtils"></a><strong>CollectionUtils</strong></h2><h3 id="lt-O-gt-Collection-lt-O-gt-subtract-final-Iterable-lt-extends-O-gt-a-final-Iterable-lt-extends-O-gt-b"><a href="#lt-O-gt-Collection-lt-O-gt-subtract-final-Iterable-lt-extends-O-gt-a-final-Iterable-lt-extends-O-gt-b" class="headerlink" title="&lt;O&gt; Collection&lt;O&gt; subtract(final Iterable&lt;? extends O&gt; a, final Iterable&lt;? extends O&gt; b)"></a>&lt;O<O>&gt; Collection&lt;O<O>&gt; subtract(final Iterable&lt;? extends O&gt; a, final Iterable&lt;? extends O&gt; b)</h3><p>a是做差集运算的左集，b是做差集运算的右集，下面是一个例子</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger LOGGER = LoggerFactory.getLogger(Demo.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        Set&lt;Pair&lt;String, String&gt;&gt; allProductDevices = Sets.newHashSet(Pair.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>), Pair.of(<span class="string">&quot;c&quot;</span>, <span class="string">&quot;d&quot;</span>));</span><br><span class="line"></span><br><span class="line">        Set&lt;Pair&lt;String, String&gt;&gt; oldProductDevices = Sets.newHashSet(Pair.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>), Pair.of(<span class="string">&quot;e&quot;</span>, <span class="string">&quot;f&quot;</span>));</span><br><span class="line"></span><br><span class="line">        List&lt;Pair&lt;String, String&gt;&gt; newProductDevices =</span><br><span class="line">                (ArrayList&lt;Pair&lt;String, String&gt;&gt;) CollectionUtils.subtract(allProductDevices, oldProductDevices);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list1 = Lists.newArrayList(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list2 = Lists.newArrayList(<span class="string">&quot;c&quot;</span>, <span class="string">&quot;b&quot;</span>);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list3 = (ArrayList&lt;String&gt;) CollectionUtils.subtract(list1, list2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Apache Common包</category>
-      </categories>
-      <tags>
-        <tag>Apache Common包</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Mac安装Apache Druid-0.16.0-incubating</title>
     <url>/2019/10/21/apache-druid:0.16.0-incubating-mac-install/</url>
     <content><![CDATA[<p>Mac安装Apache Druid-0.16.0-incubating教程</p>
@@ -51,6 +34,23 @@
       <tags>
         <tag>Apache Druid</tag>
         <tag>Apache Zookeeper</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Apache Common 包学习：常用集合类Collections4学习</title>
+    <url>/2019/11/06/apache-common:study-apache-common-collections4/</url>
+    <content><![CDATA[<p>Apache Common 包学习：常用集合类Collections4学习</p>
+<span id="more"></span>
+
+<h2 id="Maven依赖"><a href="#Maven依赖" class="headerlink" title="Maven依赖"></a><strong>Maven依赖</strong></h2><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.commons<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-collections4<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="CollectionUtils"><a href="#CollectionUtils" class="headerlink" title="CollectionUtils"></a><strong>CollectionUtils</strong></h2><h3 id="lt-O-gt-Collection-lt-O-gt-subtract-final-Iterable-lt-extends-O-gt-a-final-Iterable-lt-extends-O-gt-b"><a href="#lt-O-gt-Collection-lt-O-gt-subtract-final-Iterable-lt-extends-O-gt-a-final-Iterable-lt-extends-O-gt-b" class="headerlink" title="&lt;O&gt; Collection&lt;O&gt; subtract(final Iterable&lt;? extends O&gt; a, final Iterable&lt;? extends O&gt; b)"></a>&lt;O<O>&gt; Collection&lt;O<O>&gt; subtract(final Iterable&lt;? extends O&gt; a, final Iterable&lt;? extends O&gt; b)</h3><p>a是做差集运算的左集，b是做差集运算的右集，下面是一个例子</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger LOGGER = LoggerFactory.getLogger(Demo.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        Set&lt;Pair&lt;String, String&gt;&gt; allProductDevices = Sets.newHashSet(Pair.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>), Pair.of(<span class="string">&quot;c&quot;</span>, <span class="string">&quot;d&quot;</span>));</span><br><span class="line"></span><br><span class="line">        Set&lt;Pair&lt;String, String&gt;&gt; oldProductDevices = Sets.newHashSet(Pair.of(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>), Pair.of(<span class="string">&quot;e&quot;</span>, <span class="string">&quot;f&quot;</span>));</span><br><span class="line"></span><br><span class="line">        List&lt;Pair&lt;String, String&gt;&gt; newProductDevices =</span><br><span class="line">                (ArrayList&lt;Pair&lt;String, String&gt;&gt;) CollectionUtils.subtract(allProductDevices, oldProductDevices);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list1 = Lists.newArrayList(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list2 = Lists.newArrayList(<span class="string">&quot;c&quot;</span>, <span class="string">&quot;b&quot;</span>);</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; list3 = (ArrayList&lt;String&gt;) CollectionUtils.subtract(list1, list2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Apache Common包</category>
+      </categories>
+      <tags>
+        <tag>Apache Common包</tag>
       </tags>
   </entry>
   <entry>
@@ -684,6 +684,11 @@
       </tags>
   </entry>
   <entry>
+    <title>apache-flink:study-allowedLateness-and-maxOutOfOrderness</title>
+    <url>/2019/11/11/apache-flink:study-allowedLateness-and-maxOutOfOrderness/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>Apache Flink 学习：异步IO之RichAsyncFunction</title>
     <url>/2019/11/06/apache-flink:study-async-io-RichAsyncFunction/</url>
     <content><![CDATA[<p>Apache Flink 学习：异步IO之RichAsyncFunction</p>
@@ -722,9 +727,60 @@
       </tags>
   </entry>
   <entry>
-    <title>apache-flink:study-allowedLateness-and-maxOutOfOrderness</title>
-    <url>/2019/11/11/apache-flink:study-allowedLateness-and-maxOutOfOrderness/</url>
-    <content><![CDATA[]]></content>
+    <title>Apache Flink 学习：系统特性学习</title>
+    <url>/2019/11/03/apache-flink:study-features/</url>
+    <content><![CDATA[<p>Apache Flink 学习：系统特性学习</p>
+<span id="more"></span>
+
+<p><a href="https://github.com/flink-china/flink-training-course">教程</a></p>
+<h2 id="window窗口"><a href="#window窗口" class="headerlink" title="window窗口"></a><strong>window窗口</strong></h2><h3 id="窗口大小"><a href="#窗口大小" class="headerlink" title="窗口大小"></a>窗口大小</h3><p>窗口大小是用户自己设定的，但是窗口的起始和结束时间点是系统根据窗口大小和自然数进行设定的，不会出现设置了一分钟的窗口，统计的数据是2:30到3:30的数据</p>
+<p>[window_start_time, window_end_time)根据窗口大小和自然数进行设定</p>
+<p>如果window大小是3秒，那么1分钟内会把window划分为如下的形式:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[00:00:00,00:00:03)</span><br><span class="line">[00:00:03,00:00:06)</span><br><span class="line">...</span><br><span class="line">[00:00:57,00:01:00)</span><br></pre></td></tr></table></figure>
+
+<p>如果window大小是10秒，则window会被分为如下的形式：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[00:00:00,00:00:10)</span><br><span class="line">[00:00:10,00:00:20)</span><br><span class="line">...</span><br><span class="line">[00:00:50,00:01:00)</span><br></pre></td></tr></table></figure>
+
+<h3 id="watermark"><a href="#watermark" class="headerlink" title="watermark"></a>watermark</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Watermark <span class="title">getCurrentWatermark</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// this guarantees that the watermark never goes backwards.</span></span><br><span class="line">    <span class="keyword">long</span> potentialWM = currentMaxTimestamp - maxOutOfOrderness;</span><br><span class="line">    <span class="keyword">if</span> (potentialWM &gt;= lastEmittedWatermark) &#123;</span><br><span class="line">        lastEmittedWatermark = potentialWM;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Watermark(lastEmittedWatermark);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>watermark = max( [当前已到达的时间戳最新的数据(currentMaxTimestamp)] - [最大乱序等待时间(maxOutOfOrderness)], watermark )</strong></p>
+<h3 id="触发窗口运算条件"><a href="#触发窗口运算条件" class="headerlink" title="触发窗口运算条件"></a>触发窗口运算条件</h3><p>1.当前最新数据到达进行判断：当前到达event的time(timestamp) ＜ watermark则触发，表示数据是超过了最大等待时间，已经延迟到达的，则会触发</p>
+<p>2.当前最新数据到达进行判断：最新的watermark &gt;= window_end_time（对于out-of-order以及正常的数据而言），在[window_start_time, window_end_time)中有数据存在</p>
+<p>3.而且，这里要强调一点，watermark和currentMaxTimestamp是一个全局的值，不是某一个key下的值，所以即使不是同一个key的数据，其warmark也会增加</p>
+<p>语义是：currentMaxTimestamp是当前到达的最大时间戳数据，代表时间戳为currentMaxTimestamp的数据已经到达了，所以所能等待的数据的时间戳（max_out_of_orderness）只能为watermark = currentMaxTimestamp - maxOutOfOrderness</p>
+<h3 id="窗口计算"><a href="#窗口计算" class="headerlink" title="窗口计算"></a>窗口计算</h3><p>Window reduce，Window aggregate 和 Window Fold 是增量聚合，每来一条数据就计算一次，高效</p>
+<p>Window apply（Window process 的老版本） 和 Window process 是全量聚合，触发窗口计算时全量计算</p>
+<h3 id="被Keys化与非被Keys化Windows"><a href="#被Keys化与非被Keys化Windows" class="headerlink" title="被Keys化与非被Keys化Windows"></a>被Keys化与非被Keys化Windows</h3><p>要指定的第一件事是您的流是否应该使用keyedWindow，一般都与业务逻辑有关，比如说使用一分钟的窗口进行去重。使用keyBy(…)将您的无限流分成逻辑Key化的数据流。如果keyBy(…)未调用，则表示您的流不是被Keys化的。</p>
+<p>对于被Key化的数据流，可以将传入数据（Object）的的任何属性用作键）。拥有被Key化的数据流将允许您的窗口计算由多个任务并行执行，因为每个Key化的数据流可以独立于其余任务进行处理。引用相同Keys的所有数据将被发送到同一个并行任务进行计算。</p>
+<p>在非被Key化的数据流的情况下，您的原始流将不会被拆分为多个逻辑流，并且所有窗口逻辑将由单个任务执行，即并行度为1。</p>
+<h2 id="sql"><a href="#sql" class="headerlink" title="sql"></a><strong>sql</strong></h2><p>1.在flinkSql中，如果使用groupBy，尽量使用窗口，否则会认为被groupBy的数据会默认人为整个窗口内的数据还没有到达，所以会一直等待，不会产出数据</p>
+<p>update-mode: append / update</p>
+<p>分为 update stream 模式和 append stream 模式</p>
+<p>window聚合为append mode stream，groupby聚合为update mode stream</p>
+<h2 id="Flink生成-Timestamps-和-Watermarks"><a href="#Flink生成-Timestamps-和-Watermarks" class="headerlink" title="Flink生成 Timestamps 和 Watermarks"></a><strong>Flink生成 Timestamps 和 Watermarks</strong></h2><p>为了让event time工作，Flink需要知道事件的时间戳，这意味着流中的每个元素都需要分配其事件时间戳。这个通常是通过抽取或者访问事件中某些字段的时间戳来获取的。</p>
+<p>时间戳的分配伴随着水印的生成，告诉系统事件时间中的进度。</p>
+<p>这里有两种方式来分配时间戳和生成水印:</p>
+<ol>
+<li>直接在数据流源中进行。</li>
+<li>通过timestamp assigner和watermark generator生成:在Flink中，timestamp分配器也定义了用来发射的水印。</li>
+</ol>
+<h3 id="数据流源生成Timestamps和Watermarks"><a href="#数据流源生成Timestamps和Watermarks" class="headerlink" title="数据流源生成Timestamps和Watermarks"></a>数据流源生成Timestamps和Watermarks</h3><p>数据流源可以直接为它们产生的数据元素分配timestamp，并且他们也能发送水印。这样做的话，就没必要再去定义timestamp分配器了，需要注意的是:如果一个timestamp分配器被使用的话，由源提供的任何timestamp和watermark都会被重写。</p>
+<h3 id="时间戳分配器-水印生成器（Timestamp-Assigners-Watermark-Generators）"><a href="#时间戳分配器-水印生成器（Timestamp-Assigners-Watermark-Generators）" class="headerlink" title="时间戳分配器/水印生成器（Timestamp Assigners / Watermark Generators）"></a>时间戳分配器/水印生成器（Timestamp Assigners / Watermark Generators）</h3><p>Timestamp分配器获取一个流并生成一个新的带有Timestamp元素和水印的流。如果原始流已经有时间戳和/或水印，则Timestamp分配程序将覆盖它们</p>
+<p>Timestamp分配器通常在数据源之后立即指定，但这并不是严格要求的。通常是在timestamp分配器之前先解析(MapFunction)和过滤(FilterFunction)。在任何情况下，都需要在事件时间上的第一个操作(例如第一个窗口操作)之前指定timestamp分配程序。有一个特殊情况，当使用Kafka作为流作业的数据源时，Flink允许在源内部指定timestamp分配器和watermark生成器。更多关于如何进行的信息请参考Kafka Connector的文档。</p>
+<p>直接在FlinkKafkaConsumer010上面使用assignTimestampsAndWatermarks可以根据kafka source的partitions的特性进行设置Timestamps和Watermarks，让用户做一些特殊的处理</p>
+<p>Running timestamp extractors / watermark generators directly inside the Kafka source, per Kafka<br>partition, allows users to let them exploit the per-partition characteristics.</p>
+<h2 id="log"><a href="#log" class="headerlink" title="log"></a><strong>log</strong></h2><h3 id="Web-UI查找log"><a href="#Web-UI查找log" class="headerlink" title="Web UI查找log"></a>Web UI查找log</h3><p>JobManger log： 展示整个作业的状态变化（例如，从create 到deploy到running再到failed），通过jobManger log可以查看作业历史失败的记录和直接原因。</p>
+<p>TaskManager log： 调度到该TaskManager上的task 的打印的相关log。</p>
+<h2 id="shuffle"><a href="#shuffle" class="headerlink" title="shuffle"></a><strong>shuffle</strong></h2><p>被keyBy的数据流中，相同的key的数据会被发送到同一个slot中运行（partitiner决定），也就是TaskManager中slot进行shuffle的过程<br>如果有多个producer并且producer的数量和partition数量相同，则每个producer写一个partition</p>
+<h2 id="Savepoints和Checkpoints"><a href="#Savepoints和Checkpoints" class="headerlink" title="Savepoints和Checkpoints"></a><strong>Savepoints和Checkpoints</strong></h2><p>用 Data Stream API 编写的程序可以从 savepoint 继续执行。Savepoints 允许在不丢失任何状态的情况下升级程序和 Flink 集群。</p>
+<p>Savepoints 是手动触发的 Checkpoints，它依靠常规的 Checkpoint 机制获取程序的快照并将其写入 state backend。在执行期间，程序会定期在 worker 节点上创建快照并生成 Checkpoints。对于恢复，Flink 仅需要最后完成的 Checkpoint，而一旦完成了新的 Checkpoint，旧的就可以被丢弃。</p>
+<p>Savepoints 类似于这些定期的 Checkpoints，除了它们是由用户触发并且在新的 Checkpoints 完成时不会自动过期。你可以通过命令行 或在取消一个 job 时通过 REST API 来创建 Savepoints。</p>
+]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
   </entry>
   <entry>
     <title>Apache Flink 学习：DataStream Api 中 EventTime</title>
@@ -791,62 +847,6 @@
 <p>其中 lowerBound 和 upperBound 可正可负，只要 lowerBound &lt;= upperBound。</p>
 <p><img src="/blog-img/apache-flink:study-flink-datastream-operators-joining/interval-join.svg" alt="interval-join"></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.flink.api.java.functions.KeySelector;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.functions.co.ProcessJoinFunction;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.windowing.time.Time;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">DataStream&lt;Integer&gt; orangeStream = ...</span><br><span class="line">DataStream&lt;Integer&gt; greenStream = ...</span><br><span class="line"></span><br><span class="line">orangeStream</span><br><span class="line">    .keyBy(&lt;KeySelector&gt;)</span><br><span class="line">    .intervalJoin(greenStream.keyBy(&lt;KeySelector&gt;))</span><br><span class="line">    .between(Time.milliseconds(-<span class="number">2</span>), Time.milliseconds(<span class="number">1</span>))</span><br><span class="line">    .process (<span class="keyword">new</span> ProcessJoinFunction&lt;Integer, Integer, String()&#123;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processElement</span><span class="params">(Integer left, Integer right, Context ctx, Collector&lt;String&gt; out)</span> </span>&#123;</span><br><span class="line">            out.collect(first + <span class="string">&quot;,&quot;</span> + second);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Apache Flink</category>
-      </categories>
-      <tags>
-        <tag>Apache Flink</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Apache Flink 学习：系统特性学习</title>
-    <url>/2019/11/03/apache-flink:study-features/</url>
-    <content><![CDATA[<p>Apache Flink 学习：系统特性学习</p>
-<span id="more"></span>
-
-<p><a href="https://github.com/flink-china/flink-training-course">教程</a></p>
-<h2 id="window窗口"><a href="#window窗口" class="headerlink" title="window窗口"></a><strong>window窗口</strong></h2><h3 id="窗口大小"><a href="#窗口大小" class="headerlink" title="窗口大小"></a>窗口大小</h3><p>窗口大小是用户自己设定的，但是窗口的起始和结束时间点是系统根据窗口大小和自然数进行设定的，不会出现设置了一分钟的窗口，统计的数据是2:30到3:30的数据</p>
-<p>[window_start_time, window_end_time)根据窗口大小和自然数进行设定</p>
-<p>如果window大小是3秒，那么1分钟内会把window划分为如下的形式:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[00:00:00,00:00:03)</span><br><span class="line">[00:00:03,00:00:06)</span><br><span class="line">...</span><br><span class="line">[00:00:57,00:01:00)</span><br></pre></td></tr></table></figure>
-
-<p>如果window大小是10秒，则window会被分为如下的形式：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[00:00:00,00:00:10)</span><br><span class="line">[00:00:10,00:00:20)</span><br><span class="line">...</span><br><span class="line">[00:00:50,00:01:00)</span><br></pre></td></tr></table></figure>
-
-<h3 id="watermark"><a href="#watermark" class="headerlink" title="watermark"></a>watermark</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Watermark <span class="title">getCurrentWatermark</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// this guarantees that the watermark never goes backwards.</span></span><br><span class="line">    <span class="keyword">long</span> potentialWM = currentMaxTimestamp - maxOutOfOrderness;</span><br><span class="line">    <span class="keyword">if</span> (potentialWM &gt;= lastEmittedWatermark) &#123;</span><br><span class="line">        lastEmittedWatermark = potentialWM;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Watermark(lastEmittedWatermark);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><strong>watermark = max( [当前已到达的时间戳最新的数据(currentMaxTimestamp)] - [最大乱序等待时间(maxOutOfOrderness)], watermark )</strong></p>
-<h3 id="触发窗口运算条件"><a href="#触发窗口运算条件" class="headerlink" title="触发窗口运算条件"></a>触发窗口运算条件</h3><p>1.当前最新数据到达进行判断：当前到达event的time(timestamp) ＜ watermark则触发，表示数据是超过了最大等待时间，已经延迟到达的，则会触发</p>
-<p>2.当前最新数据到达进行判断：最新的watermark &gt;= window_end_time（对于out-of-order以及正常的数据而言），在[window_start_time, window_end_time)中有数据存在</p>
-<p>3.而且，这里要强调一点，watermark和currentMaxTimestamp是一个全局的值，不是某一个key下的值，所以即使不是同一个key的数据，其warmark也会增加</p>
-<p>语义是：currentMaxTimestamp是当前到达的最大时间戳数据，代表时间戳为currentMaxTimestamp的数据已经到达了，所以所能等待的数据的时间戳（max_out_of_orderness）只能为watermark = currentMaxTimestamp - maxOutOfOrderness</p>
-<h3 id="窗口计算"><a href="#窗口计算" class="headerlink" title="窗口计算"></a>窗口计算</h3><p>Window reduce，Window aggregate 和 Window Fold 是增量聚合，每来一条数据就计算一次，高效</p>
-<p>Window apply（Window process 的老版本） 和 Window process 是全量聚合，触发窗口计算时全量计算</p>
-<h3 id="被Keys化与非被Keys化Windows"><a href="#被Keys化与非被Keys化Windows" class="headerlink" title="被Keys化与非被Keys化Windows"></a>被Keys化与非被Keys化Windows</h3><p>要指定的第一件事是您的流是否应该使用keyedWindow，一般都与业务逻辑有关，比如说使用一分钟的窗口进行去重。使用keyBy(…)将您的无限流分成逻辑Key化的数据流。如果keyBy(…)未调用，则表示您的流不是被Keys化的。</p>
-<p>对于被Key化的数据流，可以将传入数据（Object）的的任何属性用作键）。拥有被Key化的数据流将允许您的窗口计算由多个任务并行执行，因为每个Key化的数据流可以独立于其余任务进行处理。引用相同Keys的所有数据将被发送到同一个并行任务进行计算。</p>
-<p>在非被Key化的数据流的情况下，您的原始流将不会被拆分为多个逻辑流，并且所有窗口逻辑将由单个任务执行，即并行度为1。</p>
-<h2 id="sql"><a href="#sql" class="headerlink" title="sql"></a><strong>sql</strong></h2><p>1.在flinkSql中，如果使用groupBy，尽量使用窗口，否则会认为被groupBy的数据会默认人为整个窗口内的数据还没有到达，所以会一直等待，不会产出数据</p>
-<p>update-mode: append / update</p>
-<p>分为 update stream 模式和 append stream 模式</p>
-<p>window聚合为append mode stream，groupby聚合为update mode stream</p>
-<h2 id="Flink生成-Timestamps-和-Watermarks"><a href="#Flink生成-Timestamps-和-Watermarks" class="headerlink" title="Flink生成 Timestamps 和 Watermarks"></a><strong>Flink生成 Timestamps 和 Watermarks</strong></h2><p>为了让event time工作，Flink需要知道事件的时间戳，这意味着流中的每个元素都需要分配其事件时间戳。这个通常是通过抽取或者访问事件中某些字段的时间戳来获取的。</p>
-<p>时间戳的分配伴随着水印的生成，告诉系统事件时间中的进度。</p>
-<p>这里有两种方式来分配时间戳和生成水印:</p>
-<ol>
-<li>直接在数据流源中进行。</li>
-<li>通过timestamp assigner和watermark generator生成:在Flink中，timestamp分配器也定义了用来发射的水印。</li>
-</ol>
-<h3 id="数据流源生成Timestamps和Watermarks"><a href="#数据流源生成Timestamps和Watermarks" class="headerlink" title="数据流源生成Timestamps和Watermarks"></a>数据流源生成Timestamps和Watermarks</h3><p>数据流源可以直接为它们产生的数据元素分配timestamp，并且他们也能发送水印。这样做的话，就没必要再去定义timestamp分配器了，需要注意的是:如果一个timestamp分配器被使用的话，由源提供的任何timestamp和watermark都会被重写。</p>
-<h3 id="时间戳分配器-水印生成器（Timestamp-Assigners-Watermark-Generators）"><a href="#时间戳分配器-水印生成器（Timestamp-Assigners-Watermark-Generators）" class="headerlink" title="时间戳分配器/水印生成器（Timestamp Assigners / Watermark Generators）"></a>时间戳分配器/水印生成器（Timestamp Assigners / Watermark Generators）</h3><p>Timestamp分配器获取一个流并生成一个新的带有Timestamp元素和水印的流。如果原始流已经有时间戳和/或水印，则Timestamp分配程序将覆盖它们</p>
-<p>Timestamp分配器通常在数据源之后立即指定，但这并不是严格要求的。通常是在timestamp分配器之前先解析(MapFunction)和过滤(FilterFunction)。在任何情况下，都需要在事件时间上的第一个操作(例如第一个窗口操作)之前指定timestamp分配程序。有一个特殊情况，当使用Kafka作为流作业的数据源时，Flink允许在源内部指定timestamp分配器和watermark生成器。更多关于如何进行的信息请参考Kafka Connector的文档。</p>
-<p>直接在FlinkKafkaConsumer010上面使用assignTimestampsAndWatermarks可以根据kafka source的partitions的特性进行设置Timestamps和Watermarks，让用户做一些特殊的处理</p>
-<p>Running timestamp extractors / watermark generators directly inside the Kafka source, per Kafka<br>partition, allows users to let them exploit the per-partition characteristics.</p>
-<h2 id="log"><a href="#log" class="headerlink" title="log"></a><strong>log</strong></h2><h3 id="Web-UI查找log"><a href="#Web-UI查找log" class="headerlink" title="Web UI查找log"></a>Web UI查找log</h3><p>JobManger log： 展示整个作业的状态变化（例如，从create 到deploy到running再到failed），通过jobManger log可以查看作业历史失败的记录和直接原因。</p>
-<p>TaskManager log： 调度到该TaskManager上的task 的打印的相关log。</p>
-<h2 id="shuffle"><a href="#shuffle" class="headerlink" title="shuffle"></a><strong>shuffle</strong></h2><p>被keyBy的数据流中，相同的key的数据会被发送到同一个slot中运行（partitiner决定），也就是TaskManager中slot进行shuffle的过程<br>如果有多个producer并且producer的数量和partition数量相同，则每个producer写一个partition</p>
-<h2 id="Savepoints和Checkpoints"><a href="#Savepoints和Checkpoints" class="headerlink" title="Savepoints和Checkpoints"></a><strong>Savepoints和Checkpoints</strong></h2><p>用 Data Stream API 编写的程序可以从 savepoint 继续执行。Savepoints 允许在不丢失任何状态的情况下升级程序和 Flink 集群。</p>
-<p>Savepoints 是手动触发的 Checkpoints，它依靠常规的 Checkpoint 机制获取程序的快照并将其写入 state backend。在执行期间，程序会定期在 worker 节点上创建快照并生成 Checkpoints。对于恢复，Flink 仅需要最后完成的 Checkpoint，而一旦完成了新的 Checkpoint，旧的就可以被丢弃。</p>
-<p>Savepoints 类似于这些定期的 Checkpoints，除了它们是由用户触发并且在新的 Checkpoints 完成时不会自动过期。你可以通过命令行 或在取消一个 job 时通过 REST API 来创建 Savepoints。</p>
-]]></content>
       <categories>
         <category>Apache Flink</category>
       </categories>
@@ -1053,6 +1053,13 @@
       </tags>
   </entry>
   <entry>
+    <title>apache-flink:study-flink</title>
+    <url>/2019/11/22/apache-flink:study-flink/</url>
+    <content><![CDATA[<p>所有operator中的初始化如果写在构造函数当中就会出错，问题是序列化时的问题<br>flink从jobmanager序列化到各个 taskmanager时可能会出问题</p>
+<p>split组件功能可以减少多个flatmap的性能损失<br>多个flatmap数据每个都是使用全部的流进行filter<br>split一个就可以满足</p>
+]]></content>
+  </entry>
+  <entry>
     <title>Apache Flink 学习：Table Api &amp; SQL</title>
     <url>/2019/11/12/apache-flink:study-flink-table-api-and-sql/</url>
     <content><![CDATA[<p>Apache Flink 学习：Table Api &amp; SQL</p>
@@ -1063,13 +1070,6 @@
       <tags>
         <tag>Apache Flink</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>apache-flink:study-flink</title>
-    <url>/2019/11/22/apache-flink:study-flink/</url>
-    <content><![CDATA[<p>所有operator中的初始化如果写在构造函数当中就会出错，问题是序列化时的问题<br>flink从jobmanager序列化到各个 taskmanager时可能会出问题</p>
-<p>split组件功能可以减少多个flatmap的性能损失<br>多个flatmap数据每个都是使用全部的流进行filter<br>split一个就可以满足</p>
-]]></content>
   </entry>
   <entry>
     <title>Apache Flink 学习：hbase作为sink</title>
@@ -1129,65 +1129,6 @@
       <tags>
         <tag>Apache Flink</tag>
         <tag>Apache Hadoop</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Mac安装Apache Hadoop-3.2.1</title>
-    <url>/2019/10/17/apache-hadoop:3.2.1-mac-install/</url>
-    <content><![CDATA[<p>Mac安装Apache hadoop-3.2.1教程</p>
-<span id="more"></span>
-
-
-<h2 id="Java环境配置"><a href="#Java环境配置" class="headerlink" title="Java环境配置"></a><strong>Java环境配置</strong></h2><h3 id="安装Java，查看Java版本以测试是否安装成功"><a href="#安装Java，查看Java版本以测试是否安装成功" class="headerlink" title="安装Java，查看Java版本以测试是否安装成功"></a>安装Java，查看Java版本以测试是否安装成功</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ java -version</span><br><span class="line">java version <span class="string">&quot;1.8.0_191&quot;</span></span><br><span class="line">Java(TM) SE Runtime Environment (build 1.8.0_191-b12)</span><br><span class="line">Java HotSpot(TM) 64-Bit Server VM (build 25.191-b12, mixed mode)</span><br></pre></td></tr></table></figure>
-
-<h3 id="查看Java安装位置信息，之后配置Hadoop运行环境需要使用"><a href="#查看Java安装位置信息，之后配置Hadoop运行环境需要使用" class="headerlink" title="查看Java安装位置信息，之后配置Hadoop运行环境需要使用"></a>查看Java安装位置信息，之后配置Hadoop运行环境需要使用</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ /usr/libexec/java_home</span><br><span class="line">/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="ssh配置"><a href="#ssh配置" class="headerlink" title="ssh配置"></a><strong>ssh配置</strong></h2><h3 id="配置ssh"><a href="#配置ssh" class="headerlink" title="配置ssh"></a>配置ssh</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys</span><br><span class="line">$ chmod 0600 ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
-
-<h3 id="创建ssh公钥"><a href="#创建ssh公钥" class="headerlink" title="创建ssh公钥"></a>创建ssh公钥</h3><p>如果没有ssh公钥，执行以下命令创建</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ssh-keygen -t rsa</span><br></pre></td></tr></table></figure>
-
-<h3 id="开启远程登录"><a href="#开启远程登录" class="headerlink" title="开启远程登录"></a>开启远程登录</h3><p><img src="/blog-img/apache-hadoop:3.2.1-mac-install/remote-login.png" alt="系统偏好设置-&gt;共享"></p>
-<h3 id="测试远程登录是否开启"><a href="#测试远程登录是否开启" class="headerlink" title="测试远程登录是否开启"></a>测试远程登录是否开启</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ssh localhost</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="安装hadoop"><a href="#安装hadoop" class="headerlink" title="安装hadoop"></a><strong>安装hadoop</strong></h2><h3 id="brew安装hadoop"><a href="#brew安装hadoop" class="headerlink" title="brew安装hadoop"></a>brew安装hadoop</h3><p>brew安装的一般都是最新的hadoop，我这里是hadoop 3.2.1 <br>如果需要安装其他版本的hadoop，通过<a href="https://www.jianshu.com/p/aadb54eac0a8">brew安装指定版本的软件</a>进行安装</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ brew install hadoop</span><br><span class="line">Updating Homebrew...</span><br><span class="line">==&gt; Downloading https://www.apache.org/dyn/closer.cgi?path=hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz</span><br><span class="line">==&gt; Downloading from http://mirrors.tuna.tsinghua.edu.cn/apache/hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz</span><br><span class="line"><span class="comment">######################################################################## 100.0%</span></span><br><span class="line">🍺  /usr/<span class="built_in">local</span>/Cellar/hadoop/3.2.1: 21,686 files, 774.1MB, built <span class="keyword">in</span> 10 minutes 1 second</span><br></pre></td></tr></table></figure>
-<p>注意上面的下载信息中 <br>默认brew是会从apache官方的镜像中下载</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">==&gt; Downloading https://www.apache.org/dyn/closer.cgi?path=hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz</span><br></pre></td></tr></table></figure>
-<p>如果下载很慢，可以配置国内镜像进行下载(<a href="https://mirror.tuna.tsinghua.edu.cn/help/homebrew/">清华大学开源软件镜像站</a>)</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">==&gt; Downloading from http://mirrors.tuna.tsinghua.edu.cn/apache/hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz</span><br></pre></td></tr></table></figure>
-
-<p>安装完之后查看hadoop安装位置</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ brew info hadoop</span><br><span class="line">hadoop: stable 3.2.1</span><br><span class="line">Framework <span class="keyword">for</span> distributed processing of large data sets</span><br><span class="line">https://hadoop.apache.org/</span><br><span class="line">Conflicts with:</span><br><span class="line">  yarn (because both install `yarn` binaries)</span><br><span class="line">/usr/<span class="built_in">local</span>/Cellar/hadoop/hdfs (20 files, 1MB)</span><br><span class="line">  Built from <span class="built_in">source</span></span><br><span class="line">/usr/<span class="built_in">local</span>/Cellar/hadoop/3.2.1 (22,408 files, 815.8MB)</span><br><span class="line">  Built from <span class="built_in">source</span> on 2019-10-17 at 09:46:37</span><br><span class="line">From: https://github.com/Homebrew/homebrew-core/blob/master/Formula/hadoop.rb</span><br><span class="line">==&gt; Requirements</span><br><span class="line">Required: java &gt;= 1.8 ✔</span><br><span class="line">==&gt; Analytics</span><br><span class="line">install: 4,572 (30 days), 10,774 (90 days), 44,762 (365 days)</span><br><span class="line">install_on_request: 3,822 (30 days), 9,128 (90 days), 38,206 (365 days)</span><br><span class="line">build_error: 0 (30 days)</span><br></pre></td></tr></table></figure>
-
-<h3 id="配置hadoop"><a href="#配置hadoop" class="headerlink" title="配置hadoop"></a>配置hadoop</h3><p>需要修改的配置文件都在<font color=red>/usr/local/Cellar/hadoop/3.2.1/libexec/etc/hadoop</font>这个目录下</p>
-<h4 id="hadoop-env-sh"><a href="#hadoop-env-sh" class="headerlink" title="hadoop-env.sh"></a>hadoop-env.sh</h4><p>配置 export JAVA_HOME</p>
-<p>将/usr/libexec/java_home查到的 Java 路径配置进去，记得去掉注释 #。</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home</span><br></pre></td></tr></table></figure>
-
-<h4 id="core-site-xml"><a href="#core-site-xml" class="headerlink" title="core-site.xml"></a>core-site.xml</h4><p>修改core-site.xml 文件参数,配置NameNode的主机名和端口号</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>hadoop.tmp.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>/usr/local/Cellar/hadoop/hdfs/tmp<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">description</span>&gt;</span>A base for other temporary directories<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>fs.default.name<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://localhost:9000<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="hdfs-site-xml"><a href="#hdfs-site-xml" class="headerlink" title="hdfs-site.xml"></a>hdfs-site.xml</h4><p>变量dfs.replication指定了每个HDFS数据库的复制次数。 通常为3, 由于我们只有一台主机和一个伪分布式模式的DataNode，将此值修改为1</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.replication<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>1<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="格式化"><a href="#格式化" class="headerlink" title="格式化"></a>格式化</h4><p>格式化hdfs操作只要第一次才使用，否则会造成数据全部丢失</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hdfs namenode -format</span><br></pre></td></tr></table></figure>
-
-<h3 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h3><p>启动服务</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./start-all.sh</span><br></pre></td></tr></table></figure>
-
-<p>启动成功后，可以在<br><a href="http://localhost:9870/">http://localhost:9870/</a><br><a href="http://localhost:8088/cluster">http://localhost:8088/cluster</a><br>进行查看</p>
-<p>关闭服务</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./stop-all.sh</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Apache Hadoop</category>
-      </categories>
-      <tags>
-        <tag>Apache Hadoop</tag>
-        <tag>Mac安装</tag>
       </tags>
   </entry>
   <entry>
@@ -1341,6 +1282,65 @@
       <tags>
         <tag>Apache Flink</tag>
         <tag>实时计算</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Mac安装Apache Hadoop-3.2.1</title>
+    <url>/2019/10/17/apache-hadoop:3.2.1-mac-install/</url>
+    <content><![CDATA[<p>Mac安装Apache hadoop-3.2.1教程</p>
+<span id="more"></span>
+
+
+<h2 id="Java环境配置"><a href="#Java环境配置" class="headerlink" title="Java环境配置"></a><strong>Java环境配置</strong></h2><h3 id="安装Java，查看Java版本以测试是否安装成功"><a href="#安装Java，查看Java版本以测试是否安装成功" class="headerlink" title="安装Java，查看Java版本以测试是否安装成功"></a>安装Java，查看Java版本以测试是否安装成功</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ java -version</span><br><span class="line">java version <span class="string">&quot;1.8.0_191&quot;</span></span><br><span class="line">Java(TM) SE Runtime Environment (build 1.8.0_191-b12)</span><br><span class="line">Java HotSpot(TM) 64-Bit Server VM (build 25.191-b12, mixed mode)</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看Java安装位置信息，之后配置Hadoop运行环境需要使用"><a href="#查看Java安装位置信息，之后配置Hadoop运行环境需要使用" class="headerlink" title="查看Java安装位置信息，之后配置Hadoop运行环境需要使用"></a>查看Java安装位置信息，之后配置Hadoop运行环境需要使用</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ /usr/libexec/java_home</span><br><span class="line">/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="ssh配置"><a href="#ssh配置" class="headerlink" title="ssh配置"></a><strong>ssh配置</strong></h2><h3 id="配置ssh"><a href="#配置ssh" class="headerlink" title="配置ssh"></a>配置ssh</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys</span><br><span class="line">$ chmod 0600 ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建ssh公钥"><a href="#创建ssh公钥" class="headerlink" title="创建ssh公钥"></a>创建ssh公钥</h3><p>如果没有ssh公钥，执行以下命令创建</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ssh-keygen -t rsa</span><br></pre></td></tr></table></figure>
+
+<h3 id="开启远程登录"><a href="#开启远程登录" class="headerlink" title="开启远程登录"></a>开启远程登录</h3><p><img src="/blog-img/apache-hadoop:3.2.1-mac-install/remote-login.png" alt="系统偏好设置-&gt;共享"></p>
+<h3 id="测试远程登录是否开启"><a href="#测试远程登录是否开启" class="headerlink" title="测试远程登录是否开启"></a>测试远程登录是否开启</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ssh localhost</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="安装hadoop"><a href="#安装hadoop" class="headerlink" title="安装hadoop"></a><strong>安装hadoop</strong></h2><h3 id="brew安装hadoop"><a href="#brew安装hadoop" class="headerlink" title="brew安装hadoop"></a>brew安装hadoop</h3><p>brew安装的一般都是最新的hadoop，我这里是hadoop 3.2.1 <br>如果需要安装其他版本的hadoop，通过<a href="https://www.jianshu.com/p/aadb54eac0a8">brew安装指定版本的软件</a>进行安装</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ brew install hadoop</span><br><span class="line">Updating Homebrew...</span><br><span class="line">==&gt; Downloading https://www.apache.org/dyn/closer.cgi?path=hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz</span><br><span class="line">==&gt; Downloading from http://mirrors.tuna.tsinghua.edu.cn/apache/hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz</span><br><span class="line"><span class="comment">######################################################################## 100.0%</span></span><br><span class="line">🍺  /usr/<span class="built_in">local</span>/Cellar/hadoop/3.2.1: 21,686 files, 774.1MB, built <span class="keyword">in</span> 10 minutes 1 second</span><br></pre></td></tr></table></figure>
+<p>注意上面的下载信息中 <br>默认brew是会从apache官方的镜像中下载</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">==&gt; Downloading https://www.apache.org/dyn/closer.cgi?path=hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz</span><br></pre></td></tr></table></figure>
+<p>如果下载很慢，可以配置国内镜像进行下载(<a href="https://mirror.tuna.tsinghua.edu.cn/help/homebrew/">清华大学开源软件镜像站</a>)</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">==&gt; Downloading from http://mirrors.tuna.tsinghua.edu.cn/apache/hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>安装完之后查看hadoop安装位置</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ brew info hadoop</span><br><span class="line">hadoop: stable 3.2.1</span><br><span class="line">Framework <span class="keyword">for</span> distributed processing of large data sets</span><br><span class="line">https://hadoop.apache.org/</span><br><span class="line">Conflicts with:</span><br><span class="line">  yarn (because both install `yarn` binaries)</span><br><span class="line">/usr/<span class="built_in">local</span>/Cellar/hadoop/hdfs (20 files, 1MB)</span><br><span class="line">  Built from <span class="built_in">source</span></span><br><span class="line">/usr/<span class="built_in">local</span>/Cellar/hadoop/3.2.1 (22,408 files, 815.8MB)</span><br><span class="line">  Built from <span class="built_in">source</span> on 2019-10-17 at 09:46:37</span><br><span class="line">From: https://github.com/Homebrew/homebrew-core/blob/master/Formula/hadoop.rb</span><br><span class="line">==&gt; Requirements</span><br><span class="line">Required: java &gt;= 1.8 ✔</span><br><span class="line">==&gt; Analytics</span><br><span class="line">install: 4,572 (30 days), 10,774 (90 days), 44,762 (365 days)</span><br><span class="line">install_on_request: 3,822 (30 days), 9,128 (90 days), 38,206 (365 days)</span><br><span class="line">build_error: 0 (30 days)</span><br></pre></td></tr></table></figure>
+
+<h3 id="配置hadoop"><a href="#配置hadoop" class="headerlink" title="配置hadoop"></a>配置hadoop</h3><p>需要修改的配置文件都在<font color=red>/usr/local/Cellar/hadoop/3.2.1/libexec/etc/hadoop</font>这个目录下</p>
+<h4 id="hadoop-env-sh"><a href="#hadoop-env-sh" class="headerlink" title="hadoop-env.sh"></a>hadoop-env.sh</h4><p>配置 export JAVA_HOME</p>
+<p>将/usr/libexec/java_home查到的 Java 路径配置进去，记得去掉注释 #。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_191.jdk/Contents/Home</span><br></pre></td></tr></table></figure>
+
+<h4 id="core-site-xml"><a href="#core-site-xml" class="headerlink" title="core-site.xml"></a>core-site.xml</h4><p>修改core-site.xml 文件参数,配置NameNode的主机名和端口号</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>hadoop.tmp.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>/usr/local/Cellar/hadoop/hdfs/tmp<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">description</span>&gt;</span>A base for other temporary directories<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>fs.default.name<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://localhost:9000<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="hdfs-site-xml"><a href="#hdfs-site-xml" class="headerlink" title="hdfs-site.xml"></a>hdfs-site.xml</h4><p>变量dfs.replication指定了每个HDFS数据库的复制次数。 通常为3, 由于我们只有一台主机和一个伪分布式模式的DataNode，将此值修改为1</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.replication<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>1<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="格式化"><a href="#格式化" class="headerlink" title="格式化"></a>格式化</h4><p>格式化hdfs操作只要第一次才使用，否则会造成数据全部丢失</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hdfs namenode -format</span><br></pre></td></tr></table></figure>
+
+<h3 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h3><p>启动服务</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./start-all.sh</span><br></pre></td></tr></table></figure>
+
+<p>启动成功后，可以在<br><a href="http://localhost:9870/">http://localhost:9870/</a><br><a href="http://localhost:8088/cluster">http://localhost:8088/cluster</a><br>进行查看</p>
+<p>关闭服务</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./stop-all.sh</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Apache Hadoop</category>
+      </categories>
+      <tags>
+        <tag>Apache Hadoop</tag>
+        <tag>Mac安装</tag>
       </tags>
   </entry>
   <entry>
@@ -1916,6 +1916,303 @@
       </tags>
   </entry>
   <entry>
+    <title></title>
+    <url>/2021/06/29/wechat-blog/a/</url>
+    <content><![CDATA[<html lang="en">
+
+<head>
+    <title>Document</title>
+
+    <!-- 引入本地组件库 -->
+    <!--  <link rel="stylesheet" href="static/element-ui/index.css" >
+     <script src="static/element-ui/vue.js"></script>
+     <script src="static/element-ui/index.js"></script> -->
+
+    <!-- 引入CDN样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+
+    <style>
+        .not-active {
+            display: inline-block;
+            font-size: 12px;
+            margin: 5px 8px;
+        }
+
+        span {
+            margin: 0 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="app">
+    <!-- 待选标签 -->
+    <div v-for='(category, categoryIndex) in categories' :key="category.id">
+        <!-- 分类 -->
+        <span class="not-active">：</span>
+
+        <template>
+            <span v-if="category.count" class="not-active" @click="clearCategory(category, categoryIndex)"> 不限</span>
+            <my-tag v-else>不限</my-tag>
+        </template>
+
+        <!-- 标签 -->
+        <template v-for='(child, childIndex) in category.children'>
+            <my-tag v-if="child.active" :closable='true'
+                    @click-child='clickChild(category, categoryIndex, child, childIndex)'>
+                
+            </my-tag>
+            <span v-else class="not-active" @click='clickChild(category, categoryIndex, child, childIndex)'></span>
+        </template>
+    </div>
+
+    <!-- 已选标签 -->
+    <div v-if='conditions.length'>
+   <span class="not-active" @click="clearCondition">清空已选：<span>
+
+   <el-tag
+           v-for='(condition, index) in conditions'
+           :key="condition.id"
+           type="primary"
+           :closable="true"
+           size="small"
+           :disable-transitions="true"
+           @close='removeCondition(condition, index)'
+           @click='removeCondition(condition, index)'>
+    
+   </el-tag>
+    </div>
+
+    <!--    <el-radio-group v-model="radio">-->
+    <!--        <el-radio :label="3">备选项</el-radio>-->
+    <!--        <el-radio :label="6">备选项</el-radio>-->
+    <!--        <el-radio :label="9">备选项</el-radio>-->
+    <!--    </el-radio-group>-->
+
+    <el-row>
+        <el-col :span="24"><div class="grid-content bg-purple-dark"><el-radio-group v-model="radio">
+            <el-radio :label="3">备选项1</el-radio>
+            <el-radio :label="6">备选项2</el-radio>
+            <el-radio :label="9">备选项3</el-radio>
+        </el-radio-group></div></el-col>
+        <el-col :span="12"><el-radio-group v-model="radio">
+            <el-radio :label="3">备选项1</el-radio>
+            <el-radio :label="6">备选项2</el-radio>
+            <el-radio :label="9">备选项3</el-radio>
+        </el-radio-group><el-col>
+    </el-row>
+</div>
+
+<script>
+    var categories = [{
+        name: '品牌',
+        count: 0,
+        children: [{
+            name: '联想',
+        }, {
+            name: '小米',
+
+        }, {
+            name: '苹果',
+
+        }, {
+            name: '东芝',
+
+        }]
+    }, {
+        name: 'CPU',
+        count: 0,
+        children: [{
+            name: 'intel i7 8700K',
+
+        }, {
+            name: 'intel i7 7700K',
+
+        }, {
+            name: 'intel i9 9270K',
+
+        }, {
+            name: 'intel i7 8700',
+
+        }, {
+            name: 'AMD 1600X',
+
+
+        }]
+    }, {
+        name: '内存',
+        count: 0,
+        children: [{
+            name: '七彩虹8G',
+
+        }, {
+            name: '七彩虹16G',
+
+        }, {
+            name: '金士顿8G',
+
+        }, {
+            name: '金士顿16G',
+
+        }]
+    }, {
+        name: '显卡',
+        count: 0,
+        children: [{
+            name: 'NVIDIA 1060 8G',
+
+        }, {
+            name: 'NVIDIA 1080Ti 16G',
+
+        }, {
+            name: 'NVIDIA 1080 8G',
+
+        }, {
+            name: 'NVIDIA 1060Ti 16G',
+
+        }]
+    }]
+
+</script>
+
+<script>
+    // 简单封装一个公用组件
+    Vue.component('my-tag', {
+        template: "<el-tag v-bind='$attrs' v-on='$listeners' effect='dark' size='small' :disable-transitions='true' @click='clickChild' @close='clickChild'><slot></slot></el-tag>",
+
+        methods: {
+            clickChild() {
+                this.$emit("click-child")
+            }
+        }
+    });
+
+    var app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                // categories, // 分类标签，可从外部加载配置
+                conditions: [], // 已选条件
+                radio: 3
+            }
+        },
+
+        watch: {
+            // 监听条件变化，按照请求接口拼装请求参数
+            conditions(val) {
+                let selectedCondition = {};
+
+                for (let categorie of this.categories) {
+                    let selected_list = [];
+                    for (let child of categorie.children) {
+                        if (child.active) {
+                            selected_list.push(child.name);
+                        }
+                    }
+                    selectedCondition[categorie.name] = selected_list.join("|")
+                }
+                console.log(selectedCondition);
+            }
+        },
+
+        methods: {
+            // 处理标签点击事件，未选中则选中，已选中则取消选中
+            clickChild(category, categoryIndex, child, childIndex) {
+                let uid = `${categoryIndex}-${childIndex}`
+                child.uid = uid;
+                console.log(uid)
+
+                // 取消选择
+                if (child.active === true) {
+                    category.count--;
+                    child.active = false;
+                    this.conditions.forEach((conditionChild, index) => {
+                        if (conditionChild.uid === child.uid) {
+                            this.conditions.splice(index, 1);
+                        }
+                    });
+                    // 选择
+                } else {
+                    category.count++;
+                    child.active = true;
+                    this.conditions.push(child);
+                }
+            },
+
+            // 清除已选整个类别标签
+            clearCategory(category, categoryIndex) {
+                category.count = 0;
+
+                // 可选列表均为未选中状态
+                category.children.forEach(child => {
+                    child.active = false;
+                })
+
+                // 清空该类已选元素
+                for (let index = this.conditions.length - 1; index >= 0; index--) {
+                    const conditionChild = this.conditions[index];
+                    if (conditionChild.uid.startsWith(categoryIndex)) {
+                        this.conditions.splice(index, 1);
+                    }
+                }
+            },
+
+            // 移除一个条件
+            removeCondition(condition, index) {
+                let categoryIndex = condition.uid.split("-")[0];
+                this.categories[categoryIndex].count--;
+
+                this.conditions.splice(index, 1)
+                condition.active = false;
+            },
+
+            // 清空所有条件
+            clearCondition() {
+                for (let i = this.conditions.length - 1; i >= 0; i--) {
+                    this.removeCondition(this.conditions[i], i);
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+
+</html>
+]]></content>
+  </entry>
+  <entry>
+    <title>实战 | flink sql 计算 top n</title>
+    <url>/2020/10/12/wechat-blog/apache-flink:flink-topn-data-json/</url>
+    <content><![CDATA[<h1 id="前沿-流批一体的一些理解"><a href="#前沿-流批一体的一些理解" class="headerlink" title="前沿 | 流批一体的一些理解"></a>前沿 | 流批一体的一些理解</h1><blockquote>
+<p>每家数字化企业在目前遇到流批一体概念的时候，都会对这个概念抱有一些疑问，到底什么是流批一体？这个概念的来源？这个概念能为用户、开发人员以及企业带来什么样的好处？跟随着博主的理解和脑洞出发吧。</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>深入浅出 | flink minicluster 启动流程</title>
+    <url>/2021/04/12/wechat-blog/apache-flink:flink-sql-table-start/</url>
+    <content><![CDATA[<h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><p>1.module</p>
+<p>2.catalog</p>
+<p>3.view 和 table 区别</p>
+]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>生产实践 | 基于 Flink 的视频直播核心指标监控</title>
     <url>/2019/09/01/wechat-blog/apache-flink:learning-files/</url>
     <content><![CDATA[<h1 id="Flink-学习资料"><a href="#Flink-学习资料" class="headerlink" title="Flink 学习资料"></a>Flink 学习资料</h1><blockquote>
@@ -2124,133 +2421,6 @@
 </table>
 
 <h2 id="技术方案评估"><a href="#技术方案评估" class="headerlink" title="技术方案评估"></a>技术方案评估</h2>]]></content>
-      <categories>
-        <category>Apache Flink</category>
-      </categories>
-      <tags>
-        <tag>Apache Flink</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>深入浅出 | flink minicluster 启动流程</title>
-    <url>/2021/03/12/wechat-blog/apache-flink:minicluster-start/</url>
-    <content><![CDATA[<h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
-<li><p>目录</p>
-</li>
-<li><p>flink 怎么判断是本地环境从而启动 minicluster？</p>
-</li>
-<li><p>flink 的接口都是声明式的，那么到底把我们的接口解析或者封装成什么样进行执行了？</p>
-</li>
-</ol>
-<h1 id="flink-怎么判断是本地环境从而启动-minicluster？"><a href="#flink-怎么判断是本地环境从而启动-minicluster？" class="headerlink" title="flink 怎么判断是本地环境从而启动 minicluster？"></a>flink 怎么判断是本地环境从而启动 minicluster？</h1><h2 id="环境判断"><a href="#环境判断" class="headerlink" title="环境判断"></a>环境判断</h2><p><img src="/blog-img/apache-flink:minicluster-start/1.png" alt="1"></p>
-<p>通过 debug StreamExecutionEnvironment.getExecutionEnvironment(); 可以定位到下面的代码</p>
-<p><img src="/blog-img/apache-flink:minicluster-start/8.png" alt="8"></p>
-<p>我们可以看注释，解释一下，基本流程如下：</p>
-<ol>
-<li>先尝试获取本地环境，即从 threadLocalContextEnvironmentFactory 获取环境配置</li>
-<li>获取不到本地环境配置，就获取外部环境配置，即从 contextEnvironmentFactory 获取环境配置</li>
-</ol>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> StreamExecutionEnvironment <span class="title">getExecutionEnvironment</span><span class="params">(Configuration configuration)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> Utils.resolveFactory(threadLocalContextEnvironmentFactory, contextEnvironmentFactory)</span><br><span class="line">            .map(factory -&gt; factory.createExecutionEnvironment(configuration))</span><br><span class="line">            .orElseGet(() -&gt; StreamExecutionEnvironment.createLocalEnvironment(configuration));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">Optional&lt;T&gt; <span class="title">resolveFactory</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">            ThreadLocal&lt;T&gt; threadLocalFactory, <span class="meta">@Nullable</span> T staticFactory)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> T localFactory = threadLocalFactory.get();</span><br><span class="line">    <span class="keyword">final</span> T factory = localFactory == <span class="keyword">null</span> ? staticFactory : localFactory;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> Optional.ofNullable(factory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>那么问题来了，当集群环境时，是如何将 StreamExecutionEnvironmentFactory 到 ThreadLocal 中？</strong></p>
-<h2 id="集群环境"><a href="#集群环境" class="headerlink" title="集群环境"></a>集群环境</h2><p>通过 bin/flink run ….命令提交jar包到集群运行命令时，该脚本会调用org.apache.flink.client.cli.CliFrontend 来运行用户程序，如下：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> Add HADOOP_CLASSPATH to allow the usage of Hadoop file systems</span></span><br><span class="line">exec $JAVA_RUN $JVM_ARGS $FLINK_ENV_JAVA_OPTS &quot;$&#123;log_setting[@]&#125;&quot; -classpath &quot;`manglePathList &quot;$CC_CLASSPATH:$INTERNAL_HADOOP_CLASSPATHS&quot;`&quot; org.apache.flink.client.cli.CliFrontend &quot;$@&quot;</span><br></pre></td></tr></table></figure>
-
-<p>在CliFrontend中依次执行以下方法 main() -&gt;parseParameters() -&gt; run() -&gt;executeProgram()</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">executeProgram</span><span class="params">(<span class="keyword">final</span> Configuration configuration, <span class="keyword">final</span> PackagedProgram program)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> ProgramInvocationException </span>&#123;</span><br><span class="line">    ClientUtils.executeProgram(</span><br><span class="line">            <span class="keyword">new</span> DefaultExecutorServiceLoader(), configuration, program, <span class="keyword">false</span>, <span class="keyword">false</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在org.apache.flink.client.ClientUtils的executeProgram()中调用StreamContextEnvironment.setAsContext(…)，StreamContextEnvironment继承自StreamExecutionEnvironment。setAsContext()代码如下</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">StreamContextEnvironment.setAsContext(</span><br><span class="line">    executorServiceLoader,</span><br><span class="line">    configuration,</span><br><span class="line">    userCodeClassLoader,</span><br><span class="line">    enforceSingleJobExecution,</span><br><span class="line">    suppressSysout);</span><br></pre></td></tr></table></figure>
-
-<p>创建生成运行环境的工厂类实例，在initializeContextEnvironment()方法中把实例放到StreamExecutionEnvironment类的静态属性threadLocalContextEnvironmentFactory 中，代码如下</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">initializeContextEnvironment</span><span class="params">(StreamExecutionEnvironmentFactory ctx)</span> </span>&#123;</span><br><span class="line">    contextEnvironmentFactory = ctx;</span><br><span class="line">    threadLocalContextEnvironmentFactory.set(contextEnvironmentFactory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这样在用户程序StreamExecutionEnvironment.getExecutionEnvironment()时，获取到的运行环境就是StreamContextEnvironment类的setAsContext()方法中生成的<br>本地运行环境LocalStreamEnvironment和 独立集群、flink on yarn等运行环境StreamContextEnvironment 的主要区别在于，他们的成员属性 configuration 不同。LocalStreamEnvironment 中是创建的空键值对(new Configuration())，而StreamContextEnvironment 是通过CliFrontend 生成的Configuration对象。</p>
-<h1 id="flink-的接口都是声明式的，那么到底把我们的接口解析或者封装成什么样进行执行了？"><a href="#flink-的接口都是声明式的，那么到底把我们的接口解析或者封装成什么样进行执行了？" class="headerlink" title="flink 的接口都是声明式的，那么到底把我们的接口解析或者封装成什么样进行执行了？"></a>flink 的接口都是声明式的，那么到底把我们的接口解析或者封装成什么样进行执行了？</h1><h2 id="声明式编程"><a href="#声明式编程" class="headerlink" title="声明式编程"></a>声明式编程</h2><p><a href="https://www.cnblogs.com/sirkevin/p/8283110.html">https://www.cnblogs.com/sirkevin/p/8283110.html</a></p>
-<h2 id="flink-runtime-架构概览"><a href="#flink-runtime-架构概览" class="headerlink" title="flink runtime 架构概览"></a>flink runtime 架构概览</h2><p><img src="/blog-img/apache-flink:minicluster-start/9.svg" alt="9"></p>
-<p>从上述整体的架构可以看出来，flink 的架构是区分客户端和服务端的，我们在客户端编写号代码，然后提交代码到服务端进行运行<br>而且 flink 的接口是声明式的，那么这个过程中肯定会涉及到代码的包装执行。具体代码进行了哪些包装，如下图 4 个图的流程就是 flink 从客户端提交代码到服务端具体执行的整个解析过程：</p>
-<p><img src="/blog-img/apache-flink:minicluster-start/10.png" alt="10"></p>
-<p><strong>1. StreamGraph：根据用户通过 Stream API 编写的代码生成的最初的图。</strong></p>
-<ul>
-<li>StreamNode：用来代表 operator 的类，并具有所有相关的属性，如并发度、入边和出边等。</li>
-<li>StreamEdge：表示连接两个 StreamNode 的边。</li>
-<li><strong><kbd><font color=red>是在客户端生成的，在 flink 中是一个具体的数据结构。</font></kbd></strong></li>
-</ul>
-<p><img src="/blog-img/apache-flink:minicluster-start/11.png" alt="11"></p>
-<p><strong>2. JobGraph：StreamGraph 经过优化后生成了 JobGraph，提交给 JobManager 的数据结构。</strong></p>
-<ul>
-<li>JobVertex：经过优化后符合条件的多个 StreamNode 可能会 chain 在一起生成一个 JobVertex，即一个 JobVertex 包含一个或多个 operator，JobVertex 的输入是 JobEdge，输出是 IntermediateDataSet。</li>
-<li>IntermediateDataSet：表示 JobVertex 的输出，即经过 operator 处理产生的数据集。producer 是 JobVertex，consumer 是 JobEdge。</li>
-<li>JobEdge：代表了 job graph 中的一条数据传输通道。source 是 IntermediateDataSet，target 是 JobVertex。即数据通过 JobEdge 由 IntermediateDataSet 传递给目标 JobVertex。</li>
-<li><strong><kbd><font color=red>是在客户端生成的，在 flink 中是一个具体的数据结构。</font></kbd></strong></li>
-</ul>
-<p><img src="/blog-img/apache-flink:minicluster-start/12.png" alt="12"></p>
-<p><strong>3. ExecutionGraph：JobManager 根据 JobGraph 生成 ExecutionGraph。ExecutionGraph 是 JobGraph 的并行化版本，是调度层最核心的数据结构。</strong></p>
-<ul>
-<li>ExecutionJobVertex：和 JobGraph 中的 JobVertex 一一对应。每一个 ExecutionJobVertex 都有和并发度一样多的 ExecutionVertex。</li>
-<li>ExecutionVertex：表示 ExecutionJobVertex 的其中一个并发子任务，输入是 ExecutionEdge，输出是 IntermediateResultPartition。</li>
-<li>IntermediateResult：和 JobGraph 中的 IntermediateDataSet 一一对应。一个 IntermediateResult 包含多个 IntermediateResultPartition，其个数等于该 operator 的并发度。</li>
-<li>IntermediateResultPartition：表示 ExecutionVertex 的一个输出分区，producer 是 ExecutionVertex，consumer 是若干个 ExecutionEdge。</li>
-<li>ExecutionEdge：表示 ExecutionVertex 的输入，source 是 IntermediateResultPartition，target 是 ExecutionVertex。source 和 target 都只能是一个。</li>
-<li>Execution：是执行一个 ExecutionVertex 的一次尝试。当发生故障或者数据需要重算的情况下 ExecutionVertex 可能会有多个 ExecutionAttemptID。一个 Execution 通过 ExecutionAttemptID 来唯一标识。JM 和 TM 之间关于 task 的部署和 task status 的更新都是通过 ExecutionAttemptID 来确定消息接受者。</li>
-<li><strong><kbd><font color=red>是在服务端生成的，在 flink 中是一个具体的数据结构。</font></kbd></strong></li>
-</ul>
-<p><img src="/blog-img/apache-flink:minicluster-start/13.png" alt="13"></p>
-<p><strong>4. 物理执行图：JobManager 根据 ExecutionGraph 对 Job 进行调度后，在各个TaskManager 上部署 Task 后形成的“图”，并不是一个具体的数据结构。</strong></p>
-<ul>
-<li>Task：Execution被调度后在分配的 TaskManager 中启动对应的 Task。Task 包裹了具有用户执行逻辑的 operator。</li>
-<li>ResultPartition：代表由一个Task的生成的数据，和ExecutionGraph中的IntermediateResultPartition一一对应。</li>
-<li>ResultSubpartition：是ResultPartition的一个子分区。每个ResultPartition包含多个ResultSubpartition，其数目要由下游消费 Task 数和 DistributionPattern 来决定。</li>
-<li>InputGate：代表Task的输入封装，和JobGraph中JobEdge一一对应。每个InputGate消费了一个或多个的ResultPartition。</li>
-<li>InputChannel：每个InputGate会包含一个以上的InputChannel，和ExecutionGraph中的ExecutionEdge一一对应，也和ResultSubpartition一对一地相连，即一个InputChannel接收一个ResultSubpartition的输出。</li>
-<li><strong><kbd><font color=red>是在服务端生成的，不是具体的数据结构，而是实际的物理执行的一个图描述。</font></kbd></strong></li>
-</ul>
-<p>那么 Flink 为什么要设计这4张图呢，其目的是什么呢？Spark 中也有多张图，数据依赖图以及物理执行的 DAG。其目的都是一样的，就是解耦，每张图各司其职，每张图对应了 Job 不同的阶段，更方便做该阶段的事情。我们给出更完整的 Flink Graph 的层次图。<br><img src="/blog-img/apache-flink:minicluster-start/14.png" alt="14"></p>
-<p>首先我们看到，JobGraph 之上除了 StreamGraph 还有 OptimizedPlan。OptimizedPlan 是由 Batch API 转换而来的。StreamGraph 是由 Stream API 转换而来的。为什么 API 不直接转换成 JobGraph？因为，Batch 和 Stream 的图结构和优化方法有很大的区别，比如 Batch 有很多执行前的预分析用来优化图的执行，而这种优化并不普适于 Stream，所以通过 OptimizedPlan 来做 Batch 的优化会更方便和清晰，也不会影响 Stream。JobGraph 的责任就是统一 Batch 和 Stream 的图，用来描述清楚一个拓扑图的结构，并且做了 chaining 的优化，chaining 是普适于 Batch 和 Stream 的，所以在这一层做掉。ExecutionGraph 的责任是方便调度和各个 tasks 状态的监控和跟踪，所以 ExecutionGraph 是并行化的 JobGraph。而“物理执行图”就是最终分布式在各个机器上运行着的tasks了。所以可以看到，这种解耦方式极大地方便了我们在各个层所做的工作，各个层之间是相互隔离的。</p>
-<h2 id="如何生成-StreamGraph？"><a href="#如何生成-StreamGraph？" class="headerlink" title="如何生成 StreamGraph？"></a>如何生成 StreamGraph？</h2><blockquote>
-<p>基于 1.12 源码。</p>
-</blockquote>
-<p>StreamGraph 是在客户端构造的，这意味着我们可以在本地通过调试观察 StreamGraph 的构造过程。<br>StreamGraph 生成的整个入口函数执行顺序如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 开始执行代码</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> JobExecutionResult <span class="title">execute</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> execute(getJobName());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> JobExecutionResult <span class="title">execute</span><span class="params">(String jobName)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    Preconditions.checkNotNull(jobName, <span class="string">&quot;Streaming Job name should not be null.&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> execute(getStreamGraph(jobName));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 生成 StreamGraph</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> StreamGraph <span class="title">getStreamGraph</span><span class="params">(String jobName, <span class="keyword">boolean</span> clearTransformations)</span> </span>&#123;</span><br><span class="line">    StreamGraph streamGraph = getStreamGraphGenerator().setJobName(jobName).generate();</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> streamGraph;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取 StreamGraphGenerator</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> StreamGraphGenerator <span class="title">getStreamGraphGenerator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> StreamGraphGenerator(transformations, config, checkpointCfg, getConfiguration())</span><br><span class="line">            .setRuntimeExecutionMode(executionMode)</span><br><span class="line">            .setStateBackend(defaultStateBackend)</span><br><span class="line">            .setChaining(isChainingEnabled)</span><br><span class="line">            .setUserArtifacts(cacheFile)</span><br><span class="line">            .setTimeCharacteristic(timeCharacteristic)</span><br><span class="line">            .setDefaultBufferTimeout(bufferTimeout);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 初始化 StreamGraphGenerator</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">StreamGraphGenerator</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">        List&lt;Transformation&lt;?&gt;&gt; transformations,</span></span></span><br><span class="line"><span class="function"><span class="params">        ExecutionConfig executionConfig,</span></span></span><br><span class="line"><span class="function"><span class="params">        CheckpointConfig checkpointConfig,</span></span></span><br><span class="line"><span class="function"><span class="params">        ReadableConfig configuration)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.transformations = checkNotNull(transformations);</span><br><span class="line">    <span class="keyword">this</span>.executionConfig = checkNotNull(executionConfig);</span><br><span class="line">    <span class="keyword">this</span>.checkpointConfig = <span class="keyword">new</span> CheckpointConfig(checkpointConfig);</span><br><span class="line">    <span class="keyword">this</span>.configuration = checkNotNull(configuration);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 客户端开始执行</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> JobExecutionResult <span class="title">execute</span><span class="params">(StreamGraph streamGraph)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> JobClient jobClient = executeAsync(streamGraph);</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>可以看到初始化 StreamGraphGenerator 需要传入四个参数，其中我们最需要关心的参数就是第一个 transformations；</p>
-<h3 id="Transformation-是用来干啥的？"><a href="#Transformation-是用来干啥的？" class="headerlink" title="Transformation 是用来干啥的？"></a>Transformation 是用来干啥的？</h3><p><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/stream/operators/#datastream-transformations">https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/stream/operators/#datastream-transformations</a></p>
-<p>Transformation 其实就是我们在代码中定义的各种转换操作，比如 map，filter，flatmap，keyby 等转换操作，经过 flink 的简单包装之后成为 Transformation，其之间的具体关系如下图：<br><img src="/blog-img/apache-flink:minicluster-start/16.png" alt="16"></p>
-<p>经过这么多层的封装，肯定是为用户自定义算子增强或者填充了一些功能，具体是哪些功能呢？</p>
-<p>举个例子：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">environment</span><br><span class="line">    .fromElements(Tuple2.of(<span class="number">1</span>, <span class="number">1</span>), Tuple2.of(<span class="number">2</span>, <span class="number">2</span>), Tuple2.of(<span class="number">1</span>, <span class="number">3</span>), Tuple2.of(<span class="number">2</span>, <span class="number">4</span>), Tuple2.of(<span class="number">3</span>, <span class="number">10</span>))</span><br><span class="line">    .map(t -&gt; t)</span><br><span class="line">    .keyBy(<span class="keyword">new</span> KeySelector&lt;Tuple2&lt;Integer, Integer&gt;, Integer&gt;() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Integer <span class="title">getKey</span><span class="params">(Tuple2&lt;Integer, Integer&gt; i)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> i.f0;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">    .flatMap(<span class="keyword">new</span> CountWindowAverage())</span><br><span class="line">    .print();</span><br></pre></td></tr></table></figure>
-
-<p>先 debug 到 <kbd>map(t -> t)</kbd>，然后我们来看 env 中的变量：<br><img src="/blog-img/apache-flink:minicluster-start/17.png" alt="17"></p>
-<p>从这个变量来看就可以和上面的图映射上了，分别是 <kbd>OneInputTransformation -> StreamMap -> UserFunction</kbd>；<br>我们仔细看这些变量，来查看到底哪些增强了哪些功能。</p>
-<p><strong>1. StreamMap</strong><br><img src="/blog-img/apache-flink:minicluster-start/20.png" alt="20"></p>
-<ul>
-<li>ChainingStrategy：flink 的优化策略中有本地性优化，就是会检查前一个算子和后一个算子是否能够 chain 在一起，这样的话就可以把数据的 shuffle 本地化，而 ChainingStrategy 就是这个优化的一个决定条件；</li>
-</ul>
-<p><strong>2. OneInputTransformation</strong><br><img src="/blog-img/apache-flink:minicluster-start/19.png" alt="19"></p>
-<ul>
-<li>input：负责将上游 Transformation 进行存储，之后可以利用这个上下游关系串联整个 DAG；</li>
-<li>stateKeySelector：如果是 keyBy 后接 map，则 map 算子就会作用在具体 key 的数据上，这个就是对应的 KeySelector；</li>
-<li>stateKeyType：同 stateKeySelector，存储的是具体的 key 的类型信息；</li>
-<li>outputType：输出数据的类型信息；</li>
-<li>typeUsed：TODO；</li>
-<li>parallelism：算子并发度信息；</li>
-<li>maxParallelism：算子最大并发度信息；</li>
-<li>minResources，preferredResources：用户自定义细粒度的资源配置（<strong>这个 feature 还没有开放给用户</strong>）；</li>
-<li>managedMemoryWeight：TODO</li>
-<li>uid：状态恢复时的状态唯一标识，恢复时会根据状态中的 uid 和算子中的 uid 进行匹配，匹配不到状态就不能恢复；</li>
-<li>userProvidedNodeHash：TODO</li>
-<li>bufferTimeout：TODO</li>
-<li>slotSharingGroup：可以进行 slot 分享的 group 标识；</li>
-<li>coLocationGroupKey：TODO</li>
-</ul>
-<p><strong><font color=red>结论</font></strong>：总的来说就是提供了一些<kbd>并行度</kbd>、<kbd>类型信息</kbd>、<kbd>上下游关联信息</kbd>的补充，根据用户声明的代码，形成上下游 DAG 关系；</p>
-<p>注意不同的 Transformation 做了不同的增强，常见的 Transformation 为一下几类。<br><img src="/blog-img/apache-flink:minicluster-start/15.png" alt="15"></p>
-<h1 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h1><ol>
-<li><a href="http://wuchong.me/blog/2016/05/03/flink-internals-overview/">http://wuchong.me/blog/2016/05/03/flink-internals-overview/</a></li>
-<li><a href="https://outofmemory.cn/article-201939.html">https://outofmemory.cn/article-201939.html</a></li>
-<li><a href="http://wuchong.me/blog/2016/05/04/flink-internal-how-to-build-streamgraph/">http://wuchong.me/blog/2016/05/04/flink-internal-how-to-build-streamgraph/</a></li>
-</ol>
-]]></content>
       <categories>
         <category>Apache Flink</category>
       </categories>
@@ -3031,6 +3201,20 @@
       </tags>
   </entry>
   <entry>
+    <title>前沿 | 流批一体的一些理解</title>
+    <url>/2020/10/12/wechat-blog/apache-flink:stream-batch-integration/</url>
+    <content><![CDATA[<h1 id="前沿-流批一体的一些理解"><a href="#前沿-流批一体的一些理解" class="headerlink" title="前沿 | 流批一体的一些理解"></a>前沿 | 流批一体的一些理解</h1><blockquote>
+<p>每家数字化企业在目前遇到流批一体概念的时候，都会对这个概念抱有一些疑问，到底什么是流批一体？这个概念的来源？这个概念能为用户、开发人员以及企业带来什么样的好处？跟随着博主的理解和脑洞出发吧。</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
     <title></title>
     <url>/2019/09/01/wechat-blog/broadcast/</url>
     <content><![CDATA[<h1 id="实时新增类指标标准化处理方案"><a href="#实时新增类指标标准化处理方案" class="headerlink" title="实时新增类指标标准化处理方案"></a>实时新增类指标标准化处理方案</h1><blockquote>
@@ -3100,6 +3284,21 @@
       </tags>
   </entry>
   <entry>
+    <title>前沿 | 流批一体的一些理解</title>
+    <url>/2020/10/12/wechat-blog/read/</url>
+    <content><![CDATA[<h1 id="前沿-流批一体的一些理解"><a href="#前沿-流批一体的一些理解" class="headerlink" title="前沿 | 流批一体的一些理解"></a>前沿 | 流批一体的一些理解</h1><blockquote>
+<p>每家数字化企业在目前遇到流批一体概念的时候，都会对这个概念抱有一些疑问，到底什么是流批一体？这个概念的来源？这个概念能为用户、开发人员以及企业带来什么样的好处？跟随着博主的理解和脑洞出发吧。</p>
+</blockquote>
+<p>自流程化：此前没有人正式提过这一说法，在与政府、金融客户沟通时经常会提到：当业务能够实现对象数字化、规则数字化、结果数据化时，业务自身的流程也就可以按照规则自由、自行组建和优化了。</p>
+]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>实时开发标准化处理方案</title>
     <url>/2020/09/01/wechat-blog/realtime/</url>
     <content><![CDATA[<h1 id="实时开发标准化处理方案"><a href="#实时开发标准化处理方案" class="headerlink" title="实时开发标准化处理方案"></a>实时开发标准化处理方案</h1><blockquote>
@@ -3131,6 +3330,23 @@
         </tr>
     </tbody>
 </table>
+]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>实战 | flink sql 计算 top n</title>
+    <url>/2021/10/12/wechat-blog/test/</url>
+    <content><![CDATA[<h1 id="前沿-流批一体的一些理解"><a href="#前沿-流批一体的一些理解" class="headerlink" title="前沿 | 流批一体的一些理解"></a>前沿 | 流批一体的一些理解</h1><blockquote>
+<p>每家数字化企业在目前遇到流批一体概念的时候，都会对这个概念抱有一些疑问，到底什么是流批一体？这个概念的来源？这个概念能为用户、开发人员以及企业带来什么样的好处？跟随着博主的理解和脑洞出发吧。</p>
+</blockquote>
+<iframe src="./a.html"></iframe>
+
+
 ]]></content>
       <categories>
         <category>Apache Flink</category>
@@ -3565,6 +3781,160 @@
       </categories>
       <tags>
         <tag>guava</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>深入浅出 | flink minicluster 启动流程</title>
+    <url>/2021/04/12/wechat-blog/apache-flink:minicluster-start/</url>
+    <content><![CDATA[<h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><p>目录</p>
+</li>
+<li><p>flink 怎么判断是本地环境还是集群环境的？</p>
+</li>
+<li><p>flink 的接口都是声明式的，那么到底把我们的接口解析或者封装成什么样进行执行了？</p>
+</li>
+</ol>
+<h1 id="flink-怎么判断是本地环境还是集群环境的？"><a href="#flink-怎么判断是本地环境还是集群环境的？" class="headerlink" title="flink 怎么判断是本地环境还是集群环境的？"></a>flink 怎么判断是本地环境还是集群环境的？</h1><h2 id="环境判断"><a href="#环境判断" class="headerlink" title="环境判断"></a>环境判断</h2><p><img src="/blog-img/apache-flink:minicluster-start/1.png" alt="1"></p>
+<p>通过 debug StreamExecutionEnvironment.getExecutionEnvironment(); 可以定位到下面的代码</p>
+<p><img src="/blog-img/apache-flink:minicluster-start/8.png" alt="8"></p>
+<p>我们可以看注释，解释一下，基本流程如下：</p>
+<ol>
+<li>先尝试获取本地环境，即从 threadLocalContextEnvironmentFactory 获取环境配置</li>
+<li>获取不到本地环境配置，就获取外部环境配置，即从 contextEnvironmentFactory 获取环境配置</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> StreamExecutionEnvironment <span class="title">getExecutionEnvironment</span><span class="params">(Configuration configuration)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> Utils.resolveFactory(threadLocalContextEnvironmentFactory, contextEnvironmentFactory)</span><br><span class="line">            .map(factory -&gt; factory.createExecutionEnvironment(configuration))</span><br><span class="line">            .orElseGet(() -&gt; StreamExecutionEnvironment.createLocalEnvironment(configuration));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">Optional&lt;T&gt; <span class="title">resolveFactory</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">            ThreadLocal&lt;T&gt; threadLocalFactory, <span class="meta">@Nullable</span> T staticFactory)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> T localFactory = threadLocalFactory.get();</span><br><span class="line">    <span class="keyword">final</span> T factory = localFactory == <span class="keyword">null</span> ? staticFactory : localFactory;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> Optional.ofNullable(factory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>那么问题来了，当集群环境时，是如何将 StreamExecutionEnvironmentFactory 到 ThreadLocal 中？</strong></p>
+<h2 id="集群环境"><a href="#集群环境" class="headerlink" title="集群环境"></a>集群环境</h2><p>通过 bin/flink run ….命令提交jar包到集群运行命令时，该脚本会调用org.apache.flink.client.cli.CliFrontend 来运行用户程序，如下：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> Add HADOOP_CLASSPATH to allow the usage of Hadoop file systems</span></span><br><span class="line">exec $JAVA_RUN $JVM_ARGS $FLINK_ENV_JAVA_OPTS &quot;$&#123;log_setting[@]&#125;&quot; -classpath &quot;`manglePathList &quot;$CC_CLASSPATH:$INTERNAL_HADOOP_CLASSPATHS&quot;`&quot; org.apache.flink.client.cli.CliFrontend &quot;$@&quot;</span><br></pre></td></tr></table></figure>
+
+<p>在CliFrontend中依次执行以下方法 main() -&gt;parseParameters() -&gt; run() -&gt;executeProgram()</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">executeProgram</span><span class="params">(<span class="keyword">final</span> Configuration configuration, <span class="keyword">final</span> PackagedProgram program)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> ProgramInvocationException </span>&#123;</span><br><span class="line">    ClientUtils.executeProgram(</span><br><span class="line">            <span class="keyword">new</span> DefaultExecutorServiceLoader(), configuration, program, <span class="keyword">false</span>, <span class="keyword">false</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在org.apache.flink.client.ClientUtils的executeProgram()中调用StreamContextEnvironment.setAsContext(…)，StreamContextEnvironment继承自StreamExecutionEnvironment。setAsContext()代码如下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">StreamContextEnvironment.setAsContext(</span><br><span class="line">    executorServiceLoader,</span><br><span class="line">    configuration,</span><br><span class="line">    userCodeClassLoader,</span><br><span class="line">    enforceSingleJobExecution,</span><br><span class="line">    suppressSysout);</span><br></pre></td></tr></table></figure>
+
+<p>创建生成运行环境的工厂类实例，在initializeContextEnvironment()方法中把实例放到StreamExecutionEnvironment类的静态属性threadLocalContextEnvironmentFactory 中，代码如下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">initializeContextEnvironment</span><span class="params">(StreamExecutionEnvironmentFactory ctx)</span> </span>&#123;</span><br><span class="line">    contextEnvironmentFactory = ctx;</span><br><span class="line">    threadLocalContextEnvironmentFactory.set(contextEnvironmentFactory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样在用户程序StreamExecutionEnvironment.getExecutionEnvironment()时，获取到的运行环境就是StreamContextEnvironment类的setAsContext()方法中生成的<br>本地运行环境LocalStreamEnvironment和 独立集群、flink on yarn等运行环境StreamContextEnvironment 的主要区别在于，他们的成员属性 configuration 不同。LocalStreamEnvironment 中是创建的空键值对(new Configuration())，而StreamContextEnvironment 是通过CliFrontend 生成的Configuration对象。</p>
+<h1 id="flink-的接口都是声明式的，那么到底把我们的接口解析或者封装成什么样进行执行了？"><a href="#flink-的接口都是声明式的，那么到底把我们的接口解析或者封装成什么样进行执行了？" class="headerlink" title="flink 的接口都是声明式的，那么到底把我们的接口解析或者封装成什么样进行执行了？"></a>flink 的接口都是声明式的，那么到底把我们的接口解析或者封装成什么样进行执行了？</h1><h2 id="声明式编程"><a href="#声明式编程" class="headerlink" title="声明式编程"></a>声明式编程</h2><p><a href="https://www.cnblogs.com/sirkevin/p/8283110.html">https://www.cnblogs.com/sirkevin/p/8283110.html</a></p>
+<h2 id="flink-runtime-架构概览"><a href="#flink-runtime-架构概览" class="headerlink" title="flink runtime 架构概览"></a>flink runtime 架构概览</h2><p><img src="/blog-img/apache-flink:minicluster-start/9.svg" alt="9"></p>
+<p>从上述整体的架构可以看出来，flink 的架构是区分客户端和服务端的，我们在客户端编写号代码，然后提交代码到服务端进行运行<br>而且 flink 的接口是声明式的，那么这个过程中肯定会涉及到代码的包装执行。具体代码进行了哪些包装，如下图 4 个图的流程就是 flink 从客户端提交代码到服务端具体执行的整个解析过程：</p>
+<p><img src="/blog-img/apache-flink:minicluster-start/10.png" alt="10"></p>
+<p><strong>1. StreamGraph：根据用户通过 Stream API 编写的代码生成的最初的图。</strong></p>
+<ul>
+<li>StreamNode：用来代表 operator 的类，并具有所有相关的属性，如并发度、入边和出边等。</li>
+<li>StreamEdge：表示连接两个 StreamNode 的边。</li>
+<li><strong><kbd><font color=red>是在客户端生成的，在 flink 中是一个具体的数据结构。</font></kbd></strong></li>
+</ul>
+<p><img src="/blog-img/apache-flink:minicluster-start/11.png" alt="11"></p>
+<p><strong>2. JobGraph：StreamGraph 经过优化后生成了 JobGraph，提交给 JobManager 的数据结构。</strong></p>
+<ul>
+<li>JobVertex：经过优化后符合条件的多个 StreamNode 可能会 chain 在一起生成一个 JobVertex，即一个 JobVertex 包含一个或多个 operator，JobVertex 的输入是 JobEdge，输出是 IntermediateDataSet。</li>
+<li>IntermediateDataSet：表示 JobVertex 的输出，即经过 operator 处理产生的数据集。producer 是 JobVertex，consumer 是 JobEdge。</li>
+<li>JobEdge：代表了 job graph 中的一条数据传输通道。source 是 IntermediateDataSet，target 是 JobVertex。即数据通过 JobEdge 由 IntermediateDataSet 传递给目标 JobVertex。</li>
+<li><strong><kbd><font color=red>是在客户端生成的，在 flink 中是一个具体的数据结构。</font></kbd></strong></li>
+</ul>
+<p><img src="/blog-img/apache-flink:minicluster-start/12.png" alt="12"></p>
+<p><strong>3. ExecutionGraph：JobManager 根据 JobGraph 生成 ExecutionGraph。ExecutionGraph 是 JobGraph 的并行化版本，是调度层最核心的数据结构。</strong></p>
+<ul>
+<li>ExecutionJobVertex：和 JobGraph 中的 JobVertex 一一对应。每一个 ExecutionJobVertex 都有和并发度一样多的 ExecutionVertex。</li>
+<li>ExecutionVertex：表示 ExecutionJobVertex 的其中一个并发子任务，输入是 ExecutionEdge，输出是 IntermediateResultPartition。</li>
+<li>IntermediateResult：和 JobGraph 中的 IntermediateDataSet 一一对应。一个 IntermediateResult 包含多个 IntermediateResultPartition，其个数等于该 operator 的并发度。</li>
+<li>IntermediateResultPartition：表示 ExecutionVertex 的一个输出分区，producer 是 ExecutionVertex，consumer 是若干个 ExecutionEdge。</li>
+<li>ExecutionEdge：表示 ExecutionVertex 的输入，source 是 IntermediateResultPartition，target 是 ExecutionVertex。source 和 target 都只能是一个。</li>
+<li>Execution：是执行一个 ExecutionVertex 的一次尝试。当发生故障或者数据需要重算的情况下 ExecutionVertex 可能会有多个 ExecutionAttemptID。一个 Execution 通过 ExecutionAttemptID 来唯一标识。JM 和 TM 之间关于 task 的部署和 task status 的更新都是通过 ExecutionAttemptID 来确定消息接受者。</li>
+<li><strong><kbd><font color=red>是在服务端生成的，在 flink 中是一个具体的数据结构。</font></kbd></strong></li>
+</ul>
+<p><img src="/blog-img/apache-flink:minicluster-start/13.png" alt="13"></p>
+<p><strong>4. 物理执行图：JobManager 根据 ExecutionGraph 对 Job 进行调度后，在各个TaskManager 上部署 Task 后形成的“图”，并不是一个具体的数据结构。</strong></p>
+<ul>
+<li>Task：Execution被调度后在分配的 TaskManager 中启动对应的 Task。Task 包裹了具有用户执行逻辑的 operator。</li>
+<li>ResultPartition：代表由一个Task的生成的数据，和ExecutionGraph中的IntermediateResultPartition一一对应。</li>
+<li>ResultSubpartition：是ResultPartition的一个子分区。每个ResultPartition包含多个ResultSubpartition，其数目要由下游消费 Task 数和 DistributionPattern 来决定。</li>
+<li>InputGate：代表Task的输入封装，和JobGraph中JobEdge一一对应。每个InputGate消费了一个或多个的ResultPartition。</li>
+<li>InputChannel：每个InputGate会包含一个以上的InputChannel，和ExecutionGraph中的ExecutionEdge一一对应，也和ResultSubpartition一对一地相连，即一个InputChannel接收一个ResultSubpartition的输出。</li>
+<li><strong><kbd><font color=red>是在服务端生成的，不是具体的数据结构，而是实际的物理执行的一个图描述。</font></kbd></strong></li>
+</ul>
+<p>那么 Flink 为什么要设计这4张图呢，其目的是什么呢？Spark 中也有多张图，数据依赖图以及物理执行的 DAG。其目的都是一样的，就是解耦，每张图各司其职，每张图对应了 Job 不同的阶段，更方便做该阶段的事情。我们给出更完整的 Flink Graph 的层次图。<br><img src="/blog-img/apache-flink:minicluster-start/14.png" alt="14"></p>
+<p>首先我们看到，JobGraph 之上除了 StreamGraph 还有 OptimizedPlan。OptimizedPlan 是由 Batch API 转换而来的。StreamGraph 是由 Stream API 转换而来的。为什么 API 不直接转换成 JobGraph？因为，Batch 和 Stream 的图结构和优化方法有很大的区别，比如 Batch 有很多执行前的预分析用来优化图的执行，而这种优化并不普适于 Stream，所以通过 OptimizedPlan 来做 Batch 的优化会更方便和清晰，也不会影响 Stream。JobGraph 的责任就是统一 Batch 和 Stream 的图，用来描述清楚一个拓扑图的结构，并且做了 chaining 的优化，chaining 是普适于 Batch 和 Stream 的，所以在这一层做掉。ExecutionGraph 的责任是方便调度和各个 tasks 状态的监控和跟踪，所以 ExecutionGraph 是并行化的 JobGraph。而“物理执行图”就是最终分布式在各个机器上运行着的tasks了。所以可以看到，这种解耦方式极大地方便了我们在各个层所做的工作，各个层之间是相互隔离的。</p>
+<h2 id="如何生成-StreamGraph？"><a href="#如何生成-StreamGraph？" class="headerlink" title="如何生成 StreamGraph？"></a>如何生成 StreamGraph？</h2><blockquote>
+<p>基于 1.12 源码。</p>
+</blockquote>
+<p>StreamGraph 是在客户端构造的，这意味着我们可以在本地通过调试观察 StreamGraph 的构造过程。<br>StreamGraph 生成的整个入口函数执行顺序如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 开始执行代码</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> JobExecutionResult <span class="title">execute</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> execute(getJobName());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> JobExecutionResult <span class="title">execute</span><span class="params">(String jobName)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    Preconditions.checkNotNull(jobName, <span class="string">&quot;Streaming Job name should not be null.&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> execute(getStreamGraph(jobName));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 生成 StreamGraph</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> StreamGraph <span class="title">getStreamGraph</span><span class="params">(String jobName, <span class="keyword">boolean</span> clearTransformations)</span> </span>&#123;</span><br><span class="line">    StreamGraph streamGraph = getStreamGraphGenerator().setJobName(jobName).generate();</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> streamGraph;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取 StreamGraphGenerator</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> StreamGraphGenerator <span class="title">getStreamGraphGenerator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> StreamGraphGenerator(transformations, config, checkpointCfg, getConfiguration())</span><br><span class="line">            .setRuntimeExecutionMode(executionMode)</span><br><span class="line">            .setStateBackend(defaultStateBackend)</span><br><span class="line">            .setChaining(isChainingEnabled)</span><br><span class="line">            .setUserArtifacts(cacheFile)</span><br><span class="line">            .setTimeCharacteristic(timeCharacteristic)</span><br><span class="line">            .setDefaultBufferTimeout(bufferTimeout);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 初始化 StreamGraphGenerator</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">StreamGraphGenerator</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">        List&lt;Transformation&lt;?&gt;&gt; transformations,</span></span></span><br><span class="line"><span class="function"><span class="params">        ExecutionConfig executionConfig,</span></span></span><br><span class="line"><span class="function"><span class="params">        CheckpointConfig checkpointConfig,</span></span></span><br><span class="line"><span class="function"><span class="params">        ReadableConfig configuration)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.transformations = checkNotNull(transformations);</span><br><span class="line">    <span class="keyword">this</span>.executionConfig = checkNotNull(executionConfig);</span><br><span class="line">    <span class="keyword">this</span>.checkpointConfig = <span class="keyword">new</span> CheckpointConfig(checkpointConfig);</span><br><span class="line">    <span class="keyword">this</span>.configuration = checkNotNull(configuration);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 客户端开始执行</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> JobExecutionResult <span class="title">execute</span><span class="params">(StreamGraph streamGraph)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> JobClient jobClient = executeAsync(streamGraph);</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到初始化 StreamGraphGenerator 需要传入四个参数，其中我们最需要关心的参数就是第一个 transformations；</p>
+<h3 id="Transformation-是用来干啥的？"><a href="#Transformation-是用来干啥的？" class="headerlink" title="Transformation 是用来干啥的？"></a>Transformation 是用来干啥的？</h3><p><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/stream/operators/#datastream-transformations">https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/stream/operators/#datastream-transformations</a></p>
+<p>Transformation 其实就是我们在代码中定义的各种转换操作，比如 map，filter，flatmap，keyby 等转换操作，经过 flink 的简单包装之后成为 Transformation，其之间的具体关系如下图：<br><img src="/blog-img/apache-flink:minicluster-start/16.png" alt="16"></p>
+<p>经过这么多层的封装，肯定是为用户自定义算子增强或者填充了一些功能，具体是哪些功能呢？</p>
+<p>举个例子：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">environment</span><br><span class="line">    .fromElements(Tuple2.of(<span class="number">1</span>, <span class="number">1</span>), Tuple2.of(<span class="number">2</span>, <span class="number">2</span>), Tuple2.of(<span class="number">1</span>, <span class="number">3</span>), Tuple2.of(<span class="number">2</span>, <span class="number">4</span>), Tuple2.of(<span class="number">3</span>, <span class="number">10</span>))</span><br><span class="line">    .map(t -&gt; t)</span><br><span class="line">    .keyBy(<span class="keyword">new</span> KeySelector&lt;Tuple2&lt;Integer, Integer&gt;, Integer&gt;() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Integer <span class="title">getKey</span><span class="params">(Tuple2&lt;Integer, Integer&gt; i)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> i.f0;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">    .flatMap(<span class="keyword">new</span> CountWindowAverage())</span><br><span class="line">    .print();</span><br></pre></td></tr></table></figure>
+
+<p>先 debug 到 <kbd>map(t -> t)</kbd>，然后我们来看 env 中的变量：<br><img src="/blog-img/apache-flink:minicluster-start/17.png" alt="17"></p>
+<p>从这个变量来看就可以和上面的图映射上了，分别是 <kbd>OneInputTransformation -> StreamMap -> UserFunction</kbd>；<br>我们仔细看这些变量，来查看到底哪些增强了哪些功能。</p>
+<p><strong>1. StreamMap</strong><br><img src="/blog-img/apache-flink:minicluster-start/20.png" alt="20"></p>
+<ul>
+<li>ChainingStrategy：flink 的优化策略中有本地性优化，就是会检查前一个算子和后一个算子是否能够 chain 在一起，这样的话就可以把数据的 shuffle 本地化，而 ChainingStrategy 就是这个优化的一个决定条件；</li>
+</ul>
+<p><strong>2. OneInputTransformation</strong><br><img src="/blog-img/apache-flink:minicluster-start/19.png" alt="19"></p>
+<ul>
+<li>input：负责将上游 Transformation 进行存储，之后可以利用这个上下游关系串联整个 DAG；</li>
+<li>stateKeySelector：如果是 keyBy 后接 map，则 map 算子就会作用在具体 key 的数据上，这个就是对应的 KeySelector；</li>
+<li>stateKeyType：同 stateKeySelector，存储的是具体的 key 的类型信息；</li>
+<li>outputType：输出数据的类型信息；</li>
+<li>typeUsed：TODO；</li>
+<li>parallelism：算子并发度信息；</li>
+<li>maxParallelism：算子最大并发度信息；</li>
+<li>minResources，preferredResources：用户自定义细粒度的资源配置（<strong>这个 feature 还没有开放给用户</strong>）；</li>
+<li>managedMemoryWeight：TODO</li>
+<li>uid：状态恢复时的状态唯一标识，恢复时会根据状态中的 uid 和算子中的 uid 进行匹配，匹配不到状态就不能恢复；</li>
+<li>userProvidedNodeHash：TODO</li>
+<li>bufferTimeout：TODO</li>
+<li>slotSharingGroup：可以进行 slot 分享的 group 标识；</li>
+<li>coLocationGroupKey：TODO</li>
+</ul>
+<p>注意不同的 Transformation 做了不同的增强，常见的 Transformation 有以下几类，大家可以自己进行 debug 查看都有哪些增强。<br><img src="/blog-img/apache-flink:minicluster-start/15.png" alt="15"></p>
+<p>另外，并不是每一个 Transformation 都会转换成 runtime 层中物理操作。有一些只是逻辑概念，比如 union、split/select、partition等。如下图所示的转换树，在运行时会优化成下方的操作图。</p>
+<p><img src="/blog-img/apache-flink:minicluster-start/21.png" alt="21"><br>union、split/select、partition 中的信息会被写入到 Source –&gt; Map 的边中。通过源码也可以发现，UnionTransformation,SplitTransformation,SelectTransformation,PartitionTransformation 由于不包含具体的操作所以都没有 StreamOperator 成员变量，而其他 Transformation 的子类基本上都有。</p>
+<p><font color=red><kbd>Transformation 的作用：</kbd></font></p>
+<ul>
+<li><font color=red><kbd>1：用户在编写时定义的上下游算子。即串联用户定义的原始 DAG 上下游信息。</kbd></font></li>
+<li><font color=red><kbd>2：用户在编写时定义的输入输出类型。即尝试获取算子输入输出类型信息以及对应的序列化器。</kbd></font></li>
+<li><font color=red><kbd>3：用户在编写时定义的算子并行度。即计算出每一个算子的并行度信息。</kbd></font></li>
+</ul>
+<h3 id="StreamGraph-是用来干啥的？"><a href="#StreamGraph-是用来干啥的？" class="headerlink" title="StreamGraph 是用来干啥的？"></a>StreamGraph 是用来干啥的？</h3><p>先来看看 StreamGraph 实例</p>
+<p><img src="/blog-img/apache-flink:minicluster-start/26.png" alt="26"></p>
+<h3 id="Transformation-gt-StreamGraph"><a href="#Transformation-gt-StreamGraph" class="headerlink" title="Transformation -&gt; StreamGraph"></a>Transformation -&gt; StreamGraph</h3><p>我们来看看 StreamGraph 构建完成之后最主要的内容包含哪些？</p>
+<p><img src="/blog-img/apache-flink:minicluster-start/28.png" alt="28"></p>
+<p>DataStream 上的每一个 Transformation 都对应了一个 StreamOperator，StreamOperator是运行时的具体实现，会决定UDF(User-Defined Funtion)的调用方式。下图所示为 StreamOperator 的类图（点击查看大图）：</p>
+<p><img src="/blog-img/apache-flink:minicluster-start/22.png" alt="22"></p>
+<p><img src="/blog-img/apache-flink:minicluster-start/23.png" alt="23"></p>
+<p>可以发现，所有实现类都继承了AbstractStreamOperator。另外除了 project 操作，其他所有可以执行UDF代码的实现类都继承自AbstractUdfStreamOperator，该类是封装了UDF的StreamOperator。UDF就是实现了Function接口的类，如MapFunction,FilterFunction。</p>
+<p>我们通过在 DataStream 上做了一系列的转换（map、filter等）得到了 Transformation 集合，然后通过 StreamGraphGenerator.generate 获得 StreamGraph，该方法的源码如下：</p>
+<p><img src="/blog-img/apache-flink:minicluster-start/24.png" alt="24"></p>
+<p>StreamGraphGenerator 中其实包含的最主要的内容就是各个类型 Transformation 的 Translator。如图所示；</p>
+<p><img src="/blog-img/apache-flink:minicluster-start/25.png" alt="25"></p>
+<p>每个 Translator 会将 Transformation 转换为对应的 StreamNode 或者 StreamEdge。</p>
+<h2 id="如何生成-JobGraph？"><a href="#如何生成-JobGraph？" class="headerlink" title="如何生成 JobGraph？"></a>如何生成 JobGraph？</h2><p>我们来看看 JobGraph 构建完成之后最主要的内容包含哪些？</p>
+<p><img src="/blog-img/apache-flink:minicluster-start/29.png" alt="29"></p>
+<p>JobGraph 的相关数据结构主要在 org.apache.flink.runtime.jobgraph 包中。构造 JobGraph 的代码主要集中在 StreamingJobGraphGenerator 类中，入口函数是 StreamingJobGraphGenerator.createJobGraph()。我们首先来看下 StreamingJobGraphGenerator 的核心源码：</p>
+<p>StreamNode 转成 JobVertex，StreamEdge 转成 JobEdge，JobEdge 和 JobVertex 之间创建 IntermediateDataSet 来连接。关键点在于将多个 SteamNode chain 成一个 JobVertex的过程，这部分源码比较绕，有兴趣的同学可以结合源码单步调试分析。下一章将会介绍 JobGraph 提交到 JobManager 后是如何转换成分布式化的 ExecutionGraph 的。</p>
+<p>每个 JobVertex 都会对应一个可序列化的 StreamConfig, 用来发送给 JobManager 和 TaskManager。最后在 TaskManager 中起 Task 时,需要从这里面反序列化出所需要的配置信息, 其中就包括了含有用户代码的StreamOperator。</p>
+<p>setChaining会对source调用createChain方法，该方法会递归调用下游节点，从而构建出node chains。createChain会分析当前节点的出边，根据Operator Chains中的chainable条件，将出边分成chainalbe和noChainable两类，并分别递归调用自身方法。之后会将StreamNode中的配置信息序列化到StreamConfig中。如果当前不是chain中的子节点，则会构建 JobVertex 和 JobEdge相连。如果是chain中的子节点，则会将StreamConfig添加到该chain的config集合中。一个node chains，除了 headOfChain node会生成对应的 JobVertex，其余的nodes都是以序列化的形式写入到StreamConfig中，并保存到headOfChain的 CHAINED_TASK_CONFIG 配置项中。直到部署时，才会取出并生成对应的ChainOperators，具体过程请见理解 Operator Chains。</p>
+<h2 id="如何生成-StreamGraph？-1"><a href="#如何生成-StreamGraph？-1" class="headerlink" title="如何生成 StreamGraph？"></a>如何生成 StreamGraph？</h2><h1 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h1><ol>
+<li><a href="http://wuchong.me/blog/2016/05/03/flink-internals-overview/">http://wuchong.me/blog/2016/05/03/flink-internals-overview/</a></li>
+<li><a href="http://wuchong.me/blog/2016/05/04/flink-internal-how-to-build-streamgraph/">http://wuchong.me/blog/2016/05/04/flink-internal-how-to-build-streamgraph/</a></li>
+<li><a href="https://outofmemory.cn/article-201939.html">https://outofmemory.cn/article-201939.html</a></li>
+<li><a href="http://wuchong.me/blog/2016/05/10/flink-internals-how-to-build-jobgraph/">http://wuchong.me/blog/2016/05/10/flink-internals-how-to-build-jobgraph/</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Apache Flink</category>
+      </categories>
+      <tags>
+        <tag>Apache Flink</tag>
       </tags>
   </entry>
   <entry>
