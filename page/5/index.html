@@ -324,7 +324,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2019/11/06/apache-kafka:study-features/">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/06/29/wechat-blog/a/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -343,7 +343,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/11/06/apache-kafka:study-features/" itemprop="url">apache-kafka:study-features</a></h1>
+                <a class="post-title-link" href="/2021/06/29/wechat-blog/a/" itemprop="url">未命名</a></h1>
         
 
         <div class="post-meta">
@@ -355,8 +355,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-06T09:57:17+08:00">
-                2019-11-06
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-06-29T22:09:08+08:00">
+                2021-06-29
               </time>
             
 
@@ -366,28 +366,6 @@
           </span>
 
           
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Apache-Kafka/" itemprop="url" rel="index">
-                    <span itemprop="name">Apache Kafka</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
 
           
             
@@ -396,9 +374,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2019/11/06/apache-kafka:study-features/#comments" itemprop="discussionUrl">
+                <a href="/2021/06/29/wechat-blog/a/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2019/11/06/apache-kafka:study-features/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2021/06/29/wechat-blog/a/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -420,7 +398,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  798
+                  436
                 </span>
               
 
@@ -458,10 +436,457 @@
 
       
         
-          本站&作者
+          
+            <html lang="en">
+
+<head>
+    <title>Document</title>
+
+    <!-- 引入本地组件库 -->
+    <!--  <link rel="stylesheet" href="static/element-ui/index.css" >
+     <script src="static/element-ui/vue.js"></script>
+     <script src="static/element-ui/index.js"></script> -->
+
+    <!-- 引入CDN样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+
+    <style>
+        .not-active {
+            display: inline-block;
+            font-size: 12px;
+            margin: 5px 8px;
+        }
+
+        span {
+            margin: 0 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="app">
+    <!-- 待选标签 -->
+    <div v-for='(category, categoryIndex) in categories' :key="category.id">
+        <!-- 分类 -->
+        <span class="not-active">：</span>
+
+        <template>
+            <span v-if="category.count" class="not-active" @click="clearCategory(category, categoryIndex)"> 不限</span>
+            <my-tag v-else>不限</my-tag>
+        </template>
+
+        <!-- 标签 -->
+        <template v-for='(child, childIndex) in category.children'>
+            <my-tag v-if="child.active" :closable='true'
+                    @click-child='clickChild(category, categoryIndex, child, childIndex)'>
+                
+            </my-tag>
+            <span v-else class="not-active" @click='clickChild(category, categoryIndex, child, childIndex)'></span>
+        </template>
+    </div>
+
+    <!-- 已选标签 -->
+    <div v-if='conditions.length'>
+   <span class="not-active" @click="clearCondition">清空已选：<span>
+
+   <el-tag
+           v-for='(condition, index) in conditions'
+           :key="condition.id"
+           type="primary"
+           :closable="true"
+           size="small"
+           :disable-transitions="true"
+           @close='removeCondition(condition, index)'
+           @click='removeCondition(condition, index)'>
+    
+   </el-tag>
+    </div>
+
+    <!--    <el-radio-group v-model="radio">-->
+    <!--        <el-radio :label="3">备选项</el-radio>-->
+    <!--        <el-radio :label="6">备选项</el-radio>-->
+    <!--        <el-radio :label="9">备选项</el-radio>-->
+    <!--    </el-radio-group>-->
+
+    <el-row>
+        <el-col :span="24"><div class="grid-content bg-purple-dark"><el-radio-group v-model="radio">
+            <el-radio :label="3">备选项1</el-radio>
+            <el-radio :label="6">备选项2</el-radio>
+            <el-radio :label="9">备选项3</el-radio>
+        </el-radio-group></div></el-col>
+        <el-col :span="12"><el-radio-group v-model="radio">
+            <el-radio :label="3">备选项1</el-radio>
+            <el-radio :label="6">备选项2</el-radio>
+            <el-radio :label="9">备选项3</el-radio>
+        </el-radio-group><el-col>
+    </el-row>
+</div>
+
+<script>
+    var categories = [{
+        name: '品牌',
+        count: 0,
+        children: [{
+            name: '联想',
+        }, {
+            name: '小米',
+
+        }, {
+            name: '苹果',
+
+        }, {
+            name: '东芝',
+
+        }]
+    }, {
+        name: 'CPU',
+        count: 0,
+        children: [{
+            name: 'intel i7 8700K',
+
+        }, {
+            name: 'intel i7 7700K',
+
+        }, {
+            name: 'intel i9 9270K',
+
+        }, {
+            name: 'intel i7 8700',
+
+        }, {
+            name: 'AMD 1600X',
+
+
+        }]
+    }, {
+        name: '内存',
+        count: 0,
+        children: [{
+            name: '七彩虹8G',
+
+        }, {
+            name: '七彩虹16G',
+
+        }, {
+            name: '金士顿8G',
+
+        }, {
+            name: '金士顿16G',
+
+        }]
+    }, {
+        name: '显卡',
+        count: 0,
+        children: [{
+            name: 'NVIDIA 1060 8G',
+
+        }, {
+            name: 'NVIDIA 1080Ti 16G',
+
+        }, {
+            name: 'NVIDIA 1080 8G',
+
+        }, {
+            name: 'NVIDIA 1060Ti 16G',
+
+        }]
+    }]
+
+</script>
+
+<script>
+    // 简单封装一个公用组件
+    Vue.component('my-tag', {
+        template: "<el-tag v-bind='$attrs' v-on='$listeners' effect='dark' size='small' :disable-transitions='true' @click='clickChild' @close='clickChild'><slot></slot></el-tag>",
+
+        methods: {
+            clickChild() {
+                this.$emit("click-child")
+            }
+        }
+    });
+
+    var app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                // categories, // 分类标签，可从外部加载配置
+                conditions: [], // 已选条件
+                radio: 3
+            }
+        },
+
+        watch: {
+            // 监听条件变化，按照请求接口拼装请求参数
+            conditions(val) {
+                let selectedCondition = {};
+
+                for (let categorie of this.categories) {
+                    let selected_list = [];
+                    for (let child of categorie.children) {
+                        if (child.active) {
+                            selected_list.push(child.name);
+                        }
+                    }
+                    selectedCondition[categorie.name] = selected_list.join("|")
+                }
+                console.log(selectedCondition);
+            }
+        },
+
+        methods: {
+            // 处理标签点击事件，未选中则选中，已选中则取消选中
+            clickChild(category, categoryIndex, child, childIndex) {
+                let uid = `${categoryIndex}-${childIndex}`
+                child.uid = uid;
+                console.log(uid)
+
+                // 取消选择
+                if (child.active === true) {
+                    category.count--;
+                    child.active = false;
+                    this.conditions.forEach((conditionChild, index) => {
+                        if (conditionChild.uid === child.uid) {
+                            this.conditions.splice(index, 1);
+                        }
+                    });
+                    // 选择
+                } else {
+                    category.count++;
+                    child.active = true;
+                    this.conditions.push(child);
+                }
+            },
+
+            // 清除已选整个类别标签
+            clearCategory(category, categoryIndex) {
+                category.count = 0;
+
+                // 可选列表均为未选中状态
+                category.children.forEach(child => {
+                    child.active = false;
+                })
+
+                // 清空该类已选元素
+                for (let index = this.conditions.length - 1; index >= 0; index--) {
+                    const conditionChild = this.conditions[index];
+                    if (conditionChild.uid.startsWith(categoryIndex)) {
+                        this.conditions.splice(index, 1);
+                    }
+                }
+            },
+
+            // 移除一个条件
+            removeCondition(condition, index) {
+                let categoryIndex = condition.uid.split("-")[0];
+                this.categories[categoryIndex].count--;
+
+                this.conditions.splice(index, 1)
+                condition.active = false;
+            },
+
+            // 清空所有条件
+            clearCondition() {
+                for (let i = this.conditions.length - 1; i >= 0; i--) {
+                    this.removeCondition(this.conditions[i], i);
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+
+</html>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/04/12/wechat-blog/apache-flink:minicluster-start/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2021/04/12/wechat-blog/apache-flink:minicluster-start/" itemprop="url">深入浅出 | flink minicluster 启动流程</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-04-12T14:21:53+08:00">
+                2021-04-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/04/12/wechat-blog/apache-flink:minicluster-start/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/04/12/wechat-blog/apache-flink:minicluster-start/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  3.5k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  13
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2019/11/06/apache-kafka:study-features/">
+            <a class="btn" href="/2021/04/12/wechat-blog/apache-flink:minicluster-start/">
               阅读全文 &raquo;
             </a>
           </div>
@@ -512,7 +937,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2019/11/03/apache-flink:study-features/">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/04/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/01_table-start/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -531,7 +956,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/11/03/apache-flink:study-features/" itemprop="url">Apache Flink 学习：系统特性学习</a></h1>
+                <a class="post-title-link" href="/2021/04/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/01_table-start/" itemprop="url">深入浅出 | flink minicluster 启动流程</a></h1>
         
 
         <div class="post-meta">
@@ -543,8 +968,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-03T16:20:21+08:00">
-                2019-11-03
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-04-12T14:21:53+08:00">
+                2021-04-12
               </time>
             
 
@@ -584,9 +1009,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2019/11/03/apache-flink:study-features/#comments" itemprop="discussionUrl">
+                <a href="/2021/04/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/01_table-start/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2019/11/03/apache-flink:study-features/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2021/04/12/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/01_table-start/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -608,7 +1033,759 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  1.6k
+                  12
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  1
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2021/04/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/01_table-start/">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/03/12/wechat-blog/apache-flink:state-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2021/03/12/wechat-blog/apache-flink:state-1/" itemprop="url">深入浅出 | flink 全局一致性快照（一）</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-03-12T14:21:53+08:00">
+                2021-03-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/03/12/wechat-blog/apache-flink:state-1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/03/12/wechat-blog/apache-flink:state-1/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  6.8k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  25
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          本系列每篇文章都是从实际生产出发，帮助大家理解全局一致性快照。可能很多小伙伴都知道 flink 是使用 barrier 来做全局一致性快照，但是我提两个问题，为什么 flink 的 barrier 能够保证全局一致性快照的正确性？barrier 到底发挥了怎样的作用？小伙伴们能回答上来么，有想过背后的原因嘛，楼主通过本篇文章抛砖引玉，希望小伙伴们能够喜欢~
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2021/03/12/wechat-blog/apache-flink:state-1/">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/03/12/wechat-blog/apache-flink:state-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2021/03/12/wechat-blog/apache-flink:state-2/" itemprop="url">深入浅出 | flink 全局一致性快照（二）</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-03-12T14:21:53+08:00">
+                2021-03-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/03/12/wechat-blog/apache-flink:state-2/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/03/12/wechat-blog/apache-flink:state-2/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  593
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  2
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2021/03/12/wechat-blog/apache-flink:state-2/">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/03/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/03_state/01_apache-flink:state-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2021/03/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/03_state/01_apache-flink:state-1/" itemprop="url">深入浅出 | flink 全局一致性快照（一）</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-03-12T14:21:53+08:00">
+                2021-03-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/03/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/03_state/01_apache-flink:state-1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/03/12/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/03_state/01_apache-flink:state-1/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  7k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  25
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          本系列每篇文章都是从实际生产出发，帮助大家理解全局一致性快照。可能很多小伙伴都知道 flink 是使用 barrier 来做全局一致性快照，但是我提两个问题，为什么 flink 的 barrier 能够保证全局一致性快照的正确性？barrier 到底发挥了怎样的作用？小伙伴们能回答上来么，有想过背后的原因嘛，楼主通过本篇文章抛砖引玉，希望小伙伴们能够喜欢~
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2021/03/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/03_state/01_apache-flink:state-1/">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/03/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/10_meetup/01_apache-flink-meetup-20210710-beijing/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2021/03/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/10_meetup/01_apache-flink-meetup-20210710-beijing/" itemprop="url">Apache Flink x TiDB meetup 小记</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-03-12T14:21:53+08:00">
+                2021-03-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/03/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/10_meetup/01_apache-flink-meetup-20210710-beijing/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/03/12/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/10_meetup/01_apache-flink-meetup-20210710-beijing/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1.9k
                 </span>
               
 
@@ -646,10 +1823,10 @@
 
       
         
-          本站&作者
+          本系列每篇文章都是从实际生产出发，帮助大家理解全局一致性快照。可能很多小伙伴都知道 flink 是使用 barrier 来做全局一致性快照，但是我提两个问题，为什么 flink 的 barrier 能够保证全局一致性快照的正确性？barrier 到底发挥了怎样的作用？小伙伴们能回答上来么，有想过背后的原因嘛，楼主通过本篇文章抛砖引玉，希望小伙伴们能够喜欢~
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2019/11/03/apache-flink:study-features/">
+            <a class="btn" href="/2021/03/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/10_meetup/01_apache-flink-meetup-20210710-beijing/">
               阅读全文 &raquo;
             </a>
           </div>
@@ -700,7 +1877,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2019/11/03/apache-flink:study-realtime-scenario/">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2020/12/01/wechat-blog/apache-flink:realtime-time-monitor/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -719,7 +1896,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/11/03/apache-flink:study-realtime-scenario/" itemprop="url">Apache Flink 学习：实时场景下的应用</a></h1>
+                <a class="post-title-link" href="/2020/12/01/wechat-blog/apache-flink:realtime-time-monitor/" itemprop="url">实时数据时效监控体系建设</a></h1>
         
 
         <div class="post-meta">
@@ -731,8 +1908,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-03T13:30:05+08:00">
-                2019-11-03
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-12-01T14:21:53+08:00">
+                2020-12-01
               </time>
             
 
@@ -772,9 +1949,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2019/11/03/apache-flink:study-realtime-scenario/#comments" itemprop="discussionUrl">
+                <a href="/2020/12/01/wechat-blog/apache-flink:realtime-time-monitor/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2019/11/03/apache-flink:study-realtime-scenario/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2020/12/01/wechat-blog/apache-flink:realtime-time-monitor/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -796,7 +1973,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  1.4k
+                  196
                 </span>
               
 
@@ -812,7 +1989,7 @@
                   <span class="post-meta-item-text">阅读时长 &asymp;</span>
                 
                 <span title="阅读时长">
-                  4
+                  1
                 </span>
               
             </div>
@@ -834,10 +2011,10 @@
 
       
         
-          本站&作者
+          本系列介绍了实时数据时效监控体系的建设。
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2019/11/03/apache-flink:study-realtime-scenario/">
+            <a class="btn" href="/2020/12/01/wechat-blog/apache-flink:realtime-time-monitor/">
               阅读全文 &raquo;
             </a>
           </div>
@@ -888,7 +2065,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2019/11/02/apache-flink:study-BoundedOutOfOrdernessTimestampExtractor/">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2020/11/11/wechat-blog/apache-flink:realtime-live-stream-3/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -907,7 +2084,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/11/02/apache-flink:study-BoundedOutOfOrdernessTimestampExtractor/" itemprop="url">Apache Flink 学习：BoundedOutOfOrdernessTimestampExtractor</a></h1>
+                <a class="post-title-link" href="/2020/11/11/wechat-blog/apache-flink:realtime-live-stream-3/" itemprop="url">生产实践 | Flink + 直播（三）| 如何建设当前正在直播 xx 数？</a></h1>
         
 
         <div class="post-meta">
@@ -919,8 +2096,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-02T16:48:43+08:00">
-                2019-11-02
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-11-11T14:21:53+08:00">
+                2020-11-11
               </time>
             
 
@@ -960,9 +2137,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2019/11/02/apache-flink:study-BoundedOutOfOrdernessTimestampExtractor/#comments" itemprop="discussionUrl">
+                <a href="/2020/11/11/wechat-blog/apache-flink:realtime-live-stream-3/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2019/11/02/apache-flink:study-BoundedOutOfOrdernessTimestampExtractor/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2020/11/11/wechat-blog/apache-flink:realtime-live-stream-3/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -984,7 +2161,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  847
+                  2.2k
                 </span>
               
 
@@ -1000,7 +2177,7 @@
                   <span class="post-meta-item-text">阅读时长 &asymp;</span>
                 
                 <span title="阅读时长">
-                  4
+                  8
                 </span>
               
             </div>
@@ -1022,10 +2199,10 @@
 
       
         
-          本站&作者
+          本系列每篇文章都是从一些实际的 case 出发，分析一些生产环境中经常会遇到的问题，抛砖引玉，以帮助小伙伴们解决一些实际问题。本篇文章主要介绍直播间生产侧指标的建设过程，如果对小伙伴有帮助的话，欢迎点赞 + 再看~
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2019/11/02/apache-flink:study-BoundedOutOfOrdernessTimestampExtractor/">
+            <a class="btn" href="/2020/11/11/wechat-blog/apache-flink:realtime-live-stream-3/">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1076,7 +2253,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2019/10/30/apache-hadoop:study-hdfs-shell/">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2020/11/02/wechat-blog/apache-flink:realtime-live-stream-2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -1095,7 +2272,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/10/30/apache-hadoop:study-hdfs-shell/" itemprop="url">Apache Hadoop 学习：hdfs shell 命令</a></h1>
+                <a class="post-title-link" href="/2020/11/02/wechat-blog/apache-flink:realtime-live-stream-2/" itemprop="url">生产实践 | Flink + 直播（二）| 如何建设实时公共画像维表？</a></h1>
         
 
         <div class="post-meta">
@@ -1107,8 +2284,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-30T16:27:45+08:00">
-                2019-10-30
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-11-02T14:21:53+08:00">
+                2020-11-02
               </time>
             
 
@@ -1130,8 +2307,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Apache-Hadoop/" itemprop="url" rel="index">
-                    <span itemprop="name">Apache Hadoop</span>
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
                   </a>
                 </span>
 
@@ -1148,9 +2325,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2019/10/30/apache-hadoop:study-hdfs-shell/#comments" itemprop="discussionUrl">
+                <a href="/2020/11/02/wechat-blog/apache-flink:realtime-live-stream-2/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2019/10/30/apache-hadoop:study-hdfs-shell/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2020/11/02/wechat-blog/apache-flink:realtime-live-stream-2/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1172,7 +2349,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  25
+                  2.9k
                 </span>
               
 
@@ -1188,7 +2365,7 @@
                   <span class="post-meta-item-text">阅读时长 &asymp;</span>
                 
                 <span title="阅读时长">
-                  1
+                  10
                 </span>
               
             </div>
@@ -1210,950 +2387,10 @@
 
       
         
-          本站&作者
+          本系列每篇文章都是从一些实际生产实践需求出发，解决一些生产实践中的问题，抛砖引玉，以帮助小伙伴们解决一些实际生产问题。本篇文章主要介绍直播间画像实时维表建设的整个过程，如果对小伙伴有帮助的话，欢迎点赞 + 再看~
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2019/10/30/apache-hadoop:study-hdfs-shell/">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2019/10/28/nginx:1-17-3-mac-install-and-confs-set/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog-img/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="antigeneral's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/10/28/nginx:1-17-3-mac-install-and-confs-set/" itemprop="url">Mac安装Nginx-1.17.3以及相关配置文件</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-28T21:19:10+08:00">
-                2019-10-28
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Nginx/" itemprop="url" rel="index">
-                    <span itemprop="name">Nginx</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2019/10/28/nginx:1-17-3-mac-install-and-confs-set/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2019/10/28/nginx:1-17-3-mac-install-and-confs-set/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计&#58;</span>
-                
-                <span title="字数统计">
-                  2.5k
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">
-                  9
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          本站&作者
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/10/28/nginx:1-17-3-mac-install-and-confs-set/">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2019/10/26/elastic-job:study-distributed-scheduled-job-framework/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog-img/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="antigeneral's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/10/26/elastic-job:study-distributed-scheduled-job-framework/" itemprop="url">Elastic-Job学习：分布式任务调度框架</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-26T22:08:15+08:00">
-                2019-10-26
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F%E8%B0%83%E5%BA%A6%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index">
-                    <span itemprop="name">分布式调度框架</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2019/10/26/elastic-job:study-distributed-scheduled-job-framework/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2019/10/26/elastic-job:study-distributed-scheduled-job-framework/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计&#58;</span>
-                
-                <span title="字数统计">
-                  18
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">
-                  1
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          本站&作者
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/10/26/elastic-job:study-distributed-scheduled-job-framework/">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2019/10/26/vue:study-vue-project-deploy-in-springboot-project/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog-img/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="antigeneral's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/10/26/vue:study-vue-project-deploy-in-springboot-project/" itemprop="url">Vue学习：Vue前端项目部署到SpringBoot工程下</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-26T15:29:37+08:00">
-                2019-10-26
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Vue/" itemprop="url" rel="index">
-                    <span itemprop="name">Vue</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2019/10/26/vue:study-vue-project-deploy-in-springboot-project/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2019/10/26/vue:study-vue-project-deploy-in-springboot-project/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计&#58;</span>
-                
-                <span title="字数统计">
-                  178
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">
-                  1
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          本站&作者
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/10/26/vue:study-vue-project-deploy-in-springboot-project/">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2019/10/25/apache-maven:study-maven-shade-resolve-jar-conflicts/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog-img/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="antigeneral's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/10/25/apache-maven:study-maven-shade-resolve-jar-conflicts/" itemprop="url">Maven学习：使用maven-shade-plugin解决依赖包冲突</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-25T14:23:20+08:00">
-                2019-10-25
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Apache-Maven/" itemprop="url" rel="index">
-                    <span itemprop="name">Apache Maven</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2019/10/25/apache-maven:study-maven-shade-resolve-jar-conflicts/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2019/10/25/apache-maven:study-maven-shade-resolve-jar-conflicts/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计&#58;</span>
-                
-                <span title="字数统计">
-                  1.1k
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">
-                  5
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          本站&作者
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/10/25/apache-maven:study-maven-shade-resolve-jar-conflicts/">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2019/10/24/apache-zookeeper:study-zookeeper-implement-unified-configuration-management-center/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog-img/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="antigeneral's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/10/24/apache-zookeeper:study-zookeeper-implement-unified-configuration-management-center/" itemprop="url">Apache Zookeeper 学习：Zookeeper实现统一配置管理中心</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-24T18:40:24+08:00">
-                2019-10-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Apache-Zookeeper/" itemprop="url" rel="index">
-                    <span itemprop="name">Apache Zookeeper</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2019/10/24/apache-zookeeper:study-zookeeper-implement-unified-configuration-management-center/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2019/10/24/apache-zookeeper:study-zookeeper-implement-unified-configuration-management-center/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计&#58;</span>
-                
-                <span title="字数统计">
-                  1.6k
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">
-                  7
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          本站&作者
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/10/24/apache-zookeeper:study-zookeeper-implement-unified-configuration-management-center/">
+            <a class="btn" href="/2020/11/02/wechat-blog/apache-flink:realtime-live-stream-2/">
               阅读全文 &raquo;
             </a>
           </div>
@@ -2195,7 +2432,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/6/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/">12</a><a class="extend next" rel="next" href="/page/6/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2245,7 +2482,7 @@
               
                 <a href="/archives%7C%7C%20archive">
               
-                  <span class="site-state-item-count">70</span>
+                  <span class="site-state-item-count">115</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2333,7 +2570,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2021</span>
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2022</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
@@ -2347,7 +2584,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">77.6k</span>
+    <span title="Site words total count">244.8k</span>
   
 </div>
 

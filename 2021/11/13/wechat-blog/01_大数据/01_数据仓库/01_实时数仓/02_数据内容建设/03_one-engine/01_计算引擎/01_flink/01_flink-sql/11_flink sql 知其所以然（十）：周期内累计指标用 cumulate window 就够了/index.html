@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="antigeneral's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="flink sql 知其所以然（十）：大家都用 cumulate window 计算累计指标啦">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/11_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%EF%BC%89%EF%BC%9A%E5%91%A8%E6%9C%9F%E5%86%85%E7%B4%AF%E8%AE%A1%E6%8C%87%E6%A0%87%E7%94%A8%20cumulate%20window%20%E5%B0%B1%E5%A4%9F%E4%BA%86/index.html">
+<meta property="og:site_name" content="antigeneral&#39;s blog">
+<meta property="og:description" content="本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
+<meta property="og:locale">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/12_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%EF%BC%89%EF%BC%9A1.13cumulatewindow/1.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/12_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%EF%BC%89%EF%BC%9A1.13cumulatewindow/2.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/12_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%EF%BC%89%EF%BC%9A1.13cumulatewindow/3.png">
+<meta property="article:published_time" content="2021-11-13T06:25:58.000Z">
+<meta property="article:modified_time" content="2021-11-21T09:19:23.917Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Flink">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/12_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%EF%BC%89%EF%BC%9A1.13cumulatewindow/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/11_flink sql 知其所以然（十）：周期内累计指标用 cumulate window 就够了/"/>
+
+
+
+
+
+  <title>flink sql 知其所以然（十）：大家都用 cumulate window 计算累计指标啦 | antigeneral's blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-150061865-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">antigeneral's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-link"></i> <br />
+            
+            links
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/11_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%EF%BC%89%EF%BC%9A%E5%91%A8%E6%9C%9F%E5%86%85%E7%B4%AF%E8%AE%A1%E6%8C%87%E6%A0%87%E7%94%A8%20cumulate%20window%20%E5%B0%B1%E5%A4%9F%E4%BA%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">flink sql 知其所以然（十）：大家都用 cumulate window 计算累计指标啦</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-13T14:25:58+08:00">
+                2021-11-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/11_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%EF%BC%89%EF%BC%9A%E5%91%A8%E6%9C%9F%E5%86%85%E7%B4%AF%E8%AE%A1%E6%8C%87%E6%A0%87%E7%94%A8%20cumulate%20window%20%E5%B0%B1%E5%A4%9F%E4%BA%86/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/11_flink sql 知其所以然（十）：周期内累计指标用 cumulate window 就够了/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1.5k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  6
+                </span>
+              
+            </div>
+          
+
+          
+              <div class="post-description">
+                  本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p><strong>想啥呢，小宝贝，还不三连？？？（关注  +  点赞 + 再看）</strong>，对博主的肯定，会督促博主持续的输出更多的优质实战内容！！！</p>
+</blockquote>
+<h1 id="1-序篇"><a href="#1-序篇" class="headerlink" title="1.序篇"></a>1.序篇</h1><p>源码公众号后台回复<strong>1.13.2 cumulate window 的奇妙解析之路</strong>获取。</p>
+<p>此节就是窗口聚合章节的第三篇，上节介绍了 1.13 window tvf tumble window 实现，本节主要介绍 1.13. window tvf 的一个重磅更新，即 cumulate window。</p>
+<p>本节从以下几个章节给大家详细介绍 cumulate window 的能力。</p>
+<ol>
+<li>应用场景介绍</li>
+<li>预期的效果</li>
+<li>解决方案介绍</li>
+<li>总结及展望篇</li>
+</ol>
+<h1 id="2-应用场景介绍"><a href="#2-应用场景介绍" class="headerlink" title="2.应用场景介绍"></a>2.应用场景介绍</h1><p>先来一个简单的小调查：在实时场景中，你见到过最多的指标需求场景是哪一种？</p>
+<p>答案：博主相信，占比比较多的不是 PCU（即同时在线 PV，UV），而是周期内累计 PV，UV 指标（如每天累计到当前这一分钟的 Pv，UV）。因为这类指标是一段周期内的累计状态，对分析师来说更具统计分析价值，而且几乎所有的复合指标都是基于此类指标的统计（不然离线为啥都要一天的数据，而不要一分钟的数据呢）。</p>
+<p>本文要介绍的就是周期内累计 PV，UV 指标在 flink 1.13 版本的最优解决方案。</p>
+<h1 id="3-预期的效果"><a href="#3-预期的效果" class="headerlink" title="3.预期的效果"></a>3.预期的效果</h1><p>先来一个实际案例来看看在具体输入值的场景下，输出值应该长啥样。</p>
+<p>指标：每天的截止当前分钟的累计 money（sum(money)），去重 id 数（count(distinct id)）。<strong>每天</strong>代表窗口大小为 1 天，<strong>分钟</strong>代表移动步长为分钟级别。</p>
+<p>来一波输入数据：</p>
+<table>
+<thead>
+<tr>
+<th>time</th>
+<th>id</th>
+<th>money</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2021-11-01 00:01:00</td>
+<td>A</td>
+<td>3</td>
+</tr>
+<tr>
+<td>2021-11-01 00:01:00</td>
+<td>B</td>
+<td>5</td>
+</tr>
+<tr>
+<td>2021-11-01 00:01:00</td>
+<td>A</td>
+<td>7</td>
+</tr>
+<tr>
+<td>2021-11-01 00:02:00</td>
+<td>C</td>
+<td>3</td>
+</tr>
+<tr>
+<td>2021-11-01 00:03:00</td>
+<td>C</td>
+<td>10</td>
+</tr>
+</tbody></table>
+<p>预期输出数据：</p>
+<table>
+<thead>
+<tr>
+<th>time</th>
+<th>count distinct id</th>
+<th>sum money</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2021-11-01 00:01:00</td>
+<td>2</td>
+<td>15</td>
+</tr>
+<tr>
+<td>2021-11-01 00:02:00</td>
+<td>3</td>
+<td>18</td>
+</tr>
+<tr>
+<td>2021-11-01 00:03:00</td>
+<td>3</td>
+<td>28</td>
+</tr>
+</tbody></table>
+<p>转化为折线图长这样：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/12_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%EF%BC%89%EF%BC%9A1.13cumulatewindow/1.png" alt="当日累计"></p>
+<p>可以看到，其特点就在于，每一分钟的输出结果都是当天零点累计到当前的结果。</p>
+<h1 id="4-解决方案介绍"><a href="#4-解决方案介绍" class="headerlink" title="4.解决方案介绍"></a>4.解决方案介绍</h1><h2 id="4-1-1-13-之前"><a href="#4-1-1-13-之前" class="headerlink" title="4.1.1.13 之前"></a>4.1.1.13 之前</h2><p>可选的解决方案有两种</p>
+<ol>
+<li>tumble window（1天窗口） + early-fire（1分钟）</li>
+<li>group by（1天） + minibatch（1分钟）</li>
+</ol>
+<p>但是上述两种解决方案产出的都是 retract 流，关于 retract 流存在的缺点见如下文章：</p>
+<p>并且 tumble window + early-fire 的触发机制是基于处理时间而非事件时间，具体缺点见如下文章：</p>
+<h2 id="4-2-1-13-及之后"><a href="#4-2-1-13-及之后" class="headerlink" title="4.2.1.13 及之后"></a>4.2.1.13 及之后</h2><p>诞生了 cumulate window 解法，具体见官网链接：</p>
+<p><a target="_blank" rel="noopener" href="https://nightlies.apache.org/flink/flink-docs-release-1.13/docs/dev/table/sql/queries/window-tvf/#cumulate">https://nightlies.apache.org/flink/flink-docs-release-1.13/docs/dev/table/sql/queries/window-tvf/#cumulate</a></p>
+<p>如下官网文档所示，介绍 cumulate window 的第一句话就是 cumulate window 非常适合于之前使用 tumble window + early-fire 的场景。<br>可以说 cumulate window 就是在用户计算周期内累计 PV，UV 指标时，使用了 tumble window + early-fire 后发现这种方案存在了很多坑的情况下，而诞生的！</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/12_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%EF%BC%89%EF%BC%9A1.13cumulatewindow/2.png" alt="cumulate window"></p>
+<p>其计算机制如下图所示：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/12_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%EF%BC%89%EF%BC%9A1.13cumulatewindow/3.png" alt="cumulate window"></p>
+<p>还是以刚刚的案例说明，以天为窗口，每分钟输出一次当天零点到当前分钟的累计值，在 cumulate window 中，其窗口划分规则如下：</p>
+<p>[2021-11-01 00:00:00, 2021-11-01 00:01:00]<br>[2021-11-01 00:00:00, 2021-11-01 00:02:00]<br>[2021-11-01 00:00:00, 2021-11-01 00:03:00]<br>…<br>[2021-11-01 00:00:00, 2021-11-01 23:58:00]<br>[2021-11-01 00:00:00, 2021-11-01 23:59:00]</p>
+<p>第一个 window 统计的是一个区间的数据；<br>第二个 window 统计的是第一区间和第二个区间的数据；<br>第三个 window 统计的是第一区间，第二个区间和第三个区间的数据。</p>
+<p>那么以 cumulate window 实现上述的需求，具体的 SQL 如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> UNIX_TIMESTAMP(<span class="built_in">CAST</span>(window_end <span class="keyword">AS</span> STRING)) <span class="operator">*</span> <span class="number">1000</span> <span class="keyword">as</span> window_end, </span><br><span class="line">      window_start, </span><br><span class="line">      <span class="built_in">sum</span>(money) <span class="keyword">as</span> sum_money,</span><br><span class="line">      <span class="built_in">count</span>(<span class="keyword">distinct</span> id) <span class="keyword">as</span> count_distinct_id</span><br><span class="line"><span class="keyword">FROM</span> <span class="keyword">TABLE</span>(CUMULATE(</span><br><span class="line">         <span class="keyword">TABLE</span> source_table</span><br><span class="line">         , DESCRIPTOR(row_time)</span><br><span class="line">         , <span class="type">INTERVAL</span> <span class="string">&#x27;60&#x27;</span> <span class="keyword">SECOND</span></span><br><span class="line">         , <span class="type">INTERVAL</span> <span class="string">&#x27;1&#x27;</span> <span class="keyword">DAY</span>))</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> window_start, </span><br><span class="line">        window_end</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>CUMULATE(TABLE source_table, DESCRIPTOR(row_time), INTERVAL &#39;60&#39; SECOND, INTERVAL &#39;1&#39; DAY)</code> 中的<br><code>INTERVAL &#39;1&#39; DAY</code> 代表窗口大小为 1 天，<code>INTERVAL &#39;60&#39; SECOND</code>，窗口划分步长为 60s。</p>
+<p>其中 <code>window_start, window_end</code> 字段是 cumulate window 自动生成的类型是 timestamp(3)。</p>
+<p><code>window_start</code> 固定为窗口的开始时间。<code>window_end</code> 随着步长向前移动，变化。</p>
+<p>最终结果如下。</p>
+<p>输入数据：<br>row_time|id|money<br>-|-|-<br>2021-11-01 00:01:00 | A | 3<br>2021-11-01 00:01:00 | B | 5<br>2021-11-01 00:01:00 | A | 7<br>2021-11-01 00:02:00 | C | 3<br>2021-11-01 00:03:00 | C | 10</p>
+<p>输出数据：<br>window_end|window_start|sum_money|count_distinct_id<br>-|-|-|-<br>2021-11-21T00:01 | 1635696000000 | 2 | 15<br>2021-11-21T00:02 | 1635696000000 | 3 | 18<br>2021-11-21T00:03 | 1635696000000 | 3 | 28</p>
+<blockquote>
+<p>Notes：<br>天级别窗口划分的时候一定要注意时区问题喔！<br><a target="_blank" rel="noopener" href="https://nightlies.apache.org/flink/flink-docs-master/zh/docs/dev/table/timezone/">https://nightlies.apache.org/flink/flink-docs-master/zh/docs/dev/table/timezone/</a></p>
+</blockquote>
+<h2 id="4-3-cumulate-window-原理解析"><a href="#4-3-cumulate-window-原理解析" class="headerlink" title="4.3.cumulate window 原理解析"></a>4.3.cumulate window 原理解析</h2><p>首先 cumulate window 是一个窗口，其窗口计算的触发也是完全由 watermark 推动的。与 tumble window 一样。</p>
+<p>cumulate window 维护了一个 slice state 和 merged state，slice state 就是每一分钟内窗口数据（叫做切片），merged state 的作用是当 watermark 推动到下一分钟时，这一分钟的 slice state 就会被 merge 到 merged stated 中。<br>从而就计算出当天累计到当前分钟的数据。</p>
+<h2 id="4-4-cumulate-window-怎么解决-tumble-window-early-fire-的问题"><a href="#4-4-cumulate-window-怎么解决-tumble-window-early-fire-的问题" class="headerlink" title="4.4.cumulate window 怎么解决 tumble window + early-fire 的问题"></a>4.4.cumulate window 怎么解决 tumble window + early-fire 的问题</h2><ol>
+<li>问题1：tumble window + early-fire 处理时间触发的问题。</li>
+</ol>
+<p>cumulate window 可以以事件时间推进进行触发。</p>
+<ol start="2">
+<li>问题1：tumble window + early-fire retract 流问题。</li>
+</ol>
+<p>cumulate window 是 append 流。</p>
+<h2 id="5-总结"><a href="#5-总结" class="headerlink" title="5.总结"></a>5.总结</h2><p>源码公众号后台回复<strong>1.13.2 cumulate window 的奇妙解析之路</strong>获取。</p>
+<p>本文主要介绍了 window tvf 实现的 cumulate window 聚合类指标的场景案例以及其运行原理：</p>
+<ol>
+<li>介绍了周期内累计 PV，UV 是我们最常用的指标场景质疑。</li>
+<li>在 tumble window + early-fire 或者 groupby + minibatch 计算周期内累计 PV，UV 存在各种问题是，诞生了 cumulate window 帮我们解决了这些问题，并以一个案例进行说明。</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div></div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechat.png" alt=" 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.png" alt=" 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Flink/" rel="tag"># Apache Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/12_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%80%EF%BC%89%EF%BC%9A%E5%8E%BB%E9%87%8D%E4%B8%8D%E4%BB%85%E4%BB%85%E6%9C%89%20count%20distinct%20%E8%BF%98%E6%9C%89%E5%BC%BA%E5%A4%A7%E7%9A%84%20deduplication/" rel="next" title="flink sql 知其所以然（十一）：去重不仅仅有 count distinct 还有强大的 deduplication">
+                <i class="fa fa-chevron-left"></i> flink sql 知其所以然（十一）：去重不仅仅有 count distinct 还有强大的 deduplication
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/10_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B9%9D%EF%BC%89%EF%BC%9Atumble-window-window-tvf/" rel="prev" title="flink sql 知其所以然（九）：1.13.2 flink tumble window">
+                flink sql 知其所以然（九）：1.13.2 flink tumble window <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/blog-img/avatar.jpeg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">115</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yangyichao-mango" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:1048262223@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%BA%8F%E7%AF%87"><span class="nav-number">1.</span> <span class="nav-text">1.序篇</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">2.应用场景介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E9%A2%84%E6%9C%9F%E7%9A%84%E6%95%88%E6%9E%9C"><span class="nav-number">3.</span> <span class="nav-text">3.预期的效果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E4%BB%8B%E7%BB%8D"><span class="nav-number">4.</span> <span class="nav-text">4.解决方案介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-1-13-%E4%B9%8B%E5%89%8D"><span class="nav-number">4.1.</span> <span class="nav-text">4.1.1.13 之前</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-1-13-%E5%8F%8A%E4%B9%8B%E5%90%8E"><span class="nav-number">4.2.</span> <span class="nav-text">4.2.1.13 及之后</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-cumulate-window-%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90"><span class="nav-number">4.3.</span> <span class="nav-text">4.3.cumulate window 原理解析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-cumulate-window-%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3-tumble-window-early-fire-%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">4.4.</span> <span class="nav-text">4.4.cumulate window 怎么解决 tumble window + early-fire 的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E6%80%BB%E7%BB%93"><span class="nav-number">4.5.</span> <span class="nav-text">5.总结</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">244.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://true.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/11_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%EF%BC%89%EF%BC%9A%E5%91%A8%E6%9C%9F%E5%86%85%E7%B4%AF%E8%AE%A1%E6%8C%87%E6%A0%87%E7%94%A8%20cumulate%20window%20%E5%B0%B1%E5%A4%9F%E4%BA%86/';
+          this.page.identifier = '2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/11_flink sql 知其所以然（十）：周期内累计指标用 cumulate window 就够了/';
+          this.page.title = 'flink sql 知其所以然（十）：大家都用 cumulate window 计算累计指标啦';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://true.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

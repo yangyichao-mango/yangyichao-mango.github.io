@@ -324,7 +324,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2020/10/12/wechat-blog/apache-flink:realtime-live-stream-1/">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/11_%E6%B5%81%E6%89%B9%E4%B8%80%E4%BD%93%E7%9A%84%E7%AE%80%E5%8D%95%E6%80%9D%E8%80%83/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -343,7 +343,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2020/10/12/wechat-blog/apache-flink:realtime-live-stream-1/" itemprop="url">生产实践 | 基于 Flink 的直播实时数据建设 （一）| 需求和架构篇</a></h1>
+                <a class="post-title-link" href="/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/11_%E6%B5%81%E6%89%B9%E4%B8%80%E4%BD%93%E7%9A%84%E7%AE%80%E5%8D%95%E6%80%9D%E8%80%83/" itemprop="url">当我们在做流批一体时，我们在做什么？</a></h1>
         
 
         <div class="post-meta">
@@ -355,8 +355,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-10-12T14:21:53+08:00">
-                2020-10-12
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-15T14:25:58+08:00">
+                2021-11-15
               </time>
             
 
@@ -396,1325 +396,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2020/10/12/wechat-blog/apache-flink:realtime-live-stream-1/#comments" itemprop="discussionUrl">
+                <a href="/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/11_%E6%B5%81%E6%89%B9%E4%B8%80%E4%BD%93%E7%9A%84%E7%AE%80%E5%8D%95%E6%80%9D%E8%80%83/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2020/10/12/wechat-blog/apache-flink:realtime-live-stream-1/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计&#58;</span>
-                
-                <span title="字数统计">
-                  2.4k
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">
-                  8
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          本系列每篇文章都比较短小，不定期更新，从一些实际的 case 出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍 Flink sink schema 字段设计小技巧，阅读时长大概 2 分钟，话不多说，直接进入正文！
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2020/10/12/wechat-blog/apache-flink:realtime-live-stream-1/">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2020/10/12/wechat-blog/apache-flink:stream-batch-integration/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog-img/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="antigeneral's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2020/10/12/wechat-blog/apache-flink:stream-batch-integration/" itemprop="url">前沿 | 流批一体的一些理解</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-10-12T14:21:53+08:00">
-                2020-10-12
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
-                    <span itemprop="name">Apache Flink</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2020/10/12/wechat-blog/apache-flink:stream-batch-integration/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2020/10/12/wechat-blog/apache-flink:stream-batch-integration/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计&#58;</span>
-                
-                <span title="字数统计">
-                  99
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">
-                  1
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          本系列每篇文章都比较短小，不定期更新，从一些博主的脑洞想法出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍博主对流批一体来源以及未来发展方向的一些理解，阅读时长大概 2 分钟，话不多说，直接进入正文！
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2020/10/12/wechat-blog/apache-flink:stream-batch-integration/">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2020/10/12/wechat-blog/read/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog-img/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="antigeneral's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2020/10/12/wechat-blog/read/" itemprop="url">前沿 | 流批一体的一些理解</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-10-12T14:21:53+08:00">
-                2020-10-12
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
-                    <span itemprop="name">Apache Flink</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2020/10/12/wechat-blog/read/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2020/10/12/wechat-blog/read/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计&#58;</span>
-                
-                <span title="字数统计">
-                  180
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">
-                  1
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          本系列每篇文章都比较短小，不定期更新，从一些博主的脑洞想法出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍博主对流批一体来源以及未来发展方向的一些理解，阅读时长大概 2 分钟，话不多说，直接进入正文！
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2020/10/12/wechat-blog/read/">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog-img/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="antigeneral's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/" itemprop="url">Tips | Flink 使用 union 代替 join、cogroup</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-10-03T14:21:53+08:00">
-                2020-10-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
-                    <span itemprop="name">Apache Flink</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计&#58;</span>
-                
-                <span title="字数统计">
-                  2k
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">
-                  8
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          本系列每篇文章都比较短小，不定期更新，从一些实际的 case 出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍在满足原有需求、实现原有逻辑的场景下，在 Flink 中使用 union 代替 cogroup(或者join) ，简化任务逻辑，提升任务性能的方法，阅读时长大概一分钟，话不多说，直接进入正文！
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2020/10/03/wechat-blog/apache-flink:realtime-tips-2-union-join/">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2020/10/03/wechat-blog/apache-flink:realtime-tips-3-utc/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog-img/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="antigeneral's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2020/10/03/wechat-blog/apache-flink:realtime-tips-3-utc/" itemprop="url">踩坑记 | Flink 天级别窗口中存在的时区问题</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-10-03T14:21:53+08:00">
-                2020-10-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
-                    <span itemprop="name">Apache Flink</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2020/10/03/wechat-blog/apache-flink:realtime-tips-3-utc/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2020/10/03/wechat-blog/apache-flink:realtime-tips-3-utc/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计&#58;</span>
-                
-                <span title="字数统计">
-                  4k
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">
-                  15
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          本系列每篇文章都是从一些实际的 case 出发，分析一些生产环境中经常会遇到的问题，抛砖引玉，以帮助小伙伴们解决一些实际问题。本文介绍 Flink 时间以及时区问题，分析了在天级别的窗口时会遇到的时区问题，如果对小伙伴有帮助的话，欢迎点赞 + 再看~
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2020/10/03/wechat-blog/apache-flink:realtime-tips-3-utc/">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2020/09/12/wechat-blog/apache-flink:realtime-tips-1/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog-img/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="antigeneral's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2020/09/12/wechat-blog/apache-flink:realtime-tips-1/" itemprop="url">Tips | Flink sink schema 字段设计小技巧</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-09-12T14:21:53+08:00">
-                2020-09-12
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
-                    <span itemprop="name">Apache Flink</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2020/09/12/wechat-blog/apache-flink:realtime-tips-1/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2020/09/12/wechat-blog/apache-flink:realtime-tips-1/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计&#58;</span>
-                
-                <span title="字数统计">
-                  1k
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">
-                  3
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          本系列每篇文章都比较短小，不定期更新，从一些实际的 case 出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍 Flink sink schema 字段设计小技巧，阅读时长大概 2 分钟，话不多说，直接进入正文！
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2020/09/12/wechat-blog/apache-flink:realtime-tips-1/">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2020/09/12/wechat-blog/apache-flink:realtime-tips-4-watermark/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog-img/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="antigeneral's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2020/09/12/wechat-blog/apache-flink:realtime-tips-4-watermark/" itemprop="url">Tips | flink watermark 一定只能用时间戳衡量？？？</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-09-12T14:21:53+08:00">
-                2020-09-12
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
-                    <span itemprop="name">Apache Flink</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2020/09/12/wechat-blog/apache-flink:realtime-tips-4-watermark/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2020/09/12/wechat-blog/apache-flink:realtime-tips-4-watermark/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计&#58;</span>
-                
-                <span title="字数统计">
-                  227
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">
-                  1
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          本系列每篇文章都比较短小，不定期更新，从一些实际的 case 出发抛砖引玉，提高小伙伴的姿♂势水平。本文从另一种角度介绍 flink 的 watermark，阅读时长大概 2 分钟，话不多说，直接进入正文！
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2020/09/12/wechat-blog/apache-flink:realtime-tips-4-watermark/">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2020/09/11/wechat-blog/apache-flink:realtime-out-of-order/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog-img/avatar.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="antigeneral's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2020/09/11/wechat-blog/apache-flink:realtime-out-of-order/" itemprop="url">踩坑记 | Flink 事件时间语义下数据乱序丢数踩坑</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-09-11T14:21:53+08:00">
-                2020-09-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
-                    <span itemprop="name">Apache Flink</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2020/09/11/wechat-blog/apache-flink:realtime-out-of-order/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2020/09/11/wechat-blog/apache-flink:realtime-out-of-order/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2021/11/15/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/11_流批一体的简单思考/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1752,7 +436,7 @@
                   <span class="post-meta-item-text">阅读时长 &asymp;</span>
                 
                 <span title="阅读时长">
-                  5
+                  4
                 </span>
               
             </div>
@@ -1774,10 +458,10 @@
 
       
         
-          本文详细介绍了在上游使用处理时间语义的 flink 任务出现故障后，重启消费大量积压在上游的数据并产出至下游数据乱序特别严重时，下游 flink 任务使用事件时间语义时遇到的大量丢数问题以及相关的解决方案。
+          本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2020/09/11/wechat-blog/apache-flink:realtime-out-of-order/">
+            <a class="btn" href="/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/11_%E6%B5%81%E6%89%B9%E4%B8%80%E4%BD%93%E7%9A%84%E7%AE%80%E5%8D%95%E6%80%9D%E8%80%83/">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1828,7 +512,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2020/09/01/wechat-blog/apache-flink:realtime-monitor-video/">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/05_%E6%95%B0%E6%8D%AE%E5%9B%A2%E9%98%9F%E5%BB%BA%E8%AE%BE/03_%E4%B8%AA%E4%BA%BA/gogogo/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -1847,7 +531,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2020/09/01/wechat-blog/apache-flink:realtime-monitor-video/" itemprop="url">生产实践 | 基于 Flink 的短视频生产消费监控</a></h1>
+                <a class="post-title-link" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/05_%E6%95%B0%E6%8D%AE%E5%9B%A2%E9%98%9F%E5%BB%BA%E8%AE%BE/03_%E4%B8%AA%E4%BA%BA/gogogo/" itemprop="url">晋升答辩</a></h1>
         
 
         <div class="post-meta">
@@ -1859,8 +543,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-09-01T14:21:53+08:00">
-                2020-09-01
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-13T14:25:58+08:00">
+                2021-11-13
               </time>
             
 
@@ -1900,9 +584,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2020/09/01/wechat-blog/apache-flink:realtime-monitor-video/#comments" itemprop="discussionUrl">
+                <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/05_%E6%95%B0%E6%8D%AE%E5%9B%A2%E9%98%9F%E5%BB%BA%E8%AE%BE/03_%E4%B8%AA%E4%BA%BA/gogogo/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2020/09/01/wechat-blog/apache-flink:realtime-monitor-video/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/05_数据团队建设/03_个人/gogogo/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1940,7 +624,7 @@
                   <span class="post-meta-item-text">阅读时长 &asymp;</span>
                 
                 <span title="阅读时长">
-                  11
+                  9
                 </span>
               
             </div>
@@ -1962,10 +646,273 @@
 
       
         
-          本文详细介绍了实时监控类指标的数据流转链路以及技术方案，大多数的实时监控类指标都可按照本文中的几种方案实现。
+          
+            <h1 id="1-前言"><a href="#1-前言" class="headerlink" title="1.前言"></a>1.前言</h1><p>准备答辩内容及材料是一个非常耗时耗力的过程，因此有一些方法的沉淀的话，后续对自己以及帮你 review 材料的人都会更轻松一些。</p>
+<h1 id="2-本质"><a href="#2-本质" class="headerlink" title="2.本质"></a>2.本质</h1><p>晋升永远是有了下一个职级的能力才会有晋升机会。如果你只是做好了你这个职级的事情，没有跨越职级的能力。同样是没有晋升机会的。</p>
+<h1 id="3-平常怎么要求自己"><a href="#3-平常怎么要求自己" class="headerlink" title="3.平常怎么要求自己"></a>3.平常怎么要求自己</h1><p>在平常工作生活中，按照下一个职级（一般公司内部都会有透明的职级能力模型）的要求做事情。明确业务需要达到什么地步？技术需要达到什么地步？</p>
+<h1 id="4-怎么准备答辩材料"><a href="#4-怎么准备答辩材料" class="headerlink" title="4.怎么准备答辩材料"></a>4.怎么准备答辩材料</h1><h2 id="4-1-准备材料前你需要知道的事情"><a href="#4-1-准备材料前你需要知道的事情" class="headerlink" title="4.1.准备材料前你需要知道的事情"></a>4.1.准备材料前你需要知道的事情</h2><ol>
+<li><p><strong>确认下一个职级的要求</strong>：审视一下自己在这些要求上面是否已经达到，或者在什么项目上体现出了这些能力，这些项目将成为之后做 PPT 的素材。</p>
+</li>
+<li><p><strong>站在评委的角度上去思考答辩 PPT 的内容</strong>：所以需要明确评委都是谁，是否和你做的是一个领域的东西，涉及到后续做 PPT 或者准备答辩内容时，其中涉及到的概念是否需要稍微展开举例。举一个例子，比如说想体现出实时计算中的状态，管理是非常复杂的，但是如果评委是做离线数据的话，他们其实是对状态处理没有什么概念的，所以你这里就得考虑多解释一下状态管理为什么复杂，状态管理为什么难。如果你的评委本身就是做实时计算的话，那么这里你就可以简单的介绍一下即可，不用解释的那么复杂。</p>
+</li>
+<li><p><strong>晋升答辩不是技术分享</strong>：准备的内容要能给评委讲明白讲懂，明确这是一场晋升答辩，不是硬核的技术分享（硬核技术分享一般都是针对于某一个点体现深度），也不是给别人上课，因此晋升答辩内容既不能太难，也不能太简单。</p>
+</li>
+<li><p><strong>评委关心的是你解决问题的能力</strong>：评委关心的是解决问题的能力有没有达到下一个职级，因此答辩的内容是要重点突出做项目的过程，包括你的分析过程，剖析难点问题的过程，解决难点问题的过程，而不是简单的介绍一下这个项目最终的结果，结果只是一个点缀，不是重点。</p>
+</li>
+<li><p><strong>所有的工作都需要有价值，有目标</strong>：所有的在答辩过程中描述的工作都需要有价值，有目标。以一种碰到问题 → 解决问题的思路去说，而不是凭空就出现了问题的解决方法。</p>
+</li>
+<li><p><strong>挑重点说</strong>：时间很宝贵，不可能将所有的问题及解决方案都说完，要调能突出能力的重点说。信息量不能爆炸，本身评委可能就不太了解你这部分内容，如果你还说了非常多的东西，评委的接受度会急剧降低。</p>
+</li>
+<li><p><strong>成果量化</strong>：体现出你做的好的一个最简单的方式就是将成果进行量化，比如对什么东西进行了优化，那么优化的效果就要体现出来，比如有了一倍的性能提升。</p>
+</li>
+<li><p><strong>注意体现工作大小的方式</strong>：负责的东西尽量以模块的方式体现出来，不然如果说的太小的话，评委会认为做的没有什么技术含量，或者没有什么价值。</p>
+</li>
+<li><p><strong>不要超越当前职级太多去说事情</strong>：需要站在当前的职级以及下一个职级的角度上去说事情，不建议说超出自己职责能力范围太多的事情，比如说，如果是应届生晋升，如果在整个过程中去说指导组内其他老人做了什么事情，评委就会觉得你可能是不是把自己拔的太高了，也会认为你们的团队管理是不是有问题，怎么能让一个新手去教一个老手。</p>
+</li>
+<li><p><strong>PPT 慎用标红加粗</strong>：做 PPT 时，有时会回去把一些自己认为重要的字体进行家族标红，但是一定要想清楚标红的逻辑，你要说出来为什么标红加粗，不然评委会懵逼。</p>
+</li>
+<li><p><strong>PPT 上的内容要简单易理解</strong>：不要写一句你自己都看不懂的话在上面</p>
+</li>
+<li><p><strong>PPT 尽量写短语</strong>：用短语引申</p>
+</li>
+<li><p><strong>划清和他人工作的界限</strong>：如果涉及到和他人一起合作，需要说明、划分清楚界限，让评委知道你在项目中干了什么。不可能所有的工作都是一个人完成的。</p>
+</li>
+<li><p><strong>PPT 尽量在同一页中体现问题以及对应的解法</strong>：如果在两页会有割裂感。如果一页写不下，那么在下一页也要将问题体现出来。</p>
+</li>
+</ol>
+<h2 id="4-2-答辩材料应该包含的内容"><a href="#4-2-答辩材料应该包含的内容" class="headerlink" title="4.2.答辩材料应该包含的内容"></a>4.2.答辩材料应该包含的内容</h2><p>以 PPT 为例，一般会包含以下几个部分的内容。</p>
+<ol>
+<li>个人简介 &amp; 工作内容概述</li>
+<li>工作成果及心得体会</li>
+<li>专业影响力及专业贡献</li>
+<li>未来思考及规划</li>
+</ol>
+<h3 id="4-2-1-个人简介-amp-工作内容概述"><a href="#4-2-1-个人简介-amp-工作内容概述" class="headerlink" title="4.2.1.个人简介 &amp; 工作内容概述"></a>4.2.1.个人简介 &amp; 工作内容概述</h3><p>个人简介 &amp; 工作内容概述主要是让评委知道你是做什么方向的，参与过什么项目，目前负责哪一块的。</p>
+<ol>
+<li><p><strong>个人简介</strong>：主要介绍在什么时间在什么公司主要干了什么项目？比如说在 2015年5月 - 2016年5月在阿里巴巴负责什么数据项目的建设。</p>
+</li>
+<li><p><strong>工作内容概述</strong>：主要是介绍目前的工作内容及负责的工作。可以简单挑几个重点项目中你负责的工作模块，做一个对应的介绍。</p>
+</li>
+</ol>
+<h3 id="4-2-2-工作成果及心得体会"><a href="#4-2-2-工作成果及心得体会" class="headerlink" title="4.2.2.工作成果及心得体会"></a>4.2.2.工作成果及心得体会</h3><p>这部分是主要介绍以及突出自己解决问题能力的部分，主要去介绍你工作重点突出的项目以及解决的难点问题。让评委知道你是怎么分析问题、解决问题、以及在项目中干了什么牛逼的事情。可以介绍一到两个项目（两个项目需要各有侧重，比如第一个项目体现技术方案牛逼，第二个可以体现保障方案牛逼）。</p>
+<p>可以通过以下几点进行介绍。</p>
+<ol>
+<li><p><strong>项目背景</strong>：主要是让评委知道这个项目是做什么的，包括了<strong>业务本身的背景以及目标，你负责的模块的定位以及目标</strong>（讲清楚为什么需要你负责的模块，你负责的模块在这个项目中是干啥的，其重要性）。</p>
+</li>
+<li><p><strong>需求分析以及难点问题分析</strong>：从<strong>需求以及业务的保障要求</strong>出发，<strong>分析业务特征以及目前组内的能力现状</strong>，从而明确<strong>难点问题（在业务上的难点与挑战是什么？在技术上的难点和挑战是什么？）</strong>。比如也可以从业务出发，比如业务一年比一年难，之前的技术方案不满足业务要求，其中的难点是什么？</p>
+</li>
+<li><p><strong>难点问题的解决方案</strong>：主要围绕着上述难点问题，将问题一个一个进行解决，在做 PPT 时，需要注意问题解决方案的先后逻辑关系，不建议只是罗列问题以及问题的解决方案。可以围绕着一个技术\业务框架图，去介绍这些问题的解决方案以及方案在框架中的定位。</p>
+</li>
+</ol>
+<blockquote>
+<p>Notes:</p>
+<p>这里要注意我们的解决方案可能是非常多的，但是不必全部都说出来，列举出来，因为答辩的时间是有限的，没有那么多时间去把所有的东西都说清楚，所以我们需要挑重点，说能体现我们能力的重点。</p>
+</blockquote>
+<ol start="4">
+<li><strong>项目成果</strong>：可以简单带过就可以，比如说你在<strong>数据建设</strong>上做了什么东西，达成了什么目标？在<strong>数据保障</strong>上做到了什么？在<strong>数据沉淀</strong>上做到了什么？在<strong>知识传播</strong>上又做了什么？</li>
+</ol>
+<h3 id="4-2-3-专业影响力及专业贡献"><a href="#4-2-3-专业影响力及专业贡献" class="headerlink" title="4.2.3.专业影响力及专业贡献"></a>4.2.3.专业影响力及专业贡献</h3><p>这里我们需要注意，因为所有的工作都需要有价值，有目标，以结果为导向，对我们之后的工作有帮助。所以在答辩的时候也需要从解决问题或者达成目标出发来说影响力及贡献，带着目的去做影响力的扩大和专业贡献，而不能简单地只说出有哪些影响力及贡献。</p>
+<p>可以围绕着以下三个方面去说：</p>
+<ol>
+<li><strong>技术演进</strong>：推进了什么工具链的优化，帮助解决了什么问题，在什么场景应用，应用的广泛度，提高了多少人效，优化了多少性能（列举一些数字）</li>
+<li><strong>知识沉淀</strong>：沉淀了什么方法论、什么文档、什么工具，帮助后续的工作有什么样的指导、建议、帮助（比如作为标准化的方案）。</li>
+<li><strong>知识的传播、知识分享</strong>：在公司外部你有什么分享？然后达到了技术影响力的输出。在公司内部分享了东西？包括组内外的技术分享，交流组内的技术分享。指导了多少人干了什么事情，干了多少事情，从而能够帮助他人更高效、标准地上手什么样的开发等。</li>
+</ol>
+<h3 id="4-2-4-未来思考及规划"><a href="#4-2-4-未来思考及规划" class="headerlink" title="4.2.4.未来思考及规划"></a>4.2.4.未来思考及规划</h3><p>未来规划主要是<strong>站在目前自己的角色</strong>出发去说。不能说一些虚无缥缈的大东西。</p>
+<p>思路可以是目前的痛点，未来的规划。</p>
+<p>可以从以下三个角度去说：</p>
+<ol>
+<li><strong>从业务角度说</strong>：比如说现在业务遇到了什么样的难题，或者什么样的问题没有解决，未来你要怎么样去解决这些问题（比如怎样做到低成本或者更高效的？）</li>
+<li><strong>从技术角度说</strong>：目前什么什么方案不成熟，然后后续要做什么样的优化（比如说目前什么什么技术研究深度、广度不够，后续要怎么进行深度和广度上的探索研究？）</li>
+<li><strong>从个人影响力说</strong>：比如后续可以从公司外，公司内总内外怎么样去提升个人的影响力（比如说你可以分享一些技术，分享一些文章，开设一些课程？）</li>
+</ol>
+<h1 id="5-总结"><a href="#5-总结" class="headerlink" title="5.总结"></a>5.总结</h1><p>再次说明，晋升永远是有了下一个职级的能力才会有晋升机会。所以如果你想晋升，一定不能只停留满足现状。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/10_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B9%9D%EF%BC%89%EF%BC%9Atumble-window-window-tvf/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/10_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B9%9D%EF%BC%89%EF%BC%9Atumble-window-window-tvf/" itemprop="url">flink sql 知其所以然（九）：1.13.2 flink tumble window</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-13T14:25:58+08:00">
+                2021-11-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/10_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B9%9D%EF%BC%89%EF%BC%9Atumble-window-window-tvf/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/10_flink sql 知其所以然（九）：tumble-window-window-tvf/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  4.6k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  18
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2020/09/01/wechat-blog/apache-flink:realtime-monitor-video/">
+            <a class="btn" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/10_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B9%9D%EF%BC%89%EF%BC%9Atumble-window-window-tvf/">
               阅读全文 &raquo;
             </a>
           </div>
@@ -2016,7 +963,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2020/09/01/wechat-blog/apache-flink:realtime-new-id/">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/11_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%EF%BC%89%EF%BC%9A%E5%91%A8%E6%9C%9F%E5%86%85%E7%B4%AF%E8%AE%A1%E6%8C%87%E6%A0%87%E7%94%A8%20cumulate%20window%20%E5%B0%B1%E5%A4%9F%E4%BA%86/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -2035,7 +982,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2020/09/01/wechat-blog/apache-flink:realtime-new-id/" itemprop="url">实时新增类指标标准化处理方案</a></h1>
+                <a class="post-title-link" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/11_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%EF%BC%89%EF%BC%9A%E5%91%A8%E6%9C%9F%E5%86%85%E7%B4%AF%E8%AE%A1%E6%8C%87%E6%A0%87%E7%94%A8%20cumulate%20window%20%E5%B0%B1%E5%A4%9F%E4%BA%86/" itemprop="url">flink sql 知其所以然（十）：大家都用 cumulate window 计算累计指标啦</a></h1>
         
 
         <div class="post-meta">
@@ -2047,8 +994,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-09-01T14:21:53+08:00">
-                2020-09-01
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-13T14:25:58+08:00">
+                2021-11-13
               </time>
             
 
@@ -2088,9 +1035,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2020/09/01/wechat-blog/apache-flink:realtime-new-id/#comments" itemprop="discussionUrl">
+                <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/11_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%EF%BC%89%EF%BC%9A%E5%91%A8%E6%9C%9F%E5%86%85%E7%B4%AF%E8%AE%A1%E6%8C%87%E6%A0%87%E7%94%A8%20cumulate%20window%20%E5%B0%B1%E5%A4%9F%E4%BA%86/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2020/09/01/wechat-blog/apache-flink:realtime-new-id/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/11_flink sql 知其所以然（十）：周期内累计指标用 cumulate window 就够了/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -2112,7 +1059,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  1.1k
+                  1.5k
                 </span>
               
 
@@ -2128,7 +1075,7 @@
                   <span class="post-meta-item-text">阅读时长 &asymp;</span>
                 
                 <span title="阅读时长">
-                  4
+                  6
                 </span>
               
             </div>
@@ -2150,10 +1097,1138 @@
 
       
         
-          实时指标整个链路开发过程中的一些经验。
+          本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2020/09/01/wechat-blog/apache-flink:realtime-new-id/">
+            <a class="btn" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/11_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%EF%BC%89%EF%BC%9A%E5%91%A8%E6%9C%9F%E5%86%85%E7%B4%AF%E8%AE%A1%E6%8C%87%E6%A0%87%E7%94%A8%20cumulate%20window%20%E5%B0%B1%E5%A4%9F%E4%BA%86/">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/12_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%80%EF%BC%89%EF%BC%9A%E5%8E%BB%E9%87%8D%E4%B8%8D%E4%BB%85%E4%BB%85%E6%9C%89%20count%20distinct%20%E8%BF%98%E6%9C%89%E5%BC%BA%E5%A4%A7%E7%9A%84%20deduplication/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/12_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%80%EF%BC%89%EF%BC%9A%E5%8E%BB%E9%87%8D%E4%B8%8D%E4%BB%85%E4%BB%85%E6%9C%89%20count%20distinct%20%E8%BF%98%E6%9C%89%E5%BC%BA%E5%A4%A7%E7%9A%84%20deduplication/" itemprop="url">flink sql 知其所以然（十一）：去重不仅仅有 count distinct 还有强大的 deduplication</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-13T14:25:58+08:00">
+                2021-11-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/12_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%80%EF%BC%89%EF%BC%9A%E5%8E%BB%E9%87%8D%E4%B8%8D%E4%BB%85%E4%BB%85%E6%9C%89%20count%20distinct%20%E8%BF%98%E6%9C%89%E5%BC%BA%E5%A4%A7%E7%9A%84%20deduplication/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/12_flink sql 知其所以然（十一）：去重不仅仅有 count distinct 还有强大的 deduplication/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1.4k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  5
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/12_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%80%EF%BC%89%EF%BC%9A%E5%8E%BB%E9%87%8D%E4%B8%8D%E4%BB%85%E4%BB%85%E6%9C%89%20count%20distinct%20%E8%BF%98%E6%9C%89%E5%BC%BA%E5%A4%A7%E7%9A%84%20deduplication/">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/03_state/02_%E6%9C%AC%E5%9C%B0%E8%B0%83%E8%AF%95_flink_ck/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/03_state/02_%E6%9C%AC%E5%9C%B0%E8%B0%83%E8%AF%95_flink_ck/" itemprop="url">flink ck 恢复</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-13T14:25:58+08:00">
+                2021-11-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/03_state/02_%E6%9C%AC%E5%9C%B0%E8%B0%83%E8%AF%95_flink_ck/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/03_state/02_本地调试_flink_ck/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  503
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  2
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/03_state/02_%E6%9C%AC%E5%9C%B0%E8%B0%83%E8%AF%95_flink_ck/">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/09_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AB%EF%BC%89%EF%BC%9A%E4%B8%8D%E4%BC%9A%E8%BF%9E%E6%9C%80%E9%80%82%E5%90%88%20flink%20sql%20%E7%9A%84%20%E7%AA%97%E5%8F%A3%E8%81%9A%E5%90%88%E5%9C%BA%E6%99%AF%E9%83%BD%E6%B2%A1%E8%A7%81%E8%BF%87%E5%90%A7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/09_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AB%EF%BC%89%EF%BC%9A%E4%B8%8D%E4%BC%9A%E8%BF%9E%E6%9C%80%E9%80%82%E5%90%88%20flink%20sql%20%E7%9A%84%20%E7%AA%97%E5%8F%A3%E8%81%9A%E5%90%88%E5%9C%BA%E6%99%AF%E9%83%BD%E6%B2%A1%E8%A7%81%E8%BF%87%E5%90%A7/" itemprop="url">flink sql 知其所以然（八）：flink sql tumble window 的奇妙解析之路</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-13T14:23:58+08:00">
+                2021-11-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/09_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AB%EF%BC%89%EF%BC%9A%E4%B8%8D%E4%BC%9A%E8%BF%9E%E6%9C%80%E9%80%82%E5%90%88%20flink%20sql%20%E7%9A%84%20%E7%AA%97%E5%8F%A3%E8%81%9A%E5%90%88%E5%9C%BA%E6%99%AF%E9%83%BD%E6%B2%A1%E8%A7%81%E8%BF%87%E5%90%A7/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/09_flink sql 知其所以然（八）：不会连最适合 flink sql 的 窗口聚合场景都没见过吧/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  4.8k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  18
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/09_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AB%EF%BC%89%EF%BC%9A%E4%B8%8D%E4%BC%9A%E8%BF%9E%E6%9C%80%E9%80%82%E5%90%88%20flink%20sql%20%E7%9A%84%20%E7%AA%97%E5%8F%A3%E8%81%9A%E5%90%88%E5%9C%BA%E6%99%AF%E9%83%BD%E6%B2%A1%E8%A7%81%E8%BF%87%E5%90%A7/">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%8D%E4%BC%9A%E8%BF%9E%E6%9C%80%E9%80%82%E5%90%88%20flink%20sql%20%E7%9A%84%20ETL%20%E5%92%8C%20group%20agg%20%E5%9C%BA%E6%99%AF%E9%83%BD%E6%B2%A1%E8%A7%81%E8%BF%87%E5%90%A7%EF%BC%9F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%8D%E4%BC%9A%E8%BF%9E%E6%9C%80%E9%80%82%E5%90%88%20flink%20sql%20%E7%9A%84%20ETL%20%E5%92%8C%20group%20agg%20%E5%9C%BA%E6%99%AF%E9%83%BD%E6%B2%A1%E8%A7%81%E8%BF%87%E5%90%A7%EF%BC%9F/" itemprop="url">flink sql 知其所以然（七）：不会连最适合 flink sql 的 ETL 和 group agg 场景都没见过吧？</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-13T14:22:58+08:00">
+                2021-11-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%8D%E4%BC%9A%E8%BF%9E%E6%9C%80%E9%80%82%E5%90%88%20flink%20sql%20%E7%9A%84%20ETL%20%E5%92%8C%20group%20agg%20%E5%9C%BA%E6%99%AF%E9%83%BD%E6%B2%A1%E8%A7%81%E8%BF%87%E5%90%A7%EF%BC%9F/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/08_flink sql 知其所以然（七）：不会连最适合 flink sql 的 ETL 和 group agg 场景都没见过吧？/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  4.1k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  17
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%8D%E4%BC%9A%E8%BF%9E%E6%9C%80%E9%80%82%E5%90%88%20flink%20sql%20%E7%9A%84%20ETL%20%E5%92%8C%20group%20agg%20%E5%9C%BA%E6%99%AF%E9%83%BD%E6%B2%A1%E8%A7%81%E8%BF%87%E5%90%A7%EF%BC%9F/">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84%20sql%20%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84%20sql%20%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/" itemprop="url">flink sql 知其所以然（六）：flink sql 约会 calcite</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-13T14:21:58+08:00">
+                2021-11-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84%20sql%20%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/07_flink sql 知其所以然（六）：流批哄哄的 sql 语法解析器/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  5.6k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  24
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84%20sql%20%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/02_flink-datastream/01_%E8%B8%A9%E5%9D%91%E8%AE%B0%7Cflinkstate%E5%BA%8F%E5%88%97%E5%8C%96javaenum%E7%AB%9F%E7%84%B6%E5%B2%94%E5%8A%88%E4%BA%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/02_flink-datastream/01_%E8%B8%A9%E5%9D%91%E8%AE%B0%7Cflinkstate%E5%BA%8F%E5%88%97%E5%8C%96javaenum%E7%AB%9F%E7%84%B6%E5%B2%94%E5%8A%88%E4%BA%86/" itemprop="url">踩坑记| flink state 序列化 java enum 竟然岔劈了</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-13T14:21:58+08:00">
+                2021-11-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/02_flink-datastream/01_%E8%B8%A9%E5%9D%91%E8%AE%B0%7Cflinkstate%E5%BA%8F%E5%88%97%E5%8C%96javaenum%E7%AB%9F%E7%84%B6%E5%B2%94%E5%8A%88%E4%BA%86/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/02_flink-datastream/01_踩坑记|flinkstate序列化javaenum竟然岔劈了/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1.6k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  7
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/02_flink-datastream/01_%E8%B8%A9%E5%9D%91%E8%AE%B0%7Cflinkstate%E5%BA%8F%E5%88%97%E5%8C%96javaenum%E7%AB%9F%E7%84%B6%E5%B2%94%E5%8A%88%E4%BA%86/">
               阅读全文 &raquo;
             </a>
           </div>
@@ -2195,7 +2270,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/">12</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2245,7 +2320,7 @@
               
                 <a href="/archives%7C%7C%20archive">
               
-                  <span class="site-state-item-count">70</span>
+                  <span class="site-state-item-count">115</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2333,7 +2408,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2021</span>
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2022</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
@@ -2347,7 +2422,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">77.6k</span>
+    <span title="Site words total count">244.8k</span>
   
 </div>
 

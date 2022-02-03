@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="antigeneral's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="flink sql 知其所以然（七）：不会连最适合 flink sql 的 ETL 和 group agg 场景都没见过吧？">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%8D%E4%BC%9A%E8%BF%9E%E6%9C%80%E9%80%82%E5%90%88%20flink%20sql%20%E7%9A%84%20ETL%20%E5%92%8C%20group%20agg%20%E5%9C%BA%E6%99%AF%E9%83%BD%E6%B2%A1%E8%A7%81%E8%BF%87%E5%90%A7%EF%BC%9F/index.html">
+<meta property="og:site_name" content="antigeneral&#39;s blog">
+<meta property="og:description" content="本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
+<meta property="og:locale">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/5.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/6.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/7.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/8.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/9.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/10.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/11.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/12.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/13.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/14.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/15.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/16.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/17.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/18.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/19.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/20.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/21.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/22.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/23.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/24.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/25.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/26.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/27.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/28.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/33.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/31.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/29.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/30.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/32.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/35.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/36.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/37.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/38.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/39.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/40.png">
+<meta property="article:published_time" content="2021-11-13T06:22:58.000Z">
+<meta property="article:modified_time" content="2021-09-05T14:56:56.497Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Flink">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/5.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/08_flink sql 知其所以然（七）：不会连最适合 flink sql 的 ETL 和 group agg 场景都没见过吧？/"/>
+
+
+
+
+
+  <title>flink sql 知其所以然（七）：不会连最适合 flink sql 的 ETL 和 group agg 场景都没见过吧？ | antigeneral's blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-150061865-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">antigeneral's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-link"></i> <br />
+            
+            links
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%8D%E4%BC%9A%E8%BF%9E%E6%9C%80%E9%80%82%E5%90%88%20flink%20sql%20%E7%9A%84%20ETL%20%E5%92%8C%20group%20agg%20%E5%9C%BA%E6%99%AF%E9%83%BD%E6%B2%A1%E8%A7%81%E8%BF%87%E5%90%A7%EF%BC%9F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">flink sql 知其所以然（七）：不会连最适合 flink sql 的 ETL 和 group agg 场景都没见过吧？</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-13T14:22:58+08:00">
+                2021-11-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%8D%E4%BC%9A%E8%BF%9E%E6%9C%80%E9%80%82%E5%90%88%20flink%20sql%20%E7%9A%84%20ETL%20%E5%92%8C%20group%20agg%20%E5%9C%BA%E6%99%AF%E9%83%BD%E6%B2%A1%E8%A7%81%E8%BF%87%E5%90%A7%EF%BC%9F/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/08_flink sql 知其所以然（七）：不会连最适合 flink sql 的 ETL 和 group agg 场景都没见过吧？/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  4.1k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  17
+                </span>
+              
+            </div>
+          
+
+          
+              <div class="post-description">
+                  本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>感谢您的小爱心（<strong>关注  +  点赞 + 再看</strong>），对博主的肯定，会督促博主持续的输出更多的优质实战内容！！！</p>
+</blockquote>
+<h1 id="1-序篇-本文结构"><a href="#1-序篇-本文结构" class="headerlink" title="1.序篇-本文结构"></a>1.序篇-本文结构</h1><p>前面的章节铺垫了那么多，终于在本节走入一条 query 了。</p>
+<p>针对 datastream api 大家都比较熟悉了，还是那句话，在 datastream 中，你写的代码逻辑是什么样的，它最终的执行方式就是什么样的。</p>
+<p>但是对于 flink sql 的执行过程，大家还是不熟悉的。</p>
+<p>因此本文通过以下章节使用 ETL，group agg（sum，count等）简单聚合类 query 带大家走进一条 flink sql query 逻辑的世界。帮大家至少能够熟悉在 flink sql 程序运行时知道 flink 程序在干什么。</p>
+<ol>
+<li>背景篇-大家不了解 flink sql 什么？</li>
+<li>目标篇-本文能帮助大家了解 flink sql 什么？</li>
+<li>实战篇-简单的 query 案例和运行原理</li>
+<li>总结与展望篇</li>
+</ol>
+<p><strong>先说说结论：</strong></p>
+<ol>
+<li><strong>场景问题</strong>：flink sql 很适合简单 ETL，以及基本全部场景下的聚合类指标。</li>
+<li><strong>语法问题</strong>：flink sql 语法其实是和其他 sql 语法基本一致的。基本不会产生语法问题阻碍使用 flink sql。</li>
+<li><strong>运行问题</strong>：查看 flink sql 任务时的一些技巧：<ul>
+<li>去 flink webui 看看这个任务目前在做什么。包括算子名称都会给直接展示给我们目前哪个算子在干啥事情，在处理啥逻辑。</li>
+<li>如果你想知道你的 flink 任务执行了什么代码，就去看看 sql 最后转换成的 transformation 里面具体要执行哪些操作。flink sql 生成的代码也在里面。</li>
+<li>如果你不确定线上任务执行原理，可以直接在本地尝试运行。</li>
+</ul>
+</li>
+</ol>
+<h1 id="2-背景篇-大家不了解-flink-sql-什么？"><a href="#2-背景篇-大家不了解-flink-sql-什么？" class="headerlink" title="2.背景篇-大家不了解 flink sql 什么？"></a>2.背景篇-大家不了解 flink sql 什么？</h1><p>首先从大家用 flink sql 的一个初衷和状态出发，想一下大家在开始上手 flink sql 时，是什么样的一个想法？</p>
+<p>博主大概整理了下，在初步上手 flink sql，一般从入手到踩坑整个过程中，一般都会有以下几种问题或者想法：</p>
+<ol>
+<li><strong>场景问题</strong>：首先 flink sql 是用来提效的，那相比 datastream，哪些场景很适合 flink sql 去做？</li>
+<li><strong>语法问题</strong>：我写 sql 时 flink sql 语法会不会和其他 sql 语法有不同？</li>
+<li><strong>运行问题</strong>：我写了一条 sql，运行起来了，但是对我来说是黑盒的，我怎么知道这个任务正在执行什么操作？有没有什么好办法帮我去理解 flink sql 的运行机制？</li>
+<li><strong>理解误区</strong>：在理解 flink sql 的运算机制上有哪些误区？</li>
+<li><strong>坑</strong>：flink sql 一般都有啥坑？提前了解帮我们避免踩坑。</li>
+</ol>
+<p>就是上面这些想法，会让很多想在公司内部引入 flink sql 的同学望而却步。</p>
+<h1 id="3-目标篇-本文能帮助大家了解-flink-sql-什么？"><a href="#3-目标篇-本文能帮助大家了解-flink-sql-什么？" class="headerlink" title="3.目标篇-本文能帮助大家了解 flink sql 什么？"></a>3.目标篇-本文能帮助大家了解 flink sql 什么？</h1><p>来看看本文的目标：</p>
+<ol>
+<li><strong>场景问题：帮大家理解哪些场景是非常适合 flink sql 的</strong></li>
+<li><strong>语法问题：帮大家简单熟悉 flink sql 的语法</strong></li>
+<li><strong>运行问题：使用一条简单的 query sql 看看其运行起来的过程，其运行的机制</strong></li>
+<li>理解误区：运算机制上的常见误区</li>
+<li>坑：看看 sql 一般会有啥坑</li>
+</ol>
+<p>由于一篇文章不能覆盖所有概念，本文主要介绍一些最简单的 ETL，聚合场景，主要集中于前三点。</p>
+<p>后两点在后续系列文章中会按照场景详细展开。</p>
+<h1 id="4-实战篇-简单的-query-案例和运行原理"><a href="#4-实战篇-简单的-query-案例和运行原理" class="headerlink" title="4.实战篇-简单的 query 案例和运行原理"></a>4.实战篇-简单的 query 案例和运行原理</h1><h2 id="4-1-场景问题：有哪些场景适合-flink-sql？"><a href="#4-1-场景问题：有哪些场景适合-flink-sql？" class="headerlink" title="4.1.场景问题：有哪些场景适合 flink sql？"></a>4.1.场景问题：有哪些场景适合 flink sql？</h2><p>不装了，我坦白了，flink sql 其实很适合干的活就是 dwd 清洗，dws 聚合。</p>
+<p>此处主要针对实时数仓的场景来说。flink sql 能干 dwd 清洗，dws 聚合，基本上实时数仓的大多数场景都能给覆盖了。</p>
+<p>flink sql 牛逼！！！</p>
+<p>但是！！！</p>
+<p>经过博主使用 flink sql 经验来看，并不是所有的 dwd，dws 聚合场景都适合 flink sql（截止发文阶段来说）！！！</p>
+<p>其实这些目前不适合 flink sql 的场景总结下来就是在处理上比 datastream 还是会有一定的损失。</p>
+<p>先总结下使用场景：<br><strong>1. dwd</strong>：简单的清洗、复杂的清洗、维度的扩充、各种 udf 的使用<br><strong>2. dws</strong>：各类聚合</p>
+<p>然后分适合的场景和不适合的场景来说，因为只这一篇不能覆盖所有的内容，所以本文此处先大致给个结论，之后会结合具体的场景详细描述。</p>
+<ul>
+<li><strong>适合的场景：</strong><ol>
+<li>简单的 dwd 清洗场景</li>
+<li>全场景的 dws 聚合场景</li>
+</ol>
+</li>
+<li><strong>目前不太适合的场景：</strong><ol>
+<li>复杂的 dwd 清洗场景：举例比如使用了很多 udf 清洗，尤其是使用很多的 json 类解析清洗</li>
+<li>关联维度场景：举例比如 datastream 中经常会有攒一批数据批量访问外部接口的场景，flink sql 目前对于这种场景虽然有 localcache、异步访问能力，但是依然还是一条一条访问外部缓存，这样相比批量访问还是会有性能差距。</li>
+</ol>
+</li>
+</ul>
+<h2 id="4-2-语法-运行问题"><a href="#4-2-语法-运行问题" class="headerlink" title="4.2.语法\运行问题"></a>4.2.语法\运行问题</h2><p>其实总结来说，对于接触过 sql 的同学来说，除了 flink sql 中窗口聚合类的写法来说，其他的 sql 语法都是相同的，很容易理解。</p>
+<p>本节会针对具体的案例进行详细介绍。</p>
+<h3 id="4-2-1-ETL"><a href="#4-2-1-ETL" class="headerlink" title="4.2.1.ETL"></a>4.2.1.ETL</h3><p>最简单的 ETL 类型任务。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> select_list <span class="keyword">FROM</span> table_expression [ <span class="keyword">WHERE</span> boolean_expression ]</span><br></pre></td></tr></table></figure>
+
+<p><strong>1.场景：简单的 dwd 清洗过滤场景</strong></p>
+<p>源码公众号后台回复<strong>不会连最适合 flink sql 的 ETL 和 group agg 场景都没见过吧</strong>获取。</p>
+<p>数据源表：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> source_table (</span><br><span class="line">    order_number <span class="type">BIGINT</span>,</span><br><span class="line">    price        <span class="type">DECIMAL</span>(<span class="number">32</span>,<span class="number">2</span>)</span><br><span class="line">) <span class="keyword">WITH</span> (</span><br><span class="line">  <span class="string">&#x27;connector&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;datagen&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;rows-per-second&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;10&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;fields.order_number.min&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;10&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;fields.order_number.max&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;11&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>数据汇表：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> sink_table (</span><br><span class="line">    order_number <span class="type">BIGINT</span>,</span><br><span class="line">    price        <span class="type">DECIMAL</span>(<span class="number">32</span>,<span class="number">2</span>)</span><br><span class="line">) <span class="keyword">WITH</span> (</span><br><span class="line">  <span class="string">&#x27;connector&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;print&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>ETL 逻辑：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> sink_table</span><br><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> source_table</span><br><span class="line"><span class="keyword">where</span> order_number <span class="operator">=</span> <span class="number">10</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>2.运行：可以看到，其实在 flink sql 任务中，其会把对应的处理逻辑给写到算子名称上面。</strong></p>
+<blockquote>
+<p><strong>Notes - 观察 flink sql 技巧 1：</strong><br>这个其实就是我们观察 flink sql 任务的第一个技巧。如果你想知道你的 flink 任务在干啥，第一反应是去 flink webui 看看这个任务目前在做什么。包括算子名称都会给直接展示给我们目前哪个算子在干啥事情，在处理啥逻辑</p>
+</blockquote>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/5.png" alt="5"></p>
+<p><strong>3.结果</strong></p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">+I[10, 337546916355686018150362513408.00]</span><br><span class="line">+I[10, 734895198061906189720381030400.00]</span><br><span class="line">+I[10, 496632591763800912960818249728.00]</span><br><span class="line">+I[10, 495090465926828588045441171456.00]</span><br><span class="line">+I[10, 167305033642317182838130081792.00]</span><br><span class="line">+I[10, 409466913112794578407573684224.00]</span><br><span class="line">+I[10, 894352160414515330502514180096.00]</span><br><span class="line">+I[10, 680063350384451712068576346112.00]</span><br><span class="line">+I[10, 50807402446574997641386524672.00]</span><br><span class="line">+I[10, 646597093362022945955245981696.00]</span><br><span class="line">+I[10, 233317961584082024331537809408.00]</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p><strong>4.原理：</strong></p>
+<p>先看一下一个 flink sql 任务的入口执行逻辑。</p>
+<p>首先看看建表语句的执行和 query 语句执行的逻辑有什么不同。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/6.png" alt="6"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/7.png" alt="7"></p>
+<p>可以发现执行到 <code>executeInternal</code> 时会针对具体的 <code>operation</code> 来执行不同的操作。</p>
+<p>执行建表操作就是具体的 <code>CreateTableOperation</code> 时，会将表的信息保存到 <code>catalogManager</code>。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/8.png" alt="8"></p>
+<p>执行 query 操作就是具体的 <code>ModifyOperation</code> 时，会将对应的逻辑转换成对应的 <code>Transformation</code>。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/9.png" alt="9"></p>
+<p><code>Transformation</code> 中就包含了执行的整体逻辑以及对应要执行的 sql 代码内容。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/10.png" alt="10"></p>
+<p>接下来我们详细看下对应的 transform 中包含了什么内容。</p>
+<p>首先是最外层 <code>LegacySinkTransformation</code>，即 sink 算子，如图就是 print sink function。比较好理解。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/11.png" alt="11"></p>
+<p>然后是中间层 <code>OneInputTransformation</code>，即 sql 中过滤和转换操作（<code>select * from source_table where order_number = 10</code>），如图是代码生成的具体过滤和转换逻辑。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/12.png" alt="12"></p>
+<p>生成的代码就在 <code>GeneratedOperator</code> 中的 <code>code</code> 字段。我们将对应的 <code>code</code> 复制到一个新的文件夹中。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/13.png" alt="13"></p>
+<p>这个算子是直接继承了 <code>OneInputStreamOperator</code> 进行直接执行逻辑，跳过了 datastream 那一层。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/14.png" alt="14"></p>
+<p>我们来看看最重要的 <code>processElement</code> 逻辑，具体字段解释和执行逻辑如图所示。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/15.png" alt="15"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/16.png" alt="16"></p>
+<blockquote>
+<p><strong>Notes - 观察 flink sql 技巧 2：</strong><br>这个其实就是我们观察 flink sql 任务的第二个技巧。如果你想知道你的 flink 任务执行了什么代码，就去看看 sql 最后转换成的 transformation 里面具体要执行哪些操作。</p>
+</blockquote>
+<h3 id="4-2-2-去重场景"><a href="#4-2-2-去重场景" class="headerlink" title="4.2.2.去重场景"></a>4.2.2.去重场景</h3><p><strong>1.场景：最简单的去重场景</strong></p>
+<p>源码公众号后台回复<strong>不会连最适合 flink sql 的 ETL 和 group agg 场景都没见过吧</strong>获取。</p>
+<p>数据源：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> source_table (</span><br><span class="line">    string_field STRING</span><br><span class="line">) <span class="keyword">WITH</span> (</span><br><span class="line">  <span class="string">&#x27;connector&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;datagen&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;rows-per-second&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;10&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;fields.string_field.length&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;3&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>数据汇：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> sink_table (</span><br><span class="line">    string_field STRING</span><br><span class="line">) <span class="keyword">WITH</span> (</span><br><span class="line">  <span class="string">&#x27;connector&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;print&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>数据处理：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> sink_table</span><br><span class="line"><span class="keyword">select</span> <span class="keyword">distinct</span> string_field</span><br><span class="line"><span class="keyword">from</span> source_table</span><br></pre></td></tr></table></figure>
+
+<p><strong>2.运行：可以看到，其实在 flink sql 任务中，其会把对应的处理逻辑给写到算子名称上面。</strong></p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/17.png" alt="17"></p>
+<p><strong>3.上面这个案例的结果：</strong></p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">+I[cd3]</span><br><span class="line">+I[8fc]</span><br><span class="line">+I[b0c]</span><br><span class="line">+I[1d8]</span><br><span class="line">+I[e28]</span><br><span class="line">+I[c5f]</span><br><span class="line">+I[e7d]</span><br><span class="line">+I[dfa]</span><br><span class="line">+I[1fe]</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p><strong>4.原理：</strong></p>
+<p>此处我们只关注和上面不同的逻辑。</p>
+<p>第一个就是 <code>PartitionTransform</code> 中的 <code>KeyGroupStreamPartitioner</code>，就是对应的分区逻辑。来看看生成代码的逻辑。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/18.png" alt="18"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/19.png" alt="19"></p>
+<p>其中做 shuffle 逻辑时，是按照 <code>string_field</code> 作为 key 进行 shuffle。</p>
+<p>第二个就是 <code>OneInputTransformation</code> 中的 <code>KeyedProcessOperator</code>，就是对应的去重逻辑。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/20.png" alt="20"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/21.png" alt="21"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/22.png" alt="22"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/23.png" alt="23"></p>
+<p>可以看到生成的 function 中只有这三段代码是业务逻辑代码，但是其中的 RowData 初始化大小都是 0。那么到底是哪里做的去重逻辑呢？</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/24.png" alt="24"></p>
+<p>我们跟一下处理逻辑会发现。去重逻辑主要集中在 <code>GroupAggFunction#processElement</code>。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/25.png" alt="25"></p>
+<h3 id="4-2-3-group-聚合场景"><a href="#4-2-3-group-聚合场景" class="headerlink" title="4.2.3.group 聚合场景"></a>4.2.3.group 聚合场景</h3><h4 id="4-2-3-1-简单聚合场景"><a href="#4-2-3-1-简单聚合场景" class="headerlink" title="4.2.3.1.简单聚合场景"></a>4.2.3.1.简单聚合场景</h4><p><strong>1.场景：最简单的聚合场景</strong></p>
+<p>源码公众号后台回复<strong>不会连最适合 flink sql 的 ETL 和 group agg 场景都没见过吧</strong>获取。</p>
+<p>count，sum，avg，max，min 等：</p>
+<p>数据源：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> source_table (</span><br><span class="line">    order_id STRING,</span><br><span class="line">    price <span class="type">BIGINT</span></span><br><span class="line">) <span class="keyword">WITH</span> (</span><br><span class="line">  <span class="string">&#x27;connector&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;datagen&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;rows-per-second&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;10&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;fields.order_id.length&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;1&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;fields.price.min&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;1&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;fields.price.max&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;1000000&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>数据汇：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> sink_table (</span><br><span class="line">    order_id STRING,</span><br><span class="line">    count_result <span class="type">BIGINT</span>,</span><br><span class="line">    sum_result <span class="type">BIGINT</span>,</span><br><span class="line">    avg_result <span class="keyword">DOUBLE</span>,</span><br><span class="line">    min_result <span class="type">BIGINT</span>,</span><br><span class="line">    max_result <span class="type">BIGINT</span></span><br><span class="line">) <span class="keyword">WITH</span> (</span><br><span class="line">  <span class="string">&#x27;connector&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;print&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>数据处理逻辑：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> sink_table</span><br><span class="line"><span class="keyword">select</span> order_id,</span><br><span class="line">       <span class="built_in">count</span>(<span class="operator">*</span>) <span class="keyword">as</span> count_result,</span><br><span class="line">       <span class="built_in">sum</span>(price) <span class="keyword">as</span> sum_result,</span><br><span class="line">       <span class="built_in">avg</span>(price) <span class="keyword">as</span> avg_result,</span><br><span class="line">       <span class="built_in">min</span>(price) <span class="keyword">as</span> min_result,</span><br><span class="line">       <span class="built_in">max</span>(price) <span class="keyword">as</span> max_result</span><br><span class="line"><span class="keyword">from</span> source_table</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> order_id</span><br></pre></td></tr></table></figure>
+
+<p><strong>2.运行：</strong></p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/26.png" alt="26"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/27.png" alt="27"></p>
+<p><strong>3.上面这个案例的结果：</strong></p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">+I[1, 1, 415300, 415300.0, 415300, 415300]</span><br><span class="line">+I[d, 1, 416878, 416878.0, 416878, 416878]</span><br><span class="line">+I[0, 1, 120837, 120837.0, 120837, 120837]</span><br><span class="line">+I[c, 1, 337749, 337749.0, 337749, 337749]</span><br><span class="line">+I[7, 1, 387053, 387053.0, 387053, 387053]</span><br><span class="line">+I[8, 1, 387042, 387042.0, 387042, 387042]</span><br><span class="line">+I[2, 1, 546317, 546317.0, 546317, 546317]</span><br><span class="line">+I[e, 1, 22131, 22131.0, 22131, 22131]</span><br><span class="line">+I[9, 1, 651731, 651731.0, 651731, 651731]</span><br><span class="line">-U[0, 1, 120837, 120837.0, 120837, 120837]</span><br><span class="line">+U[0, 2, 566664, 283332.0, 120837, 445827]</span><br><span class="line">+I[b, 1, 748659, 748659.0, 748659, 748659]</span><br><span class="line">-U[7, 1, 387053, 387053.0, 387053, 387053]</span><br><span class="line">+U[7, 2, 1058056, 529028.0, 387053, 671003]</span><br></pre></td></tr></table></figure>
+
+<p><strong>4.原理：</strong></p>
+<p>来瞅一眼 transformation。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/28.png" alt="28"></p>
+<p>还是和之前的逻辑一样，跟一下 GroupAggFunction 的逻辑。如下图，有五个执行步骤执行计算。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/33.png" alt="33"></p>
+<p>再看最终生成的 function 代码逻辑。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/31.png" alt="31"></p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/29.png" alt="29"></p>
+<p>首先看看 count 怎么算的。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/30.png" alt="30"></p>
+<p>sum 怎么算的。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/32.png" alt="32"></p>
+<h4 id="4-2-3-2-去重聚合场景"><a href="#4-2-3-2-去重聚合场景" class="headerlink" title="4.2.3.2.去重聚合场景"></a>4.2.3.2.去重聚合场景</h4><p><strong>1.场景：去重聚合场景</strong></p>
+<p>数据源：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> source_table (</span><br><span class="line">    dim STRING,</span><br><span class="line">    user_id <span class="type">BIGINT</span></span><br><span class="line">) <span class="keyword">WITH</span> (</span><br><span class="line">  <span class="string">&#x27;connector&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;datagen&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;rows-per-second&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;10&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;fields.dim.length&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;1&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;fields.user_id.min&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;1&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;fields.user_id.max&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;1000000&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>数据汇：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> sink_table (</span><br><span class="line">    dim STRING,</span><br><span class="line">    uv <span class="type">BIGINT</span></span><br><span class="line">) <span class="keyword">WITH</span> (</span><br><span class="line">  <span class="string">&#x27;connector&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;print&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>数据处理：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> sink_table</span><br><span class="line"><span class="keyword">select</span> dim,</span><br><span class="line">       <span class="built_in">count</span>(<span class="keyword">distinct</span> user_id) <span class="keyword">as</span> uv</span><br><span class="line"><span class="keyword">from</span> source_table</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> dim</span><br></pre></td></tr></table></figure>
+
+<p><strong>2.运行：</strong></p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/35.png" alt="35"></p>
+<p><strong>3.上面这个案例的结果：</strong></p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">+U[9, 3097]</span><br><span class="line">-U[a, 3054]</span><br><span class="line">+U[a, 3055]</span><br><span class="line">-U[8, 3030]</span><br><span class="line">+U[8, 3031]</span><br><span class="line">-U[4, 3137]</span><br><span class="line">+U[4, 3138]</span><br><span class="line">-U[6, 3139]</span><br><span class="line">+U[6, 3140]</span><br><span class="line">-U[0, 3082]</span><br><span class="line">+U[0, 3083]</span><br></pre></td></tr></table></figure>
+
+<p><strong>4.原理：</strong></p>
+<p>此处只看和之前的案例不一样的地方。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/36.png" alt="36"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/37.png" alt="37"></p>
+<h4 id="4-2-3-3-语法糖"><a href="#4-2-3-3-语法糖" class="headerlink" title="4.2.3.3.语法糖"></a>4.2.3.3.语法糖</h4><p><strong>1.grouping sets</strong></p>
+<p>多维计算。相当于语法糖，用户可以根据自己的场景去指定自己想要的维度组合。</p>
+<p>数据汇：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> sink_table (</span><br><span class="line">    supplier_id STRING,</span><br><span class="line">    product_id STRING,</span><br><span class="line">    total <span class="type">BIGINT</span></span><br><span class="line">) <span class="keyword">WITH</span> (</span><br><span class="line">  <span class="string">&#x27;connector&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;print&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>数据处理逻辑：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> sink_table</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">     supplier_id,</span><br><span class="line">     product_id,</span><br><span class="line">     <span class="built_in">COUNT</span>(<span class="operator">*</span>) <span class="keyword">AS</span> total</span><br><span class="line"><span class="keyword">FROM</span> (<span class="keyword">VALUES</span></span><br><span class="line">     (<span class="string">&#x27;supplier1&#x27;</span>, <span class="string">&#x27;product1&#x27;</span>, <span class="number">4</span>),</span><br><span class="line">     (<span class="string">&#x27;supplier1&#x27;</span>, <span class="string">&#x27;product2&#x27;</span>, <span class="number">3</span>),</span><br><span class="line">     (<span class="string">&#x27;supplier2&#x27;</span>, <span class="string">&#x27;product3&#x27;</span>, <span class="number">3</span>),</span><br><span class="line">     (<span class="string">&#x27;supplier2&#x27;</span>, <span class="string">&#x27;product4&#x27;</span>, <span class="number">4</span>))</span><br><span class="line"><span class="keyword">AS</span> Products(supplier_id, product_id, rating)</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> <span class="keyword">GROUPING</span> SETS ((supplier_id, product_id), (supplier_id), ())</span><br></pre></td></tr></table></figure>
+
+<p>其结果等同于：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> sink_table</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">     supplier_id,</span><br><span class="line">     product_id,</span><br><span class="line">     <span class="built_in">COUNT</span>(<span class="operator">*</span>) <span class="keyword">AS</span> total</span><br><span class="line"><span class="keyword">FROM</span> (<span class="keyword">VALUES</span></span><br><span class="line">     (<span class="string">&#x27;supplier1&#x27;</span>, <span class="string">&#x27;product1&#x27;</span>, <span class="number">4</span>),</span><br><span class="line">     (<span class="string">&#x27;supplier1&#x27;</span>, <span class="string">&#x27;product2&#x27;</span>, <span class="number">3</span>),</span><br><span class="line">     (<span class="string">&#x27;supplier2&#x27;</span>, <span class="string">&#x27;product3&#x27;</span>, <span class="number">3</span>),</span><br><span class="line">     (<span class="string">&#x27;supplier2&#x27;</span>, <span class="string">&#x27;product4&#x27;</span>, <span class="number">4</span>))</span><br><span class="line"><span class="keyword">AS</span> Products(supplier_id, product_id, rating)</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> supplier_id, product_id</span><br><span class="line"><span class="keyword">UNION</span> <span class="keyword">ALL</span></span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">     supplier_id,</span><br><span class="line">     <span class="built_in">cast</span>(<span class="keyword">null</span> <span class="keyword">as</span> string) <span class="keyword">as</span> product_id,</span><br><span class="line">     <span class="built_in">COUNT</span>(<span class="operator">*</span>) <span class="keyword">AS</span> total</span><br><span class="line"><span class="keyword">FROM</span> (<span class="keyword">VALUES</span></span><br><span class="line">     (<span class="string">&#x27;supplier1&#x27;</span>, <span class="string">&#x27;product1&#x27;</span>, <span class="number">4</span>),</span><br><span class="line">     (<span class="string">&#x27;supplier1&#x27;</span>, <span class="string">&#x27;product2&#x27;</span>, <span class="number">3</span>),</span><br><span class="line">     (<span class="string">&#x27;supplier2&#x27;</span>, <span class="string">&#x27;product3&#x27;</span>, <span class="number">3</span>),</span><br><span class="line">     (<span class="string">&#x27;supplier2&#x27;</span>, <span class="string">&#x27;product4&#x27;</span>, <span class="number">4</span>))</span><br><span class="line"><span class="keyword">AS</span> Products(supplier_id, product_id, rating)</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> supplier_id</span><br><span class="line"><span class="keyword">UNION</span> <span class="keyword">ALL</span></span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">     <span class="built_in">cast</span>(<span class="keyword">null</span> <span class="keyword">as</span> string) <span class="keyword">AS</span> supplier_id,</span><br><span class="line">     <span class="built_in">cast</span>(<span class="keyword">null</span> <span class="keyword">as</span> string) <span class="keyword">AS</span> product_id,</span><br><span class="line">     <span class="built_in">COUNT</span>(<span class="operator">*</span>) <span class="keyword">AS</span> total</span><br><span class="line"><span class="keyword">FROM</span> (<span class="keyword">VALUES</span></span><br><span class="line">     (<span class="string">&#x27;supplier1&#x27;</span>, <span class="string">&#x27;product1&#x27;</span>, <span class="number">4</span>),</span><br><span class="line">     (<span class="string">&#x27;supplier1&#x27;</span>, <span class="string">&#x27;product2&#x27;</span>, <span class="number">3</span>),</span><br><span class="line">     (<span class="string">&#x27;supplier2&#x27;</span>, <span class="string">&#x27;product3&#x27;</span>, <span class="number">3</span>),</span><br><span class="line">     (<span class="string">&#x27;supplier2&#x27;</span>, <span class="string">&#x27;product4&#x27;</span>, <span class="number">4</span>))</span><br><span class="line"><span class="keyword">AS</span> Products(supplier_id, product_id, rating)</span><br></pre></td></tr></table></figure>
+
+<p>结果如下：</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">+I[supplier1, product1, 1]</span><br><span class="line">+I[supplier1, null, 1]</span><br><span class="line">+I[null, null, 1]</span><br><span class="line">+I[supplier1, product2, 1]</span><br><span class="line">-U[supplier1, null, 1]</span><br><span class="line">+U[supplier1, null, 2]</span><br><span class="line">-U[null, null, 1]</span><br><span class="line">+U[null, null, 2]</span><br><span class="line">+I[supplier2, product3, 1]</span><br><span class="line">+I[supplier2, null, 1]</span><br><span class="line">-U[null, null, 2]</span><br><span class="line">+U[null, null, 3]</span><br><span class="line">+I[supplier2, product4, 1]</span><br><span class="line">-U[supplier2, null, 1]</span><br><span class="line">+U[supplier2, null, 2]</span><br><span class="line">-U[null, null, 3]</span><br><span class="line">+U[null, null, 4]</span><br></pre></td></tr></table></figure>
+
+<p>grouping sets 能帮助我们在多维场景下，减少很多冗余代码。关于 grouping sets 原理后面的系列文章会介绍。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/38.png" alt="38"></p>
+<p><strong>2.rollup</strong></p>
+<p>rollup 是上卷计算的一种简化写法。比如可以把 <code>GROUPING SETS ((supplier_id, product_id), (supplier_id), ())</code> 简化为 <code>ROLLUP (supplier_id, product_id)</code>。</p>
+<p>数据汇：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> sink_table (</span><br><span class="line">    supplier_id STRING,</span><br><span class="line">    product_id STRING,</span><br><span class="line">    total <span class="type">BIGINT</span></span><br><span class="line">) <span class="keyword">WITH</span> (</span><br><span class="line">  <span class="string">&#x27;connector&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;print&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>数据处理逻辑：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> supplier_id, rating, <span class="built_in">COUNT</span>(<span class="operator">*</span>)</span><br><span class="line"><span class="keyword">FROM</span> (<span class="keyword">VALUES</span></span><br><span class="line">    (<span class="string">&#x27;supplier1&#x27;</span>, <span class="string">&#x27;product1&#x27;</span>, <span class="number">4</span>),</span><br><span class="line">    (<span class="string">&#x27;supplier1&#x27;</span>, <span class="string">&#x27;product2&#x27;</span>, <span class="number">3</span>),</span><br><span class="line">    (<span class="string">&#x27;supplier2&#x27;</span>, <span class="string">&#x27;product3&#x27;</span>, <span class="number">3</span>),</span><br><span class="line">    (<span class="string">&#x27;supplier2&#x27;</span>, <span class="string">&#x27;product4&#x27;</span>, <span class="number">4</span>))</span><br><span class="line"><span class="keyword">AS</span> Products(supplier_id, product_id, rating)</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> <span class="keyword">ROLLUP</span> (supplier_id, product_id)</span><br></pre></td></tr></table></figure>
+
+<p>其结果等同于：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> supplier_id, rating, product_id, <span class="built_in">COUNT</span>(<span class="operator">*</span>)</span><br><span class="line"><span class="keyword">FROM</span> (<span class="keyword">VALUES</span></span><br><span class="line">    (<span class="string">&#x27;supplier1&#x27;</span>, <span class="string">&#x27;product1&#x27;</span>, <span class="number">4</span>),</span><br><span class="line">    (<span class="string">&#x27;supplier1&#x27;</span>, <span class="string">&#x27;product2&#x27;</span>, <span class="number">3</span>),</span><br><span class="line">    (<span class="string">&#x27;supplier2&#x27;</span>, <span class="string">&#x27;product3&#x27;</span>, <span class="number">3</span>),</span><br><span class="line">    (<span class="string">&#x27;supplier2&#x27;</span>, <span class="string">&#x27;product4&#x27;</span>, <span class="number">4</span>))</span><br><span class="line"><span class="keyword">AS</span> Products(supplier_id, product_id, rating)</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> <span class="keyword">GROUPING</span> <span class="keyword">SET</span> (</span><br><span class="line">    ( supplier_id, product_id ),</span><br><span class="line">    ( supplier_id             ),</span><br><span class="line">    (                         )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>结果如下：</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">+I[supplier1, product1, 1]</span><br><span class="line">+I[supplier1, null, 1]</span><br><span class="line">+I[null, null, 1]</span><br><span class="line">+I[supplier1, product2, 1]</span><br><span class="line">-U[supplier1, null, 1]</span><br><span class="line">+U[supplier1, null, 2]</span><br><span class="line">-U[null, null, 1]</span><br><span class="line">+U[null, null, 2]</span><br><span class="line">+I[supplier2, product3, 1]</span><br><span class="line">+I[supplier2, null, 1]</span><br><span class="line">-U[null, null, 2]</span><br><span class="line">+U[null, null, 3]</span><br><span class="line">+I[supplier2, product4, 1]</span><br><span class="line">-U[supplier2, null, 1]</span><br><span class="line">+U[supplier2, null, 2]</span><br><span class="line">-U[null, null, 3]</span><br><span class="line">+U[null, null, 4]</span><br></pre></td></tr></table></figure>
+
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/39.png" alt="39"></p>
+<p><strong>5.CUBE 计算</strong></p>
+<p>源码公众号后台回复<strong>不会连最适合 flink sql 的 ETL 和 group agg 场景都没见过吧</strong>获取。</p>
+<p>cube 相当于是一种覆盖了所有维度组合聚合计算。比如 group by a, b, c。其会将 a, b, c 三个维度的所有维度组合进行 group by。</p>
+<p>数据汇：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> sink_table (</span><br><span class="line">    supplier_id STRING,</span><br><span class="line">    product_id STRING,</span><br><span class="line">    total <span class="type">BIGINT</span></span><br><span class="line">) <span class="keyword">WITH</span> (</span><br><span class="line">  <span class="string">&#x27;connector&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;print&#x27;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>数据处理逻辑：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> supplier_id, rating, product_id, <span class="built_in">COUNT</span>(<span class="operator">*</span>)</span><br><span class="line"><span class="keyword">FROM</span> (<span class="keyword">VALUES</span></span><br><span class="line">    (<span class="string">&#x27;supplier1&#x27;</span>, <span class="string">&#x27;product1&#x27;</span>, <span class="number">4</span>),</span><br><span class="line">    (<span class="string">&#x27;supplier1&#x27;</span>, <span class="string">&#x27;product2&#x27;</span>, <span class="number">3</span>),</span><br><span class="line">    (<span class="string">&#x27;supplier2&#x27;</span>, <span class="string">&#x27;product3&#x27;</span>, <span class="number">3</span>),</span><br><span class="line">    (<span class="string">&#x27;supplier2&#x27;</span>, <span class="string">&#x27;product4&#x27;</span>, <span class="number">4</span>))</span><br><span class="line"><span class="keyword">AS</span> Products(supplier_id, product_id, rating)</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> <span class="keyword">CUBE</span> (supplier_id, product_id)</span><br></pre></td></tr></table></figure>
+
+<p>它等同于</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> supplier_id, rating, product_id, <span class="built_in">COUNT</span>(<span class="operator">*</span>)</span><br><span class="line"><span class="keyword">FROM</span> (<span class="keyword">VALUES</span></span><br><span class="line">    (<span class="string">&#x27;supplier1&#x27;</span>, <span class="string">&#x27;product1&#x27;</span>, <span class="number">4</span>),</span><br><span class="line">    (<span class="string">&#x27;supplier1&#x27;</span>, <span class="string">&#x27;product2&#x27;</span>, <span class="number">3</span>),</span><br><span class="line">    (<span class="string">&#x27;supplier2&#x27;</span>, <span class="string">&#x27;product3&#x27;</span>, <span class="number">3</span>),</span><br><span class="line">    (<span class="string">&#x27;supplier2&#x27;</span>, <span class="string">&#x27;product4&#x27;</span>, <span class="number">4</span>))</span><br><span class="line"><span class="keyword">AS</span> Products(supplier_id, product_id, rating)</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> <span class="keyword">GROUPING</span> <span class="keyword">SET</span> (</span><br><span class="line">    ( supplier_id, product_id ),</span><br><span class="line">    ( supplier_id             ),</span><br><span class="line">    (              product_id ),</span><br><span class="line">    (                         )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>结果如下：</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">+I[supplier1, product1, 1]</span><br><span class="line">+I[supplier1, null, 1]</span><br><span class="line">+I[null, product1, 1]</span><br><span class="line">+I[null, null, 1]</span><br><span class="line">+I[supplier1, product2, 1]</span><br><span class="line">-U[supplier1, null, 1]</span><br><span class="line">+U[supplier1, null, 2]</span><br><span class="line">+I[null, product2, 1]</span><br><span class="line">-U[null, null, 1]</span><br><span class="line">+U[null, null, 2]</span><br><span class="line">+I[supplier2, product3, 1]</span><br><span class="line">+I[supplier2, null, 1]</span><br><span class="line">+I[null, product3, 1]</span><br><span class="line">-U[null, null, 2]</span><br><span class="line">+U[null, null, 3]</span><br><span class="line">+I[supplier2, product4, 1]</span><br><span class="line">-U[supplier2, null, 1]</span><br><span class="line">+U[supplier2, null, 2]</span><br><span class="line">+I[null, product4, 1]</span><br><span class="line">-U[null, null, 3]</span><br><span class="line">+U[null, null, 4]</span><br></pre></td></tr></table></figure>
+
+
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%80%E6%9D%A1sqlquery/40.png" alt="40"></p>
+<h1 id="5-总结与展望篇"><a href="#5-总结与展望篇" class="headerlink" title="5.总结与展望篇"></a>5.总结与展望篇</h1><p>本文主要介绍了 ETL，group agg 聚合类指标的一些常见场景案例以及其底层运行原理。我们可以发现 flink sql 的语法其实和 hive sql，mysql 啥的语法都是基本一致的。所以上手 flink sql 时，语法基本不会成为我们的障碍。</p>
+<p>而且也介绍了在查看 flink sql 任务时的一些技巧：</p>
+<ol>
+<li>去 flink webui 看看这个任务目前在做什么。包括算子名称都会给直接展示给我们目前哪个算子在干啥事情，在处理啥逻辑。</li>
+<li>如果你想知道你的 flink 任务执行了什么代码，就去看看 sql 最后转换成的 transformation 里面具体要执行哪些操作。</li>
+</ol>
+<p>后续文章会继续介绍 flink sql 窗口聚合，一些理解误区，和坑之类的案例。</p>
+<p>希望大家能持续关注。支持博主。喜欢的请关注 + 点赞 + 再看。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div></div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechat.png" alt=" 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.png" alt=" 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Flink/" rel="tag"># Apache Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84%20sql%20%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/" rel="next" title="flink sql 知其所以然（六）：flink sql 约会 calcite">
+                <i class="fa fa-chevron-left"></i> flink sql 知其所以然（六）：flink sql 约会 calcite
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/09_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AB%EF%BC%89%EF%BC%9A%E4%B8%8D%E4%BC%9A%E8%BF%9E%E6%9C%80%E9%80%82%E5%90%88%20flink%20sql%20%E7%9A%84%20%E7%AA%97%E5%8F%A3%E8%81%9A%E5%90%88%E5%9C%BA%E6%99%AF%E9%83%BD%E6%B2%A1%E8%A7%81%E8%BF%87%E5%90%A7/" rel="prev" title="flink sql 知其所以然（八）：flink sql tumble window 的奇妙解析之路">
+                flink sql 知其所以然（八）：flink sql tumble window 的奇妙解析之路 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/blog-img/avatar.jpeg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">115</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yangyichao-mango" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:1048262223@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%BA%8F%E7%AF%87-%E6%9C%AC%E6%96%87%E7%BB%93%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">1.序篇-本文结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%83%8C%E6%99%AF%E7%AF%87-%E5%A4%A7%E5%AE%B6%E4%B8%8D%E4%BA%86%E8%A7%A3-flink-sql-%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">2.背景篇-大家不了解 flink sql 什么？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E7%9B%AE%E6%A0%87%E7%AF%87-%E6%9C%AC%E6%96%87%E8%83%BD%E5%B8%AE%E5%8A%A9%E5%A4%A7%E5%AE%B6%E4%BA%86%E8%A7%A3-flink-sql-%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">3.目标篇-本文能帮助大家了解 flink sql 什么？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%AE%9E%E6%88%98%E7%AF%87-%E7%AE%80%E5%8D%95%E7%9A%84-query-%E6%A1%88%E4%BE%8B%E5%92%8C%E8%BF%90%E8%A1%8C%E5%8E%9F%E7%90%86"><span class="nav-number">4.</span> <span class="nav-text">4.实战篇-简单的 query 案例和运行原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E5%9C%BA%E6%99%AF%E9%97%AE%E9%A2%98%EF%BC%9A%E6%9C%89%E5%93%AA%E4%BA%9B%E5%9C%BA%E6%99%AF%E9%80%82%E5%90%88-flink-sql%EF%BC%9F"><span class="nav-number">4.1.</span> <span class="nav-text">4.1.场景问题：有哪些场景适合 flink sql？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-%E8%AF%AD%E6%B3%95-%E8%BF%90%E8%A1%8C%E9%97%AE%E9%A2%98"><span class="nav-number">4.2.</span> <span class="nav-text">4.2.语法\运行问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-1-ETL"><span class="nav-number">4.2.1.</span> <span class="nav-text">4.2.1.ETL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-2-%E5%8E%BB%E9%87%8D%E5%9C%BA%E6%99%AF"><span class="nav-number">4.2.2.</span> <span class="nav-text">4.2.2.去重场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-3-group-%E8%81%9A%E5%90%88%E5%9C%BA%E6%99%AF"><span class="nav-number">4.2.3.</span> <span class="nav-text">4.2.3.group 聚合场景</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#4-2-3-1-%E7%AE%80%E5%8D%95%E8%81%9A%E5%90%88%E5%9C%BA%E6%99%AF"><span class="nav-number">4.2.3.1.</span> <span class="nav-text">4.2.3.1.简单聚合场景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-2-3-2-%E5%8E%BB%E9%87%8D%E8%81%9A%E5%90%88%E5%9C%BA%E6%99%AF"><span class="nav-number">4.2.3.2.</span> <span class="nav-text">4.2.3.2.去重聚合场景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-2-3-3-%E8%AF%AD%E6%B3%95%E7%B3%96"><span class="nav-number">4.2.3.3.</span> <span class="nav-text">4.2.3.3.语法糖</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E6%80%BB%E7%BB%93%E4%B8%8E%E5%B1%95%E6%9C%9B%E7%AF%87"><span class="nav-number">5.</span> <span class="nav-text">5.总结与展望篇</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">244.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://true.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%8D%E4%BC%9A%E8%BF%9E%E6%9C%80%E9%80%82%E5%90%88%20flink%20sql%20%E7%9A%84%20ETL%20%E5%92%8C%20group%20agg%20%E5%9C%BA%E6%99%AF%E9%83%BD%E6%B2%A1%E8%A7%81%E8%BF%87%E5%90%A7%EF%BC%9F/';
+          this.page.identifier = '2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/08_flink sql 知其所以然（七）：不会连最适合 flink sql 的 ETL 和 group agg 场景都没见过吧？/';
+          this.page.title = 'flink sql 知其所以然（七）：不会连最适合 flink sql 的 ETL 和 group agg 场景都没见过吧？';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://true.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

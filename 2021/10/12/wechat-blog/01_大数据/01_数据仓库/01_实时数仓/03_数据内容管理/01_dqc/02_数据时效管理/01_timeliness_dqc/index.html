@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="antigeneral's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本系列每篇文章都比较短小，不定期更新，从一些博主的脑洞想法出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍博主对流批一体来源以及未来发展方向的一些理解，阅读时长大概 2 分钟，话不多说，直接进入正文！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="管理 | 实时数仓数据时效保障">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2021/10/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/index.html">
+<meta property="og:site_name" content="antigeneral&#39;s blog">
+<meta property="og:description" content="本系列每篇文章都比较短小，不定期更新，从一些博主的脑洞想法出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍博主对流批一体来源以及未来发展方向的一些理解，阅读时长大概 2 分钟，话不多说，直接进入正文！">
+<meta property="og:locale">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/1.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/2.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/3.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/4.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/5.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/6.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/7.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/10.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/11.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/8.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/9.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/12.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/13.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/14.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/15.png">
+<meta property="article:published_time" content="2021-10-12T06:21:53.000Z">
+<meta property="article:modified_time" content="2021-07-17T13:30:38.716Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Flink">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2021/10/12/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/03_数据内容管理/01_dqc/02_数据时效管理/01_timeliness_dqc/"/>
+
+
+
+
+
+  <title>管理 | 实时数仓数据时效保障 | antigeneral's blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-150061865-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">antigeneral's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-link"></i> <br />
+            
+            links
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/10/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">管理 | 实时数仓数据时效保障</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-10-12T14:21:53+08:00">
+                2021-10-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/10/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/10/12/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/03_数据内容管理/01_dqc/02_数据时效管理/01_timeliness_dqc/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  4.8k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  16
+                </span>
+              
+            </div>
+          
+
+          
+              <div class="post-description">
+                  本系列每篇文章都比较短小，不定期更新，从一些博主的脑洞想法出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍博主对流批一体来源以及未来发展方向的一些理解，阅读时长大概 2 分钟，话不多说，直接进入正文！
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>我要更快、更快更快！！！</p>
+</blockquote>
+<p>通过本文你可以 get 到：</p>
+<ol>
+<li>起因篇-为什么要做数据时效保障</li>
+<li>定义篇-数据时效保障包含哪些内容</li>
+<li>目标篇-时效性监控以及保障的目标</li>
+<li>机制篇-怎么去做数据时效监控以及保障</li>
+<li>效果篇-上述机制帮助用户暴露出过什么问题</li>
+<li>现状以及展望篇</li>
+</ol>
+<h1 id="1-序篇"><a href="#1-序篇" class="headerlink" title="1.序篇"></a>1.序篇</h1><p>所有的数据建设都是为了用户更快、更方便、更放心的使用数据。</p>
+<p>在用户使用实时数据的过程中，最影响用户体感的指标有两个：</p>
+<ul>
+<li>数据质量：实时数据产出的准确性。举个例子：实时数据在某些场景下不能保障端到端 exactly-once，因此实时与离线相同口径的数据会有 diff。而 1% 和 0.01% 的 diff 给用户的体验是完全不同的。</li>
+<li>数据时效：实时数据产出的及时性。举个例子：延迟 1min 和 延迟 1ms 的用户体验也是完全不同的。</li>
+</ul>
+<p>而本文主要对数据时效保障进行解读。</p>
+<p>懒癌患者福利，先说本文结论，通过以下两个指标就已经能监控和判定 90% 数据延迟、乱序问题了。</p>
+<ul>
+<li><strong>数据延迟监控：flink 消费上游的 lag（比如看消费 kafka lag 情况）</strong></li>
+<li><strong>数据乱序监控：<a target="_blank" rel="noopener" href="https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/ops/metrics/#io。" title="由于迟到而丢弃的数据条目数">Task/Operator numLateRecordsDropped</a> 可以得到由于乱序导致窗口的丢数情况。</strong></li>
+</ul>
+<h1 id="2-起因篇-为什么要做数据时效保障"><a href="#2-起因篇-为什么要做数据时效保障" class="headerlink" title="2.起因篇-为什么要做数据时效保障"></a>2.起因篇-为什么要做数据时效保障</h1><p>要做一个东西时，我们首要分析的就是用户的痛点是什么，用户想要什么。从以下两个方面的分析入手。</p>
+<ul>
+<li>业务侧：首先从正向结果来看，业务侧能拿到第一手准确的实时数据，就能根据准确，快速的数据做出业务策略调整，扩大收益。但是正向结果是我们预期的目标，开发所要做的就是解决达成预期目标过程中的各种不稳定因素，这些不稳定因素就是负向结果。从负向结果看，一旦出现数据产出延迟，数据不准，就有可能让业务错失一个热点，产生巨大损失，两者之间的关系如下图；<br>因此从保障层面出发，这就要求更低的数据延迟、更小的数据乱序（某些对于数据乱序敏感的任务，产出的数据质量强依赖数据乱序情况）</li>
+</ul>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/1.png" alt="1"></p>
+<ul>
+<li>数据加工链路侧：从调研数据源阶段角度出发，DE 需要确定某些原始数据的延迟和乱序情况，确定数据源可用性，从而进行定制化的处理和优化；从保障数据汇结果时效性出发，某些实时数据加工链路是很长的，ods -&gt; dwd -&gt; dws -&gt; ads，当数据产出延迟时，DE 需要快速定位到问题任务进行处理，如下图。<br>数据加工时延越小，数据的乱序情况越小，说明整条处理链路的稳定性也越好，也就有能力提供更高的 SLA 保障；从以上角度出发，也需要我们对整个生产链路的数据延迟、乱序情况有一个全局视角的掌握。</li>
+</ul>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/2.png" alt="2"></p>
+<p><strong>结论：数据时效保障就是对数据产出延迟、数据乱序的监控报警能力的构建、保障方案规范化的建设。</strong></p>
+<h1 id="3-定义篇-数据时效保障包含哪些内容"><a href="#3-定义篇-数据时效保障包含哪些内容" class="headerlink" title="3.定义篇-数据时效保障包含哪些内容"></a>3.定义篇-数据时效保障包含哪些内容</h1><p>如上节场景分析，实时数据时效保障可分为两部分：</p>
+<ol>
+<li>数据时延监控、报警、保障：衡量实时数据产出的延迟情况，设定报警阈值，超过阈值触发报警。并且需要对数据产出延迟有一个全链路的视角，保障数据产出延迟在预期范围内；</li>
+<li>数据乱序监控、报警、保障：乱序是实时任务处理中要关注的一个重要指标，如果数据源乱序非常严重的话，会影响窗口类任务产出的实时数据质量，所以我们也需要对齐进行监控以及保障。</li>
+</ol>
+<blockquote>
+<p>Notes:<br>乱序的本质其实就是数据的延迟。乱序是一种特殊的延迟，数据延迟导致的一种结果。</p>
+</blockquote>
+<h1 id="4-目标篇-时效性监控以及保障的目标"><a href="#4-目标篇-时效性监控以及保障的目标" class="headerlink" title="4.目标篇-时效性监控以及保障的目标"></a>4.目标篇-时效性监控以及保障的目标</h1><ul>
+<li>探查：了解数据源的延迟、乱序情况。针对数据源的延迟、乱序情况可以针对性优化。也对此能提出合理的 SLA 保障；</li>
+<li>监控：针对具体延迟、乱序严重程度设定报警阈值，让开发可以快速感知问题；</li>
+<li>定位：根据延迟、乱序报警快速定位数据延迟、乱序导致的质量问题；</li>
+<li>恢复：问题解决完成之后，可以根据监控查看到实际的效果；</li>
+</ul>
+<h1 id="5-机制篇-怎么去做数据时效监控以及保障"><a href="#5-机制篇-怎么去做数据时效监控以及保障" class="headerlink" title="5.机制篇-怎么去做数据时效监控以及保障"></a>5.机制篇-怎么去做数据时效监控以及保障</h1><p>接下来我们<strong>对症（延迟、乱序情况）下药（监控、报警、保障措施）</strong>，先分析在数据生产、传输、加工的过程中哪些环节会导致数据的延迟以及乱序。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/3.png" alt="3"></p>
+<p>通过分析上述数据生产、传输、加工链路之后，我们可以发现能从<strong>数据源、数据处理任务</strong>两个不同的维度去分析会导致延迟、乱序的原因。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/4.png" alt="4"></p>
+<p><strong>数据源延迟乱序</strong>：属于数据源本身的属性，和下游消费的任务无关。</p>
+<p><strong>数据加工延迟乱序</strong>：这是和具体的任务绑定。</p>
+<p>其对应关系如下。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>数据源视角（与具体任务无关）</th>
+<th>数据处理任务视角（与具体任务绑定）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>延迟</td>
+<td>源日志上报的延迟</td>
+<td>数据加工过程导致的延迟</td>
+</tr>
+<tr>
+<td>乱序</td>
+<td>源日志上报的乱序</td>
+<td>数据加工过程中 shuffle 导致的乱序</td>
+</tr>
+</tbody></table>
+<h2 id="5-1-数据时延监控"><a href="#5-1-数据时延监控" class="headerlink" title="5.1.数据时延监控"></a>5.1.数据时延监控</h2><h3 id="5-1-1-整体时延"><a href="#5-1-1-整体时延" class="headerlink" title="5.1.1.整体时延"></a>5.1.1.整体时延</h3><p>整体时延可以从以下两个角度出发进行计算。</p>
+<ul>
+<li>用户视角：只关心最终产出结果时延</li>
+<li>开发视角：需要关心整个链路处理时延</li>
+</ul>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/5.png" alt="5"></p>
+<h3 id="5-1-2-结果时延监控"><a href="#5-1-2-结果时延监控" class="headerlink" title="5.1.2.结果时延监控"></a>5.1.2.结果时延监控</h3><p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/6.png" alt="6"></p>
+<h4 id="5-1-2-1-监控指标以及报警机制"><a href="#5-1-2-1-监控指标以及报警机制" class="headerlink" title="5.1.2.1.监控指标以及报警机制"></a>5.1.2.1.监控指标以及报警机制</h4><p>从用户体验角度直观的反映出数据的整体时延情况。</p>
+<ul>
+<li><p><strong>监控方式</strong>：有数据时效监控中心提供延迟监控 sdk。在看板的 web server 侧将数据时延上报到延迟监控 sdk 中。</p>
+</li>
+<li><p><strong>监控指标</strong>：计算 web-server-system-current-timestamp - message-event-timestamp 计算 P99 等指标。</p>
+</li>
+<li><p><strong>监控方式优点</strong>：能从用户体感角度出发，准确的刻画时延情况。</p>
+</li>
+<li><p><strong>监控方式缺点</strong>：对 web server 有埋点侵入性。</p>
+</li>
+<li><p><strong>报警机制</strong>：定时（比如 1min/次） check 监控指标的 P99 指标。</p>
+</li>
+<li><p><strong>报警阈值</strong>：判断监控指标的 P99 指标是否超过某个阈值（比如 5 min）。</p>
+</li>
+<li><p><strong>报警接收人</strong>：报警反馈给任务链路负责人。</p>
+</li>
+</ul>
+<h3 id="5-1-3-链路时延监控"><a href="#5-1-3-链路时延监控" class="headerlink" title="5.1.3.链路时延监控"></a>5.1.3.链路时延监控</h3><p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/7.png" alt="7"></p>
+<h4 id="5-1-3-1-数据源时延"><a href="#5-1-3-1-数据源时延" class="headerlink" title="5.1.3.1.数据源时延"></a>5.1.3.1.数据源时延</h4><p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/10.png" alt="8"></p>
+<blockquote>
+<p>这个时延和处理任务无关，单纯从指数据本身的属性，数据本身上报就存在的时延。</p>
+</blockquote>
+<p>举例：从用户发生消费事件一直到日志进入数据源存储引擎中（比如 kafka），这期间存在的时延。</p>
+<h5 id="5-1-3-1-1-监控指标以及报警机制"><a href="#5-1-3-1-1-监控指标以及报警机制" class="headerlink" title="5.1.3.1.1.监控指标以及报警机制"></a>5.1.3.1.1.监控指标以及报警机制</h5><ul>
+<li><p><strong>监控方式</strong>：单独有一个任务消费并处理数据源。需要保障这个任务任何时刻都不能有 lag，才能刻画出一个准确的数据源时延情况。</p>
+</li>
+<li><p><strong>监控指标</strong>：使用 system-current-timestamp - message-event-timestamp P99 等指标。</p>
+</li>
+<li><p><strong>监控方式优点</strong>：<strong>在数据源角度</strong>能准确的刻画出数据源事件时间时延情况。</p>
+</li>
+<li><p><strong>监控方式缺点</strong>：为了监控数据源乱序情况，需要单独启动一个任务耗费资源。不建议这种方式进行，如果要做，可以进行采样。而且会侵入用户代码，需要用户指定时间戳。</p>
+</li>
+<li><p><strong>报警机制</strong>：定时（比如 1min/次） check 监控指标的 P99 指标。</p>
+</li>
+<li><p><strong>报警阈值</strong>：判断监控指标的 P99 指标是否超过某个阈值（比如 5 min）。</p>
+</li>
+<li><p><strong>报警接收人</strong>：报警反馈给任务链路负责人。</p>
+</li>
+</ul>
+<p>上面这种方式是站在数据源视角去精准的衡量出数据延迟情况的，但是很多时候我们只需要在下游任务视角去做这件事会更方便。比如：</p>
+<ul>
+<li><p><strong>监控方式</strong>：在下游任务处处理数据源时记录数据延迟情况。</p>
+</li>
+<li><p><strong>监控指标</strong>：使用任务本地 system-current-timestamp - message-event-timestamp P99 等指标。</p>
+</li>
+<li><p><strong>监控方式优点</strong>：节约资源。</p>
+</li>
+<li><p><strong>监控方式缺点</strong>：一旦下游任务消费有延迟，我们就不能准确的衡量出数据源的延迟情况了。而且会侵入用户代码，需要用户指定时间戳。</p>
+</li>
+<li><p><strong>报警机制</strong>：定时（比如 1min/次） check 监控指标的 P99 指标。</p>
+</li>
+<li><p><strong>报警阈值</strong>：判断监控指标的 P99 指标是否超过某个阈值（比如 180s）。</p>
+</li>
+<li><p><strong>报警接收人</strong>：报警反馈给任务链路负责人。</p>
+</li>
+</ul>
+<blockquote>
+<p>Notes：<br>这里衍生出一个问题，客户端日志数据一般会有以下两种时间戳：</p>
+<ol>
+<li>客户端时间戳：用户在客户端操作时的时间戳</li>
+<li>服务端时间戳：客户端日志上报到服务端时，日志 server 打上的本地时间戳</li>
+</ol>
+<p>因为客户端的软件版本、网络环境、机型、地区的不同，会导致上报的日志<strong>客户端时间戳</strong>（用户操作时间戳）的准确性参差不齐（你可能会发现有历史、未来的时间戳）。因此事件时间都采用服务端时间戳（日志上报到服务端时，服务端的本地时间戳）来避免这种问题。</p>
+<p>当我们采用服务端时间戳时，就基本会发现数据源的时延几乎为 0，因为数据处理链路和日志 server 都是 server 端，因此其之间的数据时延是非常小的，几乎可以忽略不计。</p>
+</blockquote>
+<h4 id="5-1-3-2-数据加工时延"><a href="#5-1-3-2-数据加工时延" class="headerlink" title="5.1.3.2.数据加工时延"></a>5.1.3.2.数据加工时延</h4><p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/11.png" alt="9"></p>
+<p>用于衡量实时任务处理链路的时延。定位链路瓶颈问题。</p>
+<h5 id="5-1-3-2-1-监控指标以及报警机制"><a href="#5-1-3-2-1-监控指标以及报警机制" class="headerlink" title="5.1.3.2.1.监控指标以及报警机制"></a>5.1.3.2.1.监控指标以及报警机制</h5><p>第一个就是 flink 消费数据源的延迟。比如 flink 任务性能不足，产生反压就会有大量 lag。</p>
+<ul>
+<li><p><strong>监控方式</strong>：在下游任务处处理数据源时记录数据延迟情况。</p>
+</li>
+<li><p><strong>监控指标</strong>：使用任务本地 system-current-timestamp - kafka-timestamp P99 等指标。</p>
+</li>
+<li><p><strong>监控方式优点</strong>：不侵入用户代码。</p>
+</li>
+<li><p><strong>监控方式缺点</strong>：可以衡量出任务消费时延情况。</p>
+</li>
+<li><p><strong>报警机制</strong>：定时（比如 1min/次） check 监控指标的 P99 指标。</p>
+</li>
+<li><p><strong>报警阈值</strong>：判断监控指标的 P99 指标是否超过某个阈值（常用 180s）。</p>
+</li>
+<li><p><strong>报警接收人</strong>：报警反馈给任务链路负责人。</p>
+</li>
+</ul>
+<p>第二部分就是 flink 整个处理过程中的延迟情况。</p>
+<ul>
+<li><strong>监控方式</strong>：flink 本身自带有 latency marker 机制（详见 <a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1549048">flink latency marker</a>）。</li>
+<li><strong>监控指标</strong>：<a target="_blank" rel="noopener" href="https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/ops/metrics/#end-to-end-latency-tracking">flink latency marker 官方文档</a>。</li>
+<li><strong>监控方式优点</strong>：<strong>在下游消费任务的角度</strong>准确的刻画出整个 flink 任务加工时延。</li>
+<li><strong>监控方式缺点</strong>：这个机制会有性能损耗，官方建议只在测试阶段进行使用。这其实已经足够，因为我们在测试阶段就可以基本测试出，flink 任务处理计算的耗时情况。</li>
+</ul>
+<h2 id="5-2-数据乱序监控"><a href="#5-2-数据乱序监控" class="headerlink" title="5.2.数据乱序监控"></a>5.2.数据乱序监控</h2><p>数据乱序监控主要是用来监控数据源、处理任务过程中操作的乱序对产出数据的影响。</p>
+<h3 id="5-2-1-数据源乱序"><a href="#5-2-1-数据源乱序" class="headerlink" title="5.2.1.数据源乱序"></a>5.2.1.数据源乱序</h3><p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/8.png" alt="10"></p>
+<p>指数据本身就存在的乱序，比如客户端网络上报存在的乱序，有的用户在偏远网络较差的地区，所以上报可能就会比很多用户延迟很多，这就造成了数据的乱序。</p>
+<h4 id="5-2-1-1-监控指标以及报警机制"><a href="#5-2-1-1-监控指标以及报警机制" class="headerlink" title="5.2.1.1.监控指标以及报警机制"></a>5.2.1.1.监控指标以及报警机制</h4><ul>
+<li><p><strong>监控方式</strong>：单独有一个任务消费并处理数据源。需要保障这个任务任何时刻都不能有 lag，才能刻画出一个准确的数据源时延情况。</p>
+</li>
+<li><p><strong>监控指标</strong>： 具体衡量乱序的指标类似于 watermark 分配方式。即为每一个 source consumer 维护一个 max(timestamp)，记为 max_ts，后续来的数据的时间戳记为 cur_tx，如果 cur_tx &gt; max_ts，则说明没有乱序，设置 max_tx = cur_ts，如果出现 cur_ts &lt; max_ts，则说明这条数据发生了乱序，计算出 abs(cur_ts - max_ts) 为具体乱序时长，最终计算乱序时长的 P99 等值。</p>
+</li>
+<li><p><strong>监控方式优点</strong>：<strong>在数据源角度</strong>能准确的刻画出数据源事件时间乱序情况。</p>
+</li>
+<li><p><strong>监控方式缺点</strong>：为了监控数据源乱序情况，需要单独启动一个任务耗费资源。不建议这种方式进行，如果要做，可以进行采样。</p>
+</li>
+<li><p><strong>报警机制</strong>：定时（比如 1min/次） check 监控指标的 P99 指标。</p>
+</li>
+<li><p><strong>报警阈值</strong>：判断监控指标的 P99 指标是否超过某个阈值（常用 180s）。</p>
+</li>
+<li><p><strong>报警接收人</strong>：报警反馈给任务负责人。</p>
+</li>
+</ul>
+<p>上面这种方式是站在<strong>数据源视</strong>角去精准的衡量出数据乱序情况的，但是很多时候我们只需要在<strong>下游任务视角</strong>去做这件事会更方便。比如：</p>
+<ul>
+<li><strong>监控方式</strong>：在下游任务处处理数据源时记录数据乱序情况。</li>
+<li><strong>监控指标</strong>：衡量指标同上。</li>
+</ul>
+<blockquote>
+<p>Notes：<br>虽然数据源可能有乱序，但是这个乱序经过 flink 的一些策略处理后，乱序对计算数据的影响就会被消除。比如用户设置 watermark 时调大 max-out-of-orderness 以及设置 allow-lateness 的处理之后就会解决。</p>
+</blockquote>
+<h3 id="5-2-2-数据加工乱序"><a href="#5-2-2-数据加工乱序" class="headerlink" title="5.2.2.数据加工乱序"></a>5.2.2.数据加工乱序</h3><p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/9.png" alt="11"></p>
+<p>单个任务消费上游数据后，内部做一些 rebalance shuffle 操作导致或者加剧数据乱序的情况。从而会导致一些开窗类的任务出现丢数的情况，导致最后数据计算出现误差。</p>
+<p>举例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">DataStream&lt;Model&gt; eventTimeResult = SourceFactory</span><br><span class="line">        .getSourceDataStream(xxx)</span><br><span class="line">        .uid(<span class="string">&quot;source&quot;</span>)</span><br><span class="line">        .rebalance() <span class="comment">// 这里 rebalance 之后会加剧数据乱序，从而可能会导致后续事件时间窗口丢数</span></span><br><span class="line">        .flatMap(xxx)</span><br><span class="line">        .assignTimestampsAndWatermarks(<span class="keyword">new</span> BoundedOutOfOrdernessTimestampExtractor&lt;Model&gt;(Time.minutes(<span class="number">1L</span>)) &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">extractTimestamp</span><span class="params">(Model model)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">return</span> model.getServerTimestamp();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">        .keyBy(KeySelectorFactory.getRemainderKeySelector(xxx))</span><br><span class="line">        .timeWindow(Time.seconds(xxx))</span><br><span class="line">        .process(xxx)</span><br><span class="line">        .uid(<span class="string">&quot;process-event-time&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="5-2-2-1-监控指标以及报警机制"><a href="#5-2-2-1-监控指标以及报警机制" class="headerlink" title="5.2.2.1.监控指标以及报警机制"></a>5.2.2.1.监控指标以及报警机制</h4><ul>
+<li><p><strong>监控方式</strong>：我们关心的是乱序最终导致的丢数情况，所以监控丢数条目数即可。</p>
+</li>
+<li><p><strong>监控指标</strong>： <a target="_blank" rel="noopener" href="https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/ops/metrics/#io。" title="由于迟到而丢弃的数据条目数">Task/Operator numLateRecordsDropped</a> 可以得到由于乱序导致窗口的丢数情况。</p>
+</li>
+<li><p><strong>监控方式优点</strong>：flink 自带此指标。</p>
+</li>
+<li><p><strong>报警机制</strong>：定时（比如 1min/次） check 监控指标的条目数。</p>
+</li>
+<li><p><strong>报警阈值</strong>：判断监控指标的条目数是否超过某个阈值（比如 5w 条）。</p>
+</li>
+<li><p><strong>报警接收人</strong>：报警反馈给任务负责人。</p>
+</li>
+</ul>
+<h1 id="6-效果篇-上述机制帮助用户暴露出过什么问题"><a href="#6-效果篇-上述机制帮助用户暴露出过什么问题" class="headerlink" title="6.效果篇-上述机制帮助用户暴露出过什么问题"></a>6.效果篇-上述机制帮助用户暴露出过什么问题</h1><h2 id="6-1-数据源探查阶段"><a href="#6-1-数据源探查阶段" class="headerlink" title="6.1.数据源探查阶段"></a>6.1.数据源探查阶段</h2><p>在数据源探查阶段，通过快速启动数据源消费任务去探查数据源的延迟、乱序程度，确定数据源的可用性。比如发现数据源延迟常年在 5min 以上，那么我们向用户所能保障的数据时延也不会小于 5min。</p>
+<h2 id="6-2-暴露延迟、乱序问题"><a href="#6-2-暴露延迟、乱序问题" class="headerlink" title="6.2.暴露延迟、乱序问题"></a>6.2.暴露延迟、乱序问题</h2><p><strong>通过我们的实践测试之后，我们发现报警和问题原因是符合 2-8 定律的，甚至比例达到了 2 - 9。即 90% 的问题都可以由 20% 的报警发现。</strong></p>
+<h3 id="6-2-1-90-的时延问题是由于-flink-任务性能不足导致"><a href="#6-2-1-90-的时延问题是由于-flink-任务性能不足导致" class="headerlink" title="6.2.1.90% 的时延问题是由于 flink 任务性能不足导致"></a>6.2.1.90% 的时延问题是由于 flink 任务性能不足导致</h3><ul>
+<li>报警项：flink 消费 kafka lag 延迟超过 180s</li>
+<li>其他监控项辅助定位：flink 任务 cpu 使用率超过 100%；flink 任务 ygc 每分钟超过 20s</li>
+</ul>
+<h3 id="6-2-2-10-的时延问题是由于数据源延迟导致"><a href="#6-2-2-10-的时延问题是由于数据源延迟导致" class="headerlink" title="6.2.2.10% 的时延问题是由于数据源延迟导致"></a>6.2.2.10% 的时延问题是由于数据源延迟导致</h3><ul>
+<li>报警项：flink 消费 kafka lag 延迟超过 180s；数据源时延超过 180s</li>
+<li>其他监控项辅助定位：flink 任务 cpu 使用率正常，每分钟 ygc 时长正常</li>
+</ul>
+<h3 id="6-2-3-90-的乱序问题是由于数据源乱序导致"><a href="#6-2-3-90-的乱序问题是由于数据源乱序导致" class="headerlink" title="6.2.3.90% 的乱序问题是由于数据源乱序导致"></a>6.2.3.90% 的乱序问题是由于数据源乱序导致</h3><ul>
+<li>报警项：flink 任务窗口算子丢数超过 xx 条；数据源乱序 P99 超过 180s（指 99% 的数据乱序情况不超过 180s）</li>
+</ul>
+<h3 id="6-2-4-10-的乱序问题是由于-flink-任务加工乱序导致"><a href="#6-2-4-10-的乱序问题是由于-flink-任务加工乱序导致" class="headerlink" title="6.2.4.10% 的乱序问题是由于 flink 任务加工乱序导致"></a>6.2.4.10% 的乱序问题是由于 flink 任务加工乱序导致</h3><ul>
+<li>报警项：flink 任务窗口算子丢数超过 xx 条</li>
+<li>他监控项辅助定位：数据源乱序 P99 处于合理范围；并且代码中有 rebalance 操作之后分配 watermark</li>
+</ul>
+<h2 id="6-3-确定延迟、乱序问题恢复情况"><a href="#6-3-确定延迟、乱序问题恢复情况" class="headerlink" title="6.3.确定延迟、乱序问题恢复情况"></a>6.3.确定延迟、乱序问题恢复情况</h2><p>当我们修复数据延迟、乱序问题之后，我们也需要观察任务的回复情况。上述监控也可以帮助观察问题的恢复情况。比如：延迟、乱序时长变小就说明用户的修复是有效的。</p>
+<h1 id="7-现状以及展望篇"><a href="#7-现状以及展望篇" class="headerlink" title="7.现状以及展望篇"></a>7.现状以及展望篇</h1><h2 id="7-1-现状"><a href="#7-1-现状" class="headerlink" title="7.1.现状"></a>7.1.现状</h2><p>其实目前很多公司有 <strong>flink 消费 kafka lag 时延</strong>，<strong>Task/Operator numLateRecordsDropped</strong> 就已经足够用了。<br>全方位建设上述整个时延监控的成本还是很高的。</p>
+<h2 id="7-2-展望"><a href="#7-2-展望" class="headerlink" title="7.2.展望"></a>7.2.展望</h2><h3 id="7-2-1-实时数据、任务血缘-时效性全景图"><a href="#7-2-1-实时数据、任务血缘-时效性全景图" class="headerlink" title="7.2.1.实时数据、任务血缘 + 时效性全景图"></a>7.2.1.实时数据、任务血缘 + 时效性全景图</h3><ul>
+<li>需求：数仓的上下游链路是很长的，如果想更快快速定位整个数据链路中的时效性问题，就需要一个可视化整体链路时延全局图。</li>
+<li>基础能力：需要实时数据、任务血缘（目前想要做到这一点，都已经比较难了，很多大厂的机制都不完善，甚至说没有）</li>
+</ul>
+<p>举例：从最终产出的一个 ads 层指标出发，逆推血缘，并展示出时效情况。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/12.png" alt="12"></p>
+<h3 id="7-2-2-实时时效性基线"><a href="#7-2-2-实时时效性基线" class="headerlink" title="7.2.2.实时时效性基线"></a>7.2.2.实时时效性基线</h3><h4 id="7-2-2-1-基线"><a href="#7-2-2-1-基线" class="headerlink" title="7.2.2.1.基线"></a>7.2.2.1.基线</h4><p>并且将时延超过阈值的链路使用醒目的颜色标注</p>
+<ul>
+<li>需求：不同的指标有不同的产出时延标准，有了 6.2.1 的基础能力之后，我们就可以根据具体时延要求设置时效性基线。比如设置最终指标产出时延不能超过 180s。那么基线就是 180s。只要整个链路的产出时延超过 180s 就报警。也可以对某一层的加工链路设置基线。</li>
+</ul>
+<p>举例：从最终产出的一个 ads 层指标出发，设置基线 180s，那么下图的任务就可以根据基线设定的任务，逆推计算出链路中时延过长的任务，直接报警。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/13.png" alt="13"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/14.png" alt="14"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/15.png" alt="15"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div></div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechat.png" alt=" 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.png" alt=" 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Flink/" rel="tag"># Apache Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/07/24/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/02_meetup/01_%E7%81%AB%E5%B1%B1%E5%BC%95%E6%93%8E/01_20210724%E7%81%AB%E5%B1%B1%E5%BC%95%E6%93%8E%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="next" title="火山引擎开发者社区 Meetup 数据技术专场小记">
+                <i class="fa fa-chevron-left"></i> 火山引擎开发者社区 Meetup 数据技术专场小记
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/10/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/01_%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86/01_quality_dqc/" rel="prev" title="管理 | 实时数仓数据质量保障">
+                管理 | 实时数仓数据质量保障 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/blog-img/avatar.jpeg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">115</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yangyichao-mango" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:1048262223@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%BA%8F%E7%AF%87"><span class="nav-number">1.</span> <span class="nav-text">1.序篇</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%B5%B7%E5%9B%A0%E7%AF%87-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%81%9A%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E4%BF%9D%E9%9A%9C"><span class="nav-number">2.</span> <span class="nav-text">2.起因篇-为什么要做数据时效保障</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%AE%9A%E4%B9%89%E7%AF%87-%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E4%BF%9D%E9%9A%9C%E5%8C%85%E5%90%AB%E5%93%AA%E4%BA%9B%E5%86%85%E5%AE%B9"><span class="nav-number">3.</span> <span class="nav-text">3.定义篇-数据时效保障包含哪些内容</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E7%9B%AE%E6%A0%87%E7%AF%87-%E6%97%B6%E6%95%88%E6%80%A7%E7%9B%91%E6%8E%A7%E4%BB%A5%E5%8F%8A%E4%BF%9D%E9%9A%9C%E7%9A%84%E7%9B%AE%E6%A0%87"><span class="nav-number">4.</span> <span class="nav-text">4.目标篇-时效性监控以及保障的目标</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E6%9C%BA%E5%88%B6%E7%AF%87-%E6%80%8E%E4%B9%88%E5%8E%BB%E5%81%9A%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%9B%91%E6%8E%A7%E4%BB%A5%E5%8F%8A%E4%BF%9D%E9%9A%9C"><span class="nav-number">5.</span> <span class="nav-text">5.机制篇-怎么去做数据时效监控以及保障</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#5-1-%E6%95%B0%E6%8D%AE%E6%97%B6%E5%BB%B6%E7%9B%91%E6%8E%A7"><span class="nav-number">5.1.</span> <span class="nav-text">5.1.数据时延监控</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-1-%E6%95%B4%E4%BD%93%E6%97%B6%E5%BB%B6"><span class="nav-number">5.1.1.</span> <span class="nav-text">5.1.1.整体时延</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-2-%E7%BB%93%E6%9E%9C%E6%97%B6%E5%BB%B6%E7%9B%91%E6%8E%A7"><span class="nav-number">5.1.2.</span> <span class="nav-text">5.1.2.结果时延监控</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-1-2-1-%E7%9B%91%E6%8E%A7%E6%8C%87%E6%A0%87%E4%BB%A5%E5%8F%8A%E6%8A%A5%E8%AD%A6%E6%9C%BA%E5%88%B6"><span class="nav-number">5.1.2.1.</span> <span class="nav-text">5.1.2.1.监控指标以及报警机制</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-3-%E9%93%BE%E8%B7%AF%E6%97%B6%E5%BB%B6%E7%9B%91%E6%8E%A7"><span class="nav-number">5.1.3.</span> <span class="nav-text">5.1.3.链路时延监控</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-1-3-1-%E6%95%B0%E6%8D%AE%E6%BA%90%E6%97%B6%E5%BB%B6"><span class="nav-number">5.1.3.1.</span> <span class="nav-text">5.1.3.1.数据源时延</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#5-1-3-1-1-%E7%9B%91%E6%8E%A7%E6%8C%87%E6%A0%87%E4%BB%A5%E5%8F%8A%E6%8A%A5%E8%AD%A6%E6%9C%BA%E5%88%B6"><span class="nav-number">5.1.3.1.1.</span> <span class="nav-text">5.1.3.1.1.监控指标以及报警机制</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-1-3-2-%E6%95%B0%E6%8D%AE%E5%8A%A0%E5%B7%A5%E6%97%B6%E5%BB%B6"><span class="nav-number">5.1.3.2.</span> <span class="nav-text">5.1.3.2.数据加工时延</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#5-1-3-2-1-%E7%9B%91%E6%8E%A7%E6%8C%87%E6%A0%87%E4%BB%A5%E5%8F%8A%E6%8A%A5%E8%AD%A6%E6%9C%BA%E5%88%B6"><span class="nav-number">5.1.3.2.1.</span> <span class="nav-text">5.1.3.2.1.监控指标以及报警机制</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2-%E6%95%B0%E6%8D%AE%E4%B9%B1%E5%BA%8F%E7%9B%91%E6%8E%A7"><span class="nav-number">5.2.</span> <span class="nav-text">5.2.数据乱序监控</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-1-%E6%95%B0%E6%8D%AE%E6%BA%90%E4%B9%B1%E5%BA%8F"><span class="nav-number">5.2.1.</span> <span class="nav-text">5.2.1.数据源乱序</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-2-1-1-%E7%9B%91%E6%8E%A7%E6%8C%87%E6%A0%87%E4%BB%A5%E5%8F%8A%E6%8A%A5%E8%AD%A6%E6%9C%BA%E5%88%B6"><span class="nav-number">5.2.1.1.</span> <span class="nav-text">5.2.1.1.监控指标以及报警机制</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-2-%E6%95%B0%E6%8D%AE%E5%8A%A0%E5%B7%A5%E4%B9%B1%E5%BA%8F"><span class="nav-number">5.2.2.</span> <span class="nav-text">5.2.2.数据加工乱序</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-2-2-1-%E7%9B%91%E6%8E%A7%E6%8C%87%E6%A0%87%E4%BB%A5%E5%8F%8A%E6%8A%A5%E8%AD%A6%E6%9C%BA%E5%88%B6"><span class="nav-number">5.2.2.1.</span> <span class="nav-text">5.2.2.1.监控指标以及报警机制</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E6%95%88%E6%9E%9C%E7%AF%87-%E4%B8%8A%E8%BF%B0%E6%9C%BA%E5%88%B6%E5%B8%AE%E5%8A%A9%E7%94%A8%E6%88%B7%E6%9A%B4%E9%9C%B2%E5%87%BA%E8%BF%87%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="nav-number">6.</span> <span class="nav-text">6.效果篇-上述机制帮助用户暴露出过什么问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#6-1-%E6%95%B0%E6%8D%AE%E6%BA%90%E6%8E%A2%E6%9F%A5%E9%98%B6%E6%AE%B5"><span class="nav-number">6.1.</span> <span class="nav-text">6.1.数据源探查阶段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-2-%E6%9A%B4%E9%9C%B2%E5%BB%B6%E8%BF%9F%E3%80%81%E4%B9%B1%E5%BA%8F%E9%97%AE%E9%A2%98"><span class="nav-number">6.2.</span> <span class="nav-text">6.2.暴露延迟、乱序问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-1-90-%E7%9A%84%E6%97%B6%E5%BB%B6%E9%97%AE%E9%A2%98%E6%98%AF%E7%94%B1%E4%BA%8E-flink-%E4%BB%BB%E5%8A%A1%E6%80%A7%E8%83%BD%E4%B8%8D%E8%B6%B3%E5%AF%BC%E8%87%B4"><span class="nav-number">6.2.1.</span> <span class="nav-text">6.2.1.90% 的时延问题是由于 flink 任务性能不足导致</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-2-10-%E7%9A%84%E6%97%B6%E5%BB%B6%E9%97%AE%E9%A2%98%E6%98%AF%E7%94%B1%E4%BA%8E%E6%95%B0%E6%8D%AE%E6%BA%90%E5%BB%B6%E8%BF%9F%E5%AF%BC%E8%87%B4"><span class="nav-number">6.2.2.</span> <span class="nav-text">6.2.2.10% 的时延问题是由于数据源延迟导致</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-3-90-%E7%9A%84%E4%B9%B1%E5%BA%8F%E9%97%AE%E9%A2%98%E6%98%AF%E7%94%B1%E4%BA%8E%E6%95%B0%E6%8D%AE%E6%BA%90%E4%B9%B1%E5%BA%8F%E5%AF%BC%E8%87%B4"><span class="nav-number">6.2.3.</span> <span class="nav-text">6.2.3.90% 的乱序问题是由于数据源乱序导致</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-4-10-%E7%9A%84%E4%B9%B1%E5%BA%8F%E9%97%AE%E9%A2%98%E6%98%AF%E7%94%B1%E4%BA%8E-flink-%E4%BB%BB%E5%8A%A1%E5%8A%A0%E5%B7%A5%E4%B9%B1%E5%BA%8F%E5%AF%BC%E8%87%B4"><span class="nav-number">6.2.4.</span> <span class="nav-text">6.2.4.10% 的乱序问题是由于 flink 任务加工乱序导致</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-3-%E7%A1%AE%E5%AE%9A%E5%BB%B6%E8%BF%9F%E3%80%81%E4%B9%B1%E5%BA%8F%E9%97%AE%E9%A2%98%E6%81%A2%E5%A4%8D%E6%83%85%E5%86%B5"><span class="nav-number">6.3.</span> <span class="nav-text">6.3.确定延迟、乱序问题恢复情况</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E7%8E%B0%E7%8A%B6%E4%BB%A5%E5%8F%8A%E5%B1%95%E6%9C%9B%E7%AF%87"><span class="nav-number">7.</span> <span class="nav-text">7.现状以及展望篇</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#7-1-%E7%8E%B0%E7%8A%B6"><span class="nav-number">7.1.</span> <span class="nav-text">7.1.现状</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-2-%E5%B1%95%E6%9C%9B"><span class="nav-number">7.2.</span> <span class="nav-text">7.2.展望</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-1-%E5%AE%9E%E6%97%B6%E6%95%B0%E6%8D%AE%E3%80%81%E4%BB%BB%E5%8A%A1%E8%A1%80%E7%BC%98-%E6%97%B6%E6%95%88%E6%80%A7%E5%85%A8%E6%99%AF%E5%9B%BE"><span class="nav-number">7.2.1.</span> <span class="nav-text">7.2.1.实时数据、任务血缘 + 时效性全景图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-2-%E5%AE%9E%E6%97%B6%E6%97%B6%E6%95%88%E6%80%A7%E5%9F%BA%E7%BA%BF"><span class="nav-number">7.2.2.</span> <span class="nav-text">7.2.2.实时时效性基线</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#7-2-2-1-%E5%9F%BA%E7%BA%BF"><span class="nav-number">7.2.2.1.</span> <span class="nav-text">7.2.2.1.基线</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">244.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://true.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'https://yangyichao-mango.github.io/2021/10/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/02_%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%AE%A1%E7%90%86/01_timeliness_dqc/';
+          this.page.identifier = '2021/10/12/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/03_数据内容管理/01_dqc/02_数据时效管理/01_timeliness_dqc/';
+          this.page.title = '管理 | 实时数仓数据时效保障';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://true.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

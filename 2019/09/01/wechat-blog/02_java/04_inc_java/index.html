@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="antigeneral's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本站&amp;作者">
+<meta property="og:type" content="article">
+<meta property="og:title" content="快手 Java 内推 - 实习场">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2019/09/01/wechat-blog/02_java/04_inc_java/index.html">
+<meta property="og:site_name" content="antigeneral&#39;s blog">
+<meta property="og:description" content="本站&amp;作者">
+<meta property="og:locale">
+<meta property="article:published_time" content="2019-09-01T06:21:53.000Z">
+<meta property="article:modified_time" content="2021-07-11T05:52:19.421Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Flink">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2019/09/01/wechat-blog/02_java/04_inc_java/"/>
+
+
+
+
+
+  <title>快手 Java 内推 - 实习场 | antigeneral's blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-150061865-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">antigeneral's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-link"></i> <br />
+            
+            links
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2019/09/01/wechat-blog/02_java/04_inc_java/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">快手 Java 内推 - 实习场</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-01T14:21:53+08:00">
+                2019-09-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2019/09/01/wechat-blog/02_java/04_inc_java/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2019/09/01/wechat-blog/02_java/04_inc_java/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  2.4k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  8
+                </span>
+              
+            </div>
+          
+
+          
+              <div class="post-description">
+                  本站&作者
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="快手-Java-内推-实习场"><a href="#快手-Java-内推-实习场" class="headerlink" title="快手 Java 内推 - 实习场"></a>快手 Java 内推 - 实习场</h1><blockquote>
+<p>不仅限于以下 JD，hc 满满，有意可以直接加博主微信私聊。</p>
+</blockquote>
+<h1 id="Java开发实习生-【音视频技术部】"><a href="#Java开发实习生-【音视频技术部】" class="headerlink" title="Java开发实习生-【音视频技术部】"></a>Java开发实习生-【音视频技术部】</h1><h2 id="工作地点：北京"><a href="#工作地点：北京" class="headerlink" title="工作地点：北京"></a>工作地点：北京</h2><h2 id="职位描述"><a href="#职位描述" class="headerlink" title="职位描述"></a>职位描述</h2><ol>
+<li>将快手音视频核心能力进行产品化封装，针对场景开发针对性解决方案，为各类应用提供一站式. 全链路覆盖的音视频能力，包括并不限于短视频. 直播. 音视频会议等；</li>
+<li>接受高并发. 海量数据的挑战，分析和发现系统的优化点，负责推动系统的性能和可用性的提升；</li>
+<li>跟进业内最新技术进展，优化业务音视频体验，构建一流的音视频云平台。<h2 id="任职要求"><a href="#任职要求" class="headerlink" title="任职要求"></a>任职要求</h2></li>
+<li>计算机. 通信等相关专业本科以上学历，有NOI. ACM. TopCoder等相关竞赛经验者优先；</li>
+<li>java基础扎实，理解io. 多线程. 集合等基础框架，对JVM原理有一定了解，熟悉面向对象设计开发；掌握Linux操作系统和大型数据库；熟悉容器化运维，熟悉Linux下的DevOps；</li>
+<li>对用过的开源框架能了解它的原理和机制，如服务框架. RPC. service mesh. 服务注册中心. 定时任务. 动态配置. 服务治理. 应用容器等；熟悉微服务和领域设计；熟悉前后端分离的系统结构；</li>
+<li>熟悉分布式系统的设计和应用，熟悉分布式. 缓存. 消息等机制，能对分布式常用技术进行合理应用和解决问题；</li>
+<li>热爱技术，对代码质量和开发规范有近乎苛刻的要求，善于沟通与团队协作；了解业内技术的发展方向；</li>
+<li>有音视频技术背景，有视频云相关开发经验者优先。</li>
+</ol>
+<h1 id="Java开发实习生-【用户画像】"><a href="#Java开发实习生-【用户画像】" class="headerlink" title="Java开发实习生-【用户画像】"></a>Java开发实习生-【用户画像】</h1><h2 id="工作地点：北京-1"><a href="#工作地点：北京-1" class="headerlink" title="工作地点：北京"></a>工作地点：北京</h2><h2 id="职位描述-1"><a href="#职位描述-1" class="headerlink" title="职位描述"></a>职位描述</h2><ol>
+<li>负责快手画像平台及标签系统研发工作；通过敏捷开发支持产品需求快速迭代，不断优化系统架构，支撑业务规模增长，保障服务稳定；</li>
+<li>对现有系统的不足进行分析，找到目前系统的瓶颈，改进提高系统性能；</li>
+<li>参与解决大数据分布式处理. 高效查询. 数据一致性. 准确性等方面带来的各种技术难题和挑战。<h2 id="任职要求-1"><a href="#任职要求-1" class="headerlink" title="任职要求"></a>任职要求</h2></li>
+<li>本科及以上学历，计算机. 软件相关专业优先；</li>
+<li>熟悉Java，有扎实的计算机基础，对数据结构. 算法基础有深入理解；</li>
+<li>熟悉面向对象的设计思想，了解软件开发流程；</li>
+<li>有实际项目经验或互联网公司实习经历者优先，有OI. ICPC等竞赛经验者优先；</li>
+<li>热爱互联网，对互联网产品和技术有浓厚的兴趣，热衷于追求技术极致与创新；</li>
+<li>具有良好的沟通能力和团队合作精神. 优秀的分析问题和解决问题的能力。</li>
+</ol>
+<h1 id="Java开发实习生-【电商生态】"><a href="#Java开发实习生-【电商生态】" class="headerlink" title="Java开发实习生-【电商生态】"></a>Java开发实习生-【电商生态】</h1><h2 id="工作地点：北京-2"><a href="#工作地点：北京-2" class="headerlink" title="工作地点：北京"></a>工作地点：北京</h2><h2 id="职位描述-2"><a href="#职位描述-2" class="headerlink" title="职位描述"></a>职位描述</h2><ol>
+<li>参与快手电商c端需求开发，深入理解业务需求，撰写技术方案和系统设计，并完成相关代码的开发工作；</li>
+<li>愿意接受多种差异化资源投放业务逻辑复杂性. 海量数据挑战. 服务高可用的挑战，推动系统可用性和可扩展性的提升；</li>
+<li>为团队引入创新的技术. 创新的解决方案，用创新的思路解决问题。<h2 id="任职要求-2"><a href="#任职要求-2" class="headerlink" title="任职要求"></a>任职要求</h2></li>
+<li>计算机科学或其他相关专业，本科及以上学历，每周至少4天，连续实习3个月以上； </li>
+<li>精通多线程编程，熟悉JVM，熟悉常见的开源分布式中间件.缓存.消息队列等，有分布式系统设计相关经验，熟悉MySQL；</li>
+<li>精通Spring MVC.Spring boot编程；</li>
+<li>熟悉面向对象设计，有一定的系统架构设计能力。</li>
+</ol>
+<h1 id="JAVA开发实习生-【国内用户增长】"><a href="#JAVA开发实习生-【国内用户增长】" class="headerlink" title="JAVA开发实习生-【国内用户增长】"></a>JAVA开发实习生-【国内用户增长】</h1><h2 id="工作地点：北京-3"><a href="#工作地点：北京-3" class="headerlink" title="工作地点：北京"></a>工作地点：北京</h2><h2 id="职位描述-3"><a href="#职位描述-3" class="headerlink" title="职位描述"></a>职位描述</h2><ol>
+<li>负责快手各内外部产品后端系统. 平台系统的研发工作，通过敏捷开发支持产品需求快速迭代，不断优化系统架构，支撑业务规模增长，保障服务稳定；</li>
+<li>对现有系统的不足进行分析，找到目前系统的瓶颈，改进提高系统性能；</li>
+<li>参与解决海量数据分布式处理. 高效查询. 数据一致性. 准确性等方面带来的各种技术难题和挑战。<h2 id="任职要求-3"><a href="#任职要求-3" class="headerlink" title="任职要求"></a>任职要求</h2></li>
+<li>本科及以上学历，计算机. 软件相关专业优先；</li>
+<li>熟悉Java，有扎实的计算机基础，对数据结构. 算法基础有深入理解；</li>
+<li>熟悉面向对象的设计思想，了解软件开发流程；</li>
+<li>有实际项目经验或互联网公司实习经历者优先，有OI. ICPC等竞赛经验者优先；</li>
+<li>热爱互联网，对互联网产品和技术有浓厚的兴趣，热衷于追求技术极致与创新；</li>
+<li>具有良好的沟通能力和团队合作精神. 优秀的分析问题和解决问题的能力。</li>
+</ol>
+<h1 id="Java开发实习生-【服务端效能】"><a href="#Java开发实习生-【服务端效能】" class="headerlink" title="Java开发实习生-【服务端效能】"></a>Java开发实习生-【服务端效能】</h1><h2 id="工作地点：北京-4"><a href="#工作地点：北京-4" class="headerlink" title="工作地点：北京"></a>工作地点：北京</h2><h2 id="职位描述-4"><a href="#职位描述-4" class="headerlink" title="职位描述"></a>职位描述</h2><ol>
+<li>负责快手研发效能相关平台及工具的设计研发工作；</li>
+<li>负责服务高可扩展性. 高可用性方向的提升和优化；</li>
+<li>参与平台框架研究. 设计和实现，关键技术路径可行性研究及技术选型。<br>【此岗位需立刻入职，如暑期才能入职请投递暑期实习生的相关岗位】<h2 id="任职要求-4"><a href="#任职要求-4" class="headerlink" title="任职要求"></a>任职要求</h2></li>
+<li>2022届本科及以上学历，计算机科学与技术.软件工程或相关专业方向；</li>
+<li>熟悉Java，有扎实的计算机基础，对数据结构.算法基础有深入理解，有ACM等竞赛经验者优先；</li>
+<li>熟悉面对对象的设计思想，了解软件开发流程，有实际项目经验或互联网公司实习经历者优先；</li>
+<li>对技术充满热情，有较强的责任心和抗压能力，愿意接受千万级并发的大型分布式系统开发过程中面临的各种挑战；</li>
+<li>有较好的沟通能力，能快速融入团队，有较强的学习能力，能快速掌握最前沿的技术。<br>【此岗位需立刻入职，如暑期才能入职请投递暑期实习生的相关岗位】</li>
+</ol>
+<h1 id="Java开发实习生-【商业化研发】"><a href="#Java开发实习生-【商业化研发】" class="headerlink" title="Java开发实习生- 【商业化研发】"></a>Java开发实习生- 【商业化研发】</h1><h2 id="工作地点：北京-5"><a href="#工作地点：北京-5" class="headerlink" title="工作地点：北京"></a>工作地点：北京</h2><h2 id="职位描述-5"><a href="#职位描述-5" class="headerlink" title="职位描述"></a>职位描述</h2><ol>
+<li>参与聚星（原快接单）内容营销撮合交易平台产品后台服务的设计. 开发. 优化等研发工作，保证产品的质量和开发进度；</li>
+<li>和产品等团队合作，确保前后端模块的协同工作；</li>
+<li>参与研究新兴技术，对产品进行持续优化。<h2 id="任职要求-5"><a href="#任职要求-5" class="headerlink" title="任职要求"></a>任职要求</h2></li>
+<li>岗位面向2022届毕业生：本科及以上学历，计算机相关专业，每周实习3天及以上. 可实习4个月以上者优先；</li>
+<li>熟悉面向对象编程，掌握Java/C++/Python/PHP中的至少一门语言；</li>
+<li>学习能力强. 有独立解决问题的能力；</li>
+<li>有良好的沟通能力和业务理解能力。</li>
+</ol>
+<h1 id="【暑期实习】Java开发实习生-海外业务"><a href="#【暑期实习】Java开发实习生-海外业务" class="headerlink" title="【暑期实习】Java开发实习生-海外业务"></a>【暑期实习】Java开发实习生-海外业务</h1><h2 id="工作地点：北京-6"><a href="#工作地点：北京-6" class="headerlink" title="工作地点：北京"></a>工作地点：北京</h2><ol>
+<li>负责海外快速增长的产品需求，深入发掘和分析业务需求，撰写技术方案和系统设计，以及相关的代码开发；</li>
+<li>迎接高并发. 海量数据的挑战，分析和发现系统的优化点，负责推动系统的性能和可用性的提升； </li>
+<li>积极尝试新技术. 新方案，拥抱技术革新，用创新的思路解决问题。<h2 id="任职要求-6"><a href="#任职要求-6" class="headerlink" title="任职要求"></a>任职要求</h2></li>
+<li>2022届计算机. 通信等相关专业本科及以上学历；</li>
+<li>熟悉Java，有扎实的计算机基础，对数据结构. 算法基础有深入理解；</li>
+<li>熟悉面向对象的设计思想，了解软件开发流程；</li>
+<li>有实际项目经验或互联网公司实习经历者优先，有OI. ICPC等竞赛经验者优先；</li>
+<li>热爱互联网，对互联网产品和技术有浓厚的兴趣，热衷于追求技术极致与创新；</li>
+<li>具有良好的沟通能力和团队合作精神. 优秀的分析问题和解决问题的能力。</li>
+</ol>
+<h1 id="【暑期实习】Java开发实习生（iHR）-【效率工程】"><a href="#【暑期实习】Java开发实习生（iHR）-【效率工程】" class="headerlink" title="【暑期实习】Java开发实习生（iHR）-【效率工程】"></a>【暑期实习】Java开发实习生（iHR）-【效率工程】</h1><h2 id="工作地点：北京-7"><a href="#工作地点：北京-7" class="headerlink" title="工作地点：北京"></a>工作地点：北京</h2><p>负责快手相关产品服务器端的研发工作，通过敏捷开发支持产品需求快速迭代，不断优化系统架构，支撑业务规模增长，保障服务稳定。</p>
+<h2 id="任职要求-7"><a href="#任职要求-7" class="headerlink" title="任职要求"></a>任职要求</h2><ol>
+<li>2021届. 2022届本科及以上学历，计算机科学与技术.软件工程或相关专业方向；</li>
+<li>熟悉Java，有扎实的计算机基础，对数据结构.算法基础有深入理解，有ACM等竞赛经验者优先；</li>
+<li>熟悉面对对象的设计思想，了解软件开发流程，有实际项目经验或互联网公司实习经历者优先；</li>
+<li>对技术充满热情，有较强的责任心和抗压能力，愿意接受千万级并发的大型分布式系统开发过程中面临的各种挑战；</li>
+<li>有较好的沟通能力，能快速融入团队，有较强的学习能力，能快速掌握最前沿的技术。</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div></div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechat.png" alt=" 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.png" alt=" 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Flink/" rel="tag"># Apache Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/09/01/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/05_%E6%95%B0%E6%8D%AE%E5%9B%A2%E9%98%9F%E5%BB%BA%E8%AE%BE/01_%E6%8B%9B%E8%81%98/01_inc_de/" rel="next" title="快手大数据内推">
+                <i class="fa fa-chevron-left"></i> 快手大数据内推
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/09/01/wechat-blog/broadcast/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/blog-img/avatar.jpeg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">115</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yangyichao-mango" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:1048262223@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BF%AB%E6%89%8B-Java-%E5%86%85%E6%8E%A8-%E5%AE%9E%E4%B9%A0%E5%9C%BA"><span class="nav-number">1.</span> <span class="nav-text">快手 Java 内推 - 实习场</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Java%E5%BC%80%E5%8F%91%E5%AE%9E%E4%B9%A0%E7%94%9F-%E3%80%90%E9%9F%B3%E8%A7%86%E9%A2%91%E6%8A%80%E6%9C%AF%E9%83%A8%E3%80%91"><span class="nav-number">2.</span> <span class="nav-text">Java开发实习生-【音视频技术部】</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E5%9C%B0%E7%82%B9%EF%BC%9A%E5%8C%97%E4%BA%AC"><span class="nav-number">2.1.</span> <span class="nav-text">工作地点：北京</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%8C%E4%BD%8D%E6%8F%8F%E8%BF%B0"><span class="nav-number">2.2.</span> <span class="nav-text">职位描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%BB%E8%81%8C%E8%A6%81%E6%B1%82"><span class="nav-number">2.3.</span> <span class="nav-text">任职要求</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Java%E5%BC%80%E5%8F%91%E5%AE%9E%E4%B9%A0%E7%94%9F-%E3%80%90%E7%94%A8%E6%88%B7%E7%94%BB%E5%83%8F%E3%80%91"><span class="nav-number">3.</span> <span class="nav-text">Java开发实习生-【用户画像】</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E5%9C%B0%E7%82%B9%EF%BC%9A%E5%8C%97%E4%BA%AC-1"><span class="nav-number">3.1.</span> <span class="nav-text">工作地点：北京</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%8C%E4%BD%8D%E6%8F%8F%E8%BF%B0-1"><span class="nav-number">3.2.</span> <span class="nav-text">职位描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%BB%E8%81%8C%E8%A6%81%E6%B1%82-1"><span class="nav-number">3.3.</span> <span class="nav-text">任职要求</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Java%E5%BC%80%E5%8F%91%E5%AE%9E%E4%B9%A0%E7%94%9F-%E3%80%90%E7%94%B5%E5%95%86%E7%94%9F%E6%80%81%E3%80%91"><span class="nav-number">4.</span> <span class="nav-text">Java开发实习生-【电商生态】</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E5%9C%B0%E7%82%B9%EF%BC%9A%E5%8C%97%E4%BA%AC-2"><span class="nav-number">4.1.</span> <span class="nav-text">工作地点：北京</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%8C%E4%BD%8D%E6%8F%8F%E8%BF%B0-2"><span class="nav-number">4.2.</span> <span class="nav-text">职位描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%BB%E8%81%8C%E8%A6%81%E6%B1%82-2"><span class="nav-number">4.3.</span> <span class="nav-text">任职要求</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JAVA%E5%BC%80%E5%8F%91%E5%AE%9E%E4%B9%A0%E7%94%9F-%E3%80%90%E5%9B%BD%E5%86%85%E7%94%A8%E6%88%B7%E5%A2%9E%E9%95%BF%E3%80%91"><span class="nav-number">5.</span> <span class="nav-text">JAVA开发实习生-【国内用户增长】</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E5%9C%B0%E7%82%B9%EF%BC%9A%E5%8C%97%E4%BA%AC-3"><span class="nav-number">5.1.</span> <span class="nav-text">工作地点：北京</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%8C%E4%BD%8D%E6%8F%8F%E8%BF%B0-3"><span class="nav-number">5.2.</span> <span class="nav-text">职位描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%BB%E8%81%8C%E8%A6%81%E6%B1%82-3"><span class="nav-number">5.3.</span> <span class="nav-text">任职要求</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Java%E5%BC%80%E5%8F%91%E5%AE%9E%E4%B9%A0%E7%94%9F-%E3%80%90%E6%9C%8D%E5%8A%A1%E7%AB%AF%E6%95%88%E8%83%BD%E3%80%91"><span class="nav-number">6.</span> <span class="nav-text">Java开发实习生-【服务端效能】</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E5%9C%B0%E7%82%B9%EF%BC%9A%E5%8C%97%E4%BA%AC-4"><span class="nav-number">6.1.</span> <span class="nav-text">工作地点：北京</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%8C%E4%BD%8D%E6%8F%8F%E8%BF%B0-4"><span class="nav-number">6.2.</span> <span class="nav-text">职位描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%BB%E8%81%8C%E8%A6%81%E6%B1%82-4"><span class="nav-number">6.3.</span> <span class="nav-text">任职要求</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Java%E5%BC%80%E5%8F%91%E5%AE%9E%E4%B9%A0%E7%94%9F-%E3%80%90%E5%95%86%E4%B8%9A%E5%8C%96%E7%A0%94%E5%8F%91%E3%80%91"><span class="nav-number">7.</span> <span class="nav-text">Java开发实习生- 【商业化研发】</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E5%9C%B0%E7%82%B9%EF%BC%9A%E5%8C%97%E4%BA%AC-5"><span class="nav-number">7.1.</span> <span class="nav-text">工作地点：北京</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%8C%E4%BD%8D%E6%8F%8F%E8%BF%B0-5"><span class="nav-number">7.2.</span> <span class="nav-text">职位描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%BB%E8%81%8C%E8%A6%81%E6%B1%82-5"><span class="nav-number">7.3.</span> <span class="nav-text">任职要求</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E3%80%90%E6%9A%91%E6%9C%9F%E5%AE%9E%E4%B9%A0%E3%80%91Java%E5%BC%80%E5%8F%91%E5%AE%9E%E4%B9%A0%E7%94%9F-%E6%B5%B7%E5%A4%96%E4%B8%9A%E5%8A%A1"><span class="nav-number">8.</span> <span class="nav-text">【暑期实习】Java开发实习生-海外业务</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E5%9C%B0%E7%82%B9%EF%BC%9A%E5%8C%97%E4%BA%AC-6"><span class="nav-number">8.1.</span> <span class="nav-text">工作地点：北京</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%BB%E8%81%8C%E8%A6%81%E6%B1%82-6"><span class="nav-number">8.2.</span> <span class="nav-text">任职要求</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E3%80%90%E6%9A%91%E6%9C%9F%E5%AE%9E%E4%B9%A0%E3%80%91Java%E5%BC%80%E5%8F%91%E5%AE%9E%E4%B9%A0%E7%94%9F%EF%BC%88iHR%EF%BC%89-%E3%80%90%E6%95%88%E7%8E%87%E5%B7%A5%E7%A8%8B%E3%80%91"><span class="nav-number">9.</span> <span class="nav-text">【暑期实习】Java开发实习生（iHR）-【效率工程】</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E5%9C%B0%E7%82%B9%EF%BC%9A%E5%8C%97%E4%BA%AC-7"><span class="nav-number">9.1.</span> <span class="nav-text">工作地点：北京</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%BB%E8%81%8C%E8%A6%81%E6%B1%82-7"><span class="nav-number">9.2.</span> <span class="nav-text">任职要求</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">244.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://true.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'https://yangyichao-mango.github.io/2019/09/01/wechat-blog/02_java/04_inc_java/';
+          this.page.identifier = '2019/09/01/wechat-blog/02_java/04_inc_java/';
+          this.page.title = '快手 Java 内推 - 实习场';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://true.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

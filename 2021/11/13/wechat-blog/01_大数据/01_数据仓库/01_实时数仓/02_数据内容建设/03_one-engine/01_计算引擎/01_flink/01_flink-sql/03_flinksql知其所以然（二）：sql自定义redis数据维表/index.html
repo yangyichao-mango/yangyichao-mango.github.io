@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="antigeneral's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="flink sql 知其所以然（二）| sql 自定义 redis 数据维表">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/index.html">
+<meta property="og:site_name" content="antigeneral&#39;s blog">
+<meta property="og:description" content="本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
+<meta property="og:locale">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/1.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/2.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/9.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/10.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/7.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/5.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/4.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/6.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/8.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/13.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/11.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/12.png">
+<meta property="article:published_time" content="2021-11-13T06:21:54.000Z">
+<meta property="article:modified_time" content="2021-08-15T10:59:00.384Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Flink">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/03_flinksql知其所以然（二）：sql自定义redis数据维表/"/>
+
+
+
+
+
+  <title>flink sql 知其所以然（二）| sql 自定义 redis 数据维表 | antigeneral's blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-150061865-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">antigeneral's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-link"></i> <br />
+            
+            links
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">flink sql 知其所以然（二）| sql 自定义 redis 数据维表</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-13T14:21:54+08:00">
+                2021-11-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/03_flinksql知其所以然（二）：sql自定义redis数据维表/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  3k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  12
+                </span>
+              
+            </div>
+          
+
+          
+              <div class="post-description">
+                  本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>感谢您的<strong>关注  +  点赞 + 再看</strong>，对博主的肯定，会督促博主持续的输出更多的优质实战内容！！！</p>
+</blockquote>
+<h1 id="1-序篇-本文结构"><a href="#1-序篇-本文结构" class="headerlink" title="1.序篇-本文结构"></a>1.序篇-本文结构</h1><ol>
+<li>背景篇-为啥需要 redis 维表</li>
+<li>目标篇-做 redis 维表的预期效果是什么</li>
+<li>难点剖析篇-此框架建设的难点、目前有哪些实现</li>
+<li>维表实现篇-维表实现的过程</li>
+<li>总结与展望篇</li>
+</ol>
+<p>本文主要介绍了 flink sql redis 维表的实现过程。</p>
+<p>如果想在本地测试下：</p>
+<ol>
+<li>在公众号后台回复<strong>flink sql 知其所以然（二）| sql 自定义 redis 数据维表</strong>获取源码（源码基于 1.13.1 实现）</li>
+<li>在你的本地安装并打开 redis-server，然后使用 redis-cli 执行命令 <code>set a &quot;&#123;\&quot;score\&quot;:3,\&quot;name\&quot;:\&quot;namehhh\&quot;,\&quot;name1\&quot;:\&quot;namehhh112\&quot;&#125;&quot;</code></li>
+<li>执行源码包中的 <code>flink.examples.sql._03.source_sink.RedisLookupTest</code> 测试类，就可以在 console 中看到结果。</li>
+</ol>
+<p>如果想直接在集群环境使用：</p>
+<ol>
+<li>命令行执行 <code>mvn package -DskipTests=true</code> 打包</li>
+<li>将生成的包 <code>flink-examples-0.0.1-SNAPSHOT.jar</code> 引入 flink lib 中即可，无需其它设置。</li>
+</ol>
+<h1 id="2-背景篇-为啥需要-redis-维表"><a href="#2-背景篇-为啥需要-redis-维表" class="headerlink" title="2.背景篇-为啥需要 redis 维表"></a>2.背景篇-为啥需要 redis 维表</h1><h2 id="2-1-啥是维表？事实表？"><a href="#2-1-啥是维表？事实表？" class="headerlink" title="2.1.啥是维表？事实表？"></a>2.1.啥是维表？事实表？</h2><p>Dimension Table 概念多出现于数据仓库里面，维表与事实表相互对应。</p>
+<p>给两个场景来看看：</p>
+<p>比如需要统计分性别的 DAU：</p>
+<ol>
+<li>客户端上报的日志中（事实表）只有设备 id，只用这个事实表是没法统计出分性别的 DAU 的。</li>
+<li>这时候就需要一张带有设备 id、性别映射的表（这就是维表）来提供性别数据。</li>
+<li>然后使用事实表去 join 这张维表去获取到每一个设备 id 对应的性别，然后就可以统计出分性别的 DAU。相当于一个扩充维度的操作。</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_47482194/article/details/105855116?spm=1001.2014.3001.5501">https://blog.csdn.net/weixin_47482194/article/details/105855116?spm=1001.2014.3001.5501</a></p>
+<p>比如目前想要统计整体销售额：</p>
+<ol>
+<li>目前已有 “销售统计表”，是一个事实表，其中没有具体销售品项的金额。</li>
+<li>“商品价格表” 可以用于提供具体销售品项的金额，这就是销售统计的一个维度表。</li>
+</ol>
+<p>事实数据和维度数据的识别必须依据具体的主题问题而定。“事实表” 用来存储事实的度量及指向各个维的外键值。维表用来保存该维的元数据。</p>
+<p>参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/lindan1984/article/details/96566626">https://blog.csdn.net/lindan1984/article/details/96566626</a></p>
+<h2 id="2-2-为啥需要-redis-维表？"><a href="#2-2-为啥需要-redis-维表？" class="headerlink" title="2.2.为啥需要 redis 维表？"></a>2.2.为啥需要 redis 维表？</h2><p>目前在实时计算的场景中，熟悉 datastream 的同学大多数都使用过 mysql\Hbase\redis 作为维表引擎存储一些维度数据，然后在 datastream api 中调用 mysql\Hbase\redis 客户端去获取到维度数据进行维度扩充。</p>
+<p>而 redis 作为 flink 实时场景中最常用的高速维表引擎，官方是没有提供 flink sql api 的 redis 维表 connector 的。如下图，基于 1.13 版本。</p>
+<p><a target="_blank" rel="noopener" href="https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/connectors/table/overview/">https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/connectors/table/overview/</a></p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/1.png" alt="1"></p>
+<p>阿里云 flink 是提供了这个能力的。但是这个需要使用阿里云的产品才能使用。有钱人可以直接上。</p>
+<p><a target="_blank" rel="noopener" href="https://www.alibabacloud.com/help/zh/faq-detail/122722.htm?spm=a2c63.q38357.a3.7.a1227a53TBMuSY">https://www.alibabacloud.com/help/zh/faq-detail/122722.htm?spm=a2c63.q38357.a3.7.a1227a53TBMuSY</a></p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/2.png" alt="2"></p>
+<p>因此本文在介绍怎样自定义一个 sql 数据维表的同时，实现一个 sql redis 来给大家使用。</p>
+<h1 id="3-目标篇-做-redis-维表预期效果是什么"><a href="#3-目标篇-做-redis-维表预期效果是什么" class="headerlink" title="3.目标篇-做 redis 维表预期效果是什么"></a>3.目标篇-做 redis 维表预期效果是什么</h1><p>redis 作为维表在 datastream 中的最常用的数据结构就是 kv、hmap 两种。本文实现主要实现 kv 结构，map 结构大家可以拿到源码之后进行自定义实现。也就多加几行代码就完事了。</p>
+<p>预期效果就如阿里云的 flink redis：</p>
+<p>下面是我在本地跑的结果，先看看 redis 中存储的数据，只有这一条数据，是 json 字符串：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/9.png" alt="9"></p>
+<p>下面是预期 flink sql：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> dimTable (</span><br><span class="line">    name STRING,</span><br><span class="line">    name1 STRING,</span><br><span class="line">    score <span class="type">BIGINT</span>  <span class="comment">-- redis 中存储数据的 schema</span></span><br><span class="line">) <span class="keyword">WITH</span> (</span><br><span class="line">    <span class="string">&#x27;connector&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;redis&#x27;</span>, <span class="comment">-- 指定 connector 是 redis 类型的</span></span><br><span class="line">    <span class="string">&#x27;hostname&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;127.0.0.1&#x27;</span>, <span class="comment">-- redis server ip</span></span><br><span class="line">    <span class="string">&#x27;port&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;6379&#x27;</span>, <span class="comment">-- redis server 端口</span></span><br><span class="line">    <span class="string">&#x27;format&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;json&#x27;</span> <span class="comment">-- 指定 format 解析格式</span></span><br><span class="line">    <span class="string">&#x27;lookup.cache.max-rows&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;500&#x27;</span>, <span class="comment">-- guava local cache 最大条目</span></span><br><span class="line">    <span class="string">&#x27;lookup.cache.ttl&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;3600&#x27;</span>, <span class="comment">-- guava local cache ttl</span></span><br><span class="line">    <span class="string">&#x27;lookup.max-retries&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;1&#x27;</span> <span class="comment">-- redis 命令执行失败后重复次数</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> o.f0, o.f1, c.name, c.name1, c.score</span><br><span class="line"><span class="keyword">FROM</span> leftTable <span class="keyword">AS</span> o</span><br><span class="line"><span class="comment">-- 维表 join</span></span><br><span class="line"><span class="keyword">LEFT</span> <span class="keyword">JOIN</span> dimTable <span class="keyword">FOR</span> <span class="built_in">SYSTEM_TIME</span> <span class="keyword">AS</span> <span class="keyword">OF</span> o.proctime <span class="keyword">AS</span> c</span><br><span class="line"><span class="keyword">ON</span> o.f0 <span class="operator">=</span> c.name</span><br></pre></td></tr></table></figure>
+
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/10.png" alt="10"></p>
+<p>结果如下，后面三列就对应到 <code>c.name, c.name1, c.score</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">+I[a, b, namehhh, namehhh112, 3]</span><br><span class="line">+I[a, b, namehhh, namehhh112, 3]</span><br><span class="line">+I[a, b, namehhh, namehhh112, 3]</span><br><span class="line">+I[a, b, namehhh, namehhh112, 3]</span><br><span class="line">+I[a, b, namehhh, namehhh112, 3]</span><br><span class="line">+I[a, b, namehhh, namehhh112, 3]</span><br><span class="line">+I[a, b, namehhh, namehhh112, 3]</span><br><span class="line">+I[a, b, namehhh, namehhh112, 3]</span><br><span class="line">+I[a, b, namehhh, namehhh112, 3]</span><br></pre></td></tr></table></figure>
+
+<h1 id="4-难点剖析篇-目前有哪些实现"><a href="#4-难点剖析篇-目前有哪些实现" class="headerlink" title="4.难点剖析篇-目前有哪些实现"></a>4.难点剖析篇-目前有哪些实现</h1><p>目前可以从网上搜到的实现、以及可以参考的实现有以下两个：</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://github.com/jeff-zou/flink-connector-redis。">https://github.com/jeff-zou/flink-connector-redis。</a> 但是其没有实现 flink sql redis 维表，只实现了 sink 表，并且使用起来有比较多的限制，包括需要在建表时就指定 key-column，value-column 等，其实博主觉得没必要指定这些字段，这些都可以动态调整。其实现是对 apache-bahir-flink <a target="_blank" rel="noopener" href="https://github.com/apache/bahir-flink">https://github.com/apache/bahir-flink</a> 的二次开发，但与 bahir 原生实现有割裂感，因为这个项目几乎重新实现了一遍，接口也和 bahir 不同。</li>
+<li>阿里云实现 <a target="_blank" rel="noopener" href="https://www.alibabacloud.com/help/zh/faq-detail/122722.htm?spm=a2c63.q38357.a3.7.a1227a53TBMuSY。">https://www.alibabacloud.com/help/zh/faq-detail/122722.htm?spm=a2c63.q38357.a3.7.a1227a53TBMuSY。</a> 可以参考的只有用法和配置等。但是有些配置项也属于阿里自定义的。</li>
+</ol>
+<p>因此博主在实现时，就定了一个基调。</p>
+<ol>
+<li>复用 connector：复用 bahir 提供的 redis connnector</li>
+<li>复用 format：复用 flink 目前的 format 机制，目前这个上述两个实现都没有做到</li>
+<li>简洁性：实现 kv 结构。hget 封装一部分</li>
+<li>维表 local cache：为避免高频率访问 redis，维表加了 local cache 作为缓存</li>
+</ol>
+<h1 id="5-维表实现篇-维表实现的过程"><a href="#5-维表实现篇-维表实现的过程" class="headerlink" title="5.维表实现篇-维表实现的过程"></a>5.维表实现篇-维表实现的过程</h1><p>在实现 redis 维表之前，不得不谈谈 flink 维表加载和使用机制。</p>
+<h2 id="5-1-flink-维表原理"><a href="#5-1-flink-维表原理" class="headerlink" title="5.1.flink 维表原理"></a>5.1.flink 维表原理</h2><p>其实上节已经详细描述了 flink sql 对于 source\sink 的加载机制，维表属于 source 的中的 lookup 表，在具体 flink 程序运行的过程之中可以简单的理解为一个 map，在 map 中调用 redis-client 接口访问 redis 进行扩充维度的过程。</p>
+<ol>
+<li>通过 SPI 机制加载所有的 source\sink\format 工厂 <code>Factory</code></li>
+<li>过滤出 DynamicTableSourceFactory + connector 标识的 source 工厂类</li>
+<li>通过 source 工厂类创建出对应的 source</li>
+</ol>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/7.png" alt="7"></p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/5.png" alt="5"></p>
+<p>如图 source 和 sink 是通过 <code>FactoryUtil.createTableSource</code> 和 <code>FactoryUtil.createTableSink</code> 创建的</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/4.png" alt="4"></p>
+<p>所有通过 SPI 的 source\sink\formt 插件都继承自 <code>Factory</code>。</p>
+<p>整体创建 source 方法的调用链如下图。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/6.png" alt="6"></p>
+<h2 id="5-2-flink-维表实现方案"><a href="#5-2-flink-维表实现方案" class="headerlink" title="5.2.flink 维表实现方案"></a>5.2.flink 维表实现方案</h2><p>先看下博主的最终实现。</p>
+<p>总重要的三个实现类：</p>
+<ol>
+<li><code>RedisDynamicTableFactory</code></li>
+<li><code>RedisDynamicTableSource</code></li>
+<li><code>RedisRowDataLookupFunction</code></li>
+</ol>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/8.png" alt="8"></p>
+<p>具体流程：</p>
+<ol>
+<li>定义 SPI 的工厂类 <code>RedisDynamicTableFactory implements DynamicTableSourceFactory</code>，并且在 resource\META-INF 下创建 SPI 的插件文件</li>
+<li>实现 factoryIdentifier 标识 <code>redis</code></li>
+<li>实现 <code>RedisDynamicTableFactory#createDynamicTableSource</code> 来创建对应的 source <code>RedisDynamicTableSource</code></li>
+<li>定义 <code>RedisDynamicTableSource implements LookupTableSource</code></li>
+<li>实现 <code>RedisDynamicTableFactory#getLookupRuntimeProvider</code> 方法，创建具体的维表 UDF  <code>TableFunction&lt;T&gt;</code>，定义为 <code>RedisRowDataLookupFunction</code></li>
+<li>实现 <code>RedisRowDataLookupFunction</code> 的 eval 方法，这个方法就是用于访问 redis 扩充维度的。</li>
+</ol>
+<p>介绍完流程，进入具体实现方案细节：</p>
+<p><code>RedisDynamicTableFactory</code> 主要创建 source 的逻辑：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RedisDynamicTableFactory</span> <span class="keyword">implements</span> <span class="title">DynamicTableSourceFactory</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">factoryIdentifier</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 标识 redis</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;redis&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DynamicTableSource <span class="title">createDynamicTableSource</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// either implement your custom validation logic here ...</span></span><br><span class="line">        <span class="comment">// or use the provided helper utility</span></span><br><span class="line">        <span class="keyword">final</span> FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(<span class="keyword">this</span>, context);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// discover a suitable decoding format</span></span><br><span class="line">        <span class="comment">// format 实现</span></span><br><span class="line">        <span class="keyword">final</span> DecodingFormat&lt;DeserializationSchema&lt;RowData&gt;&gt; decodingFormat = helper.discoverDecodingFormat(</span><br><span class="line">                DeserializationFormatFactory.class,</span><br><span class="line">                FactoryUtil.FORMAT);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// validate all options</span></span><br><span class="line">        <span class="comment">// 所有 option 配置的校验，比如 cache 类参数</span></span><br><span class="line">        helper.validate();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// get the validated options</span></span><br><span class="line">        <span class="keyword">final</span> ReadableConfig options = helper.getOptions();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> RedisLookupOptions redisLookupOptions = RedisOptions.getRedisLookupOptions(options);</span><br><span class="line"></span><br><span class="line">        TableSchema schema = context.getCatalogTable().getSchema();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 创建 RedisDynamicTableSource</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> RedisDynamicTableSource(</span><br><span class="line">                schema.toPhysicalRowDataType()</span><br><span class="line">                , decodingFormat</span><br><span class="line">                , redisLookupOptions);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>resources\META-INF 文件：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/13.png" alt="13"></p>
+<p><code>RedisDynamicTableSource</code> 主要创建 table udf 的逻辑：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RedisDynamicTableSource</span> <span class="keyword">implements</span> <span class="title">LookupTableSource</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> LookupRuntimeProvider <span class="title">getLookupRuntimeProvider</span><span class="params">(LookupContext context)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 初始化 redis 客户端配置</span></span><br><span class="line">        FlinkJedisConfigBase flinkJedisConfigBase = <span class="keyword">new</span> FlinkJedisPoolConfig.Builder()</span><br><span class="line">                .setHost(<span class="keyword">this</span>.redisLookupOptions.getHostname())</span><br><span class="line">                .setPort(<span class="keyword">this</span>.redisLookupOptions.getPort())</span><br><span class="line">                .build();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// redis key，value 序列化器</span></span><br><span class="line">        LookupRedisMapper lookupRedisMapper = <span class="keyword">new</span> LookupRedisMapper(</span><br><span class="line">                <span class="keyword">this</span>.createDeserialization(context, <span class="keyword">this</span>.decodingFormat, createValueFormatProjection(<span class="keyword">this</span>.physicalDataType)));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 创建 table udf</span></span><br><span class="line">        <span class="keyword">return</span> TableFunctionProvider.of(<span class="keyword">new</span> RedisRowDataLookupFunction(</span><br><span class="line">                flinkJedisConfigBase</span><br><span class="line">                , lookupRedisMapper</span><br><span class="line">                , <span class="keyword">this</span>.redisLookupOptions));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>RedisRowDataLookupFunction</code> table udf 执行维表关联的主要流程：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RedisRowDataLookupFunction</span> <span class="keyword">extends</span> <span class="title">TableFunction</span>&lt;<span class="title">RowData</span>&gt; </span>&#123;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 具体 redis 执行方法</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">eval</span><span class="params">(Object... objects)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> retry = <span class="number">0</span>; retry &lt;= maxRetryTimes; retry++) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="comment">// fetch result</span></span><br><span class="line">                <span class="keyword">this</span>.evaler.accept(objects);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                LOG.error(String.format(<span class="string">&quot;HBase lookup error, retry times = %d&quot;</span>, retry), e);</span><br><span class="line">                <span class="keyword">if</span> (retry &gt;= maxRetryTimes) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;Execution of Redis lookup failed.&quot;</span>, e);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Thread.sleep(<span class="number">1000</span> * retry);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e1) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e1);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">open</span><span class="params">(FunctionContext context)</span> </span>&#123;</span><br><span class="line">        LOG.info(<span class="string">&quot;start open ...&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// redis 命令执行器，初始化 redis 链接</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.redisCommandsContainer =</span><br><span class="line">                    RedisCommandsContainerBuilder</span><br><span class="line">                            .build(<span class="keyword">this</span>.flinkJedisConfigBase);</span><br><span class="line">            <span class="keyword">this</span>.redisCommandsContainer.open();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            LOG.error(<span class="string">&quot;Redis has not been properly initialized: &quot;</span>, e);</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 初始化 local cache</span></span><br><span class="line">        <span class="keyword">this</span>.cache = cacheMaxSize &lt;= <span class="number">0</span> || cacheExpireMs &lt;= <span class="number">0</span> ? <span class="keyword">null</span> : CacheBuilder.newBuilder()</span><br><span class="line">                .recordStats()</span><br><span class="line">                .expireAfterWrite(cacheExpireMs, TimeUnit.MILLISECONDS)</span><br><span class="line">                .maximumSize(cacheMaxSize)</span><br><span class="line">                .build();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (cache != <span class="keyword">null</span>) &#123;</span><br><span class="line">            context.getMetricGroup()</span><br><span class="line">                    .gauge(<span class="string">&quot;lookupCacheHitRate&quot;</span>, (Gauge&lt;Double&gt;) () -&gt; cache.stats().hitRate());</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            <span class="keyword">this</span>.evaler = in -&gt; &#123;</span><br><span class="line">                RowData cacheRowData = cache.getIfPresent(in);</span><br><span class="line">                <span class="keyword">if</span> (cacheRowData != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    collect(cacheRowData);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="comment">// fetch result</span></span><br><span class="line">                    <span class="keyword">byte</span>[] key = lookupRedisMapper.serialize(in);</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">byte</span>[] value = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">switch</span> (redisCommand) &#123;</span><br><span class="line">                        <span class="keyword">case</span> GET:</span><br><span class="line">                            value = <span class="keyword">this</span>.redisCommandsContainer.get(key);</span><br><span class="line">                            <span class="keyword">break</span>;</span><br><span class="line">                        <span class="keyword">case</span> HGET:</span><br><span class="line">                            value = <span class="keyword">this</span>.redisCommandsContainer.hget(key, <span class="keyword">this</span>.additionalKey.getBytes());</span><br><span class="line">                            <span class="keyword">break</span>;</span><br><span class="line">                        <span class="keyword">default</span>:</span><br><span class="line">                            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;Cannot process such data type: &quot;</span> + redisCommand);</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    RowData rowData = <span class="keyword">this</span>.lookupRedisMapper.deserialize(value);</span><br><span class="line"></span><br><span class="line">                    collect(rowData);</span><br><span class="line"></span><br><span class="line">                    cache.put(key, rowData);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-1-复用-bahir-connector"><a href="#5-2-1-复用-bahir-connector" class="headerlink" title="5.2.1.复用 bahir connector"></a>5.2.1.复用 bahir connector</h3><p>如图是 bahir redis connector 的实现。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/11.png" alt="11"></p>
+<p>博主在实现过程中将能复用的都尽力复用。如图是最终实现目录。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/12.png" alt="12"></p>
+<p>可以看到目录结构是与 bahir redis connector 一致的。</p>
+<p>其中 <code>redis 客户端及其配置</code> 是直接复用了 bahir redis 的。由于 bahir redis 基本都是 sink 实现，某些实现没法继承复用，所以这里我单独开辟了目录，<code>redis 命令执行器</code> 和 <code>redis 命令定义器</code>，但是也基本和 bahir 一致。<br>如果你想要在生产环境中进行使用，可以直接将两部分代码合并，成本很低。</p>
+<h3 id="5-2-2-复用-format"><a href="#5-2-2-复用-format" class="headerlink" title="5.2.2.复用 format"></a>5.2.2.复用 format</h3><p>博主直接复用了 flink 本身自带的 format 机制来作为维表反序列化机制。参考 HBase connector 实现将 cache 命中率添加到 metric 中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RedisDynamicTableFactory</span> <span class="keyword">implements</span> <span class="title">DynamicTableSourceFactory</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DynamicTableSource <span class="title">createDynamicTableSource</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line">        <span class="comment">// discover a suitable decoding format</span></span><br><span class="line">        <span class="comment">// 复用 format 实现</span></span><br><span class="line">        <span class="keyword">final</span> DecodingFormat&lt;DeserializationSchema&lt;RowData&gt;&gt; decodingFormat = helper.discoverDecodingFormat(</span><br><span class="line">                DeserializationFormatFactory.class,</span><br><span class="line">                FactoryUtil.FORMAT);</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>format 同样也是 SPI 机制加载。</p>
+<p>源码公众号后台回复<strong>flink sql 知其所以然（二）| sql 自定义 redis 数据维表</strong>获取。</p>
+<h2 id="5-2-3-维表-local-cache"><a href="#5-2-3-维表-local-cache" class="headerlink" title="5.2.3.维表 local cache"></a>5.2.3.维表 local cache</h2><p>local cache 在初始化时可以指定 cache 大小，缓存时长等。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">this</span>.evaler = in -&gt; &#123;</span><br><span class="line">    RowData cacheRowData = cache.getIfPresent(in);</span><br><span class="line">    <span class="keyword">if</span> (cacheRowData != <span class="keyword">null</span>) &#123;</span><br><span class="line">        collect(cacheRowData);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// fetch result</span></span><br><span class="line">        <span class="keyword">byte</span>[] key = lookupRedisMapper.serialize(in);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">byte</span>[] value = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">switch</span> (redisCommand) &#123;</span><br><span class="line">            <span class="keyword">case</span> GET:</span><br><span class="line">                value = <span class="keyword">this</span>.redisCommandsContainer.get(key);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> HGET:</span><br><span class="line">                value = <span class="keyword">this</span>.redisCommandsContainer.hget(key, <span class="keyword">this</span>.additionalKey.getBytes());</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">default</span>:</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;Cannot process such data type: &quot;</span> + redisCommand);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        RowData rowData = <span class="keyword">this</span>.lookupRedisMapper.deserialize(value);</span><br><span class="line"></span><br><span class="line">        collect(rowData);</span><br><span class="line"></span><br><span class="line">        cache.put(key, rowData);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h1 id="6-总结与展望篇"><a href="#6-总结与展望篇" class="headerlink" title="6.总结与展望篇"></a>6.总结与展望篇</h1><h2 id="6-1-总结"><a href="#6-1-总结" class="headerlink" title="6.1.总结"></a>6.1.总结</h2><p>本文主要是针对 flink sql redis 维表进行了扩展以及实现，并且复用 bahir redis connector 的配置，具有良好的扩展性。<br>如果你正好需要这么一个 connector，直接公众号后台回复<strong>flink sql 知其所以然（二）| sql 自定义 redis 数据维表</strong>获取源码吧。</p>
+<h2 id="6-2-展望"><a href="#6-2-展望" class="headerlink" title="6.2.展望"></a>6.2.展望</h2><p>当然上述只是 redis 维表一个基础的实现，用于生产环境还有很多方面可以去扩展的。</p>
+<ol>
+<li>jedis cluster 的扩展：目前 bahir datastream 中已经实现了，可以直接参考，扩展起来非常简单</li>
+<li>aync lookup 维表的扩展：目前 hbase lookup 表已经实现了，可以直接参考实现</li>
+<li>异常 AOP，alert 等</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div></div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechat.png" alt=" 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.png" alt=" 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Flink/" rel="tag"># Apache Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/02_source_sink/" rel="next" title="flink sql 知其所以然（一）| source\sink 原理">
+                <i class="fa fa-chevron-left"></i> flink sql 知其所以然（一）| source\sink 原理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/04_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E6%B1%87%E8%A1%A8/" rel="prev" title="flink sql 知其所以然（三）| sql 自定义 redis 数据汇表">
+                flink sql 知其所以然（三）| sql 自定义 redis 数据汇表 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/blog-img/avatar.jpeg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">115</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yangyichao-mango" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:1048262223@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%BA%8F%E7%AF%87-%E6%9C%AC%E6%96%87%E7%BB%93%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">1.序篇-本文结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%83%8C%E6%99%AF%E7%AF%87-%E4%B8%BA%E5%95%A5%E9%9C%80%E8%A6%81-redis-%E7%BB%B4%E8%A1%A8"><span class="nav-number">2.</span> <span class="nav-text">2.背景篇-为啥需要 redis 维表</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-%E5%95%A5%E6%98%AF%E7%BB%B4%E8%A1%A8%EF%BC%9F%E4%BA%8B%E5%AE%9E%E8%A1%A8%EF%BC%9F"><span class="nav-number">2.1.</span> <span class="nav-text">2.1.啥是维表？事实表？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-%E4%B8%BA%E5%95%A5%E9%9C%80%E8%A6%81-redis-%E7%BB%B4%E8%A1%A8%EF%BC%9F"><span class="nav-number">2.2.</span> <span class="nav-text">2.2.为啥需要 redis 维表？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E7%9B%AE%E6%A0%87%E7%AF%87-%E5%81%9A-redis-%E7%BB%B4%E8%A1%A8%E9%A2%84%E6%9C%9F%E6%95%88%E6%9E%9C%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">3.</span> <span class="nav-text">3.目标篇-做 redis 维表预期效果是什么</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E9%9A%BE%E7%82%B9%E5%89%96%E6%9E%90%E7%AF%87-%E7%9B%AE%E5%89%8D%E6%9C%89%E5%93%AA%E4%BA%9B%E5%AE%9E%E7%8E%B0"><span class="nav-number">4.</span> <span class="nav-text">4.难点剖析篇-目前有哪些实现</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E7%BB%B4%E8%A1%A8%E5%AE%9E%E7%8E%B0%E7%AF%87-%E7%BB%B4%E8%A1%A8%E5%AE%9E%E7%8E%B0%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="nav-number">5.</span> <span class="nav-text">5.维表实现篇-维表实现的过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#5-1-flink-%E7%BB%B4%E8%A1%A8%E5%8E%9F%E7%90%86"><span class="nav-number">5.1.</span> <span class="nav-text">5.1.flink 维表原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2-flink-%E7%BB%B4%E8%A1%A8%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%A1%88"><span class="nav-number">5.2.</span> <span class="nav-text">5.2.flink 维表实现方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-1-%E5%A4%8D%E7%94%A8-bahir-connector"><span class="nav-number">5.2.1.</span> <span class="nav-text">5.2.1.复用 bahir connector</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-2-%E5%A4%8D%E7%94%A8-format"><span class="nav-number">5.2.2.</span> <span class="nav-text">5.2.2.复用 format</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2-3-%E7%BB%B4%E8%A1%A8-local-cache"><span class="nav-number">5.3.</span> <span class="nav-text">5.2.3.维表 local cache</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E6%80%BB%E7%BB%93%E4%B8%8E%E5%B1%95%E6%9C%9B%E7%AF%87"><span class="nav-number">6.</span> <span class="nav-text">6.总结与展望篇</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#6-1-%E6%80%BB%E7%BB%93"><span class="nav-number">6.1.</span> <span class="nav-text">6.1.总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-2-%E5%B1%95%E6%9C%9B"><span class="nav-number">6.2.</span> <span class="nav-text">6.2.展望</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">244.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://true.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/03_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9Asql%E8%87%AA%E5%AE%9A%E4%B9%89redis%E6%95%B0%E6%8D%AE%E7%BB%B4%E8%A1%A8/';
+          this.page.identifier = '2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/03_flinksql知其所以然（二）：sql自定义redis数据维表/';
+          this.page.title = 'flink sql 知其所以然（二）| sql 自定义 redis 数据维表';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://true.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

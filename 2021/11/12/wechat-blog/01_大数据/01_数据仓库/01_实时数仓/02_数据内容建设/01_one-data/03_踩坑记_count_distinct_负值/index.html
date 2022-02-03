@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="antigeneral's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本系列每篇文章都比较短小，不定期更新，从一些博主的脑洞想法出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍博主对流批一体来源以及未来发展方向的一些理解，阅读时长大概 2 分钟，话不多说，直接进入正文！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="踩坑记 | flink sql count_retract 还有这种坑！">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2021/11/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/03_%E8%B8%A9%E5%9D%91%E8%AE%B0_count_distinct_%E8%B4%9F%E5%80%BC/index.html">
+<meta property="og:site_name" content="antigeneral&#39;s blog">
+<meta property="og:description" content="本系列每篇文章都比较短小，不定期更新，从一些博主的脑洞想法出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍博主对流批一体来源以及未来发展方向的一些理解，阅读时长大概 2 分钟，话不多说，直接进入正文！">
+<meta property="og:locale">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/03_%E8%B8%A9%E5%9D%91%E8%AE%B0_count_distinct_%E8%B4%9F%E5%80%BC/2.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/03_%E8%B8%A9%E5%9D%91%E8%AE%B0_count_distinct_%E8%B4%9F%E5%80%BC/1.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/03_%E8%B8%A9%E5%9D%91%E8%AE%B0_count_distinct_%E8%B4%9F%E5%80%BC/7.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/03_%E8%B8%A9%E5%9D%91%E8%AE%B0_count_distinct_%E8%B4%9F%E5%80%BC/5.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/03_%E8%B8%A9%E5%9D%91%E8%AE%B0_count_distinct_%E8%B4%9F%E5%80%BC/6.png">
+<meta property="article:published_time" content="2021-11-12T06:21:53.000Z">
+<meta property="article:modified_time" content="2021-07-31T06:03:19.219Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Flink">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/03_%E8%B8%A9%E5%9D%91%E8%AE%B0_count_distinct_%E8%B4%9F%E5%80%BC/2.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2021/11/12/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/01_one-data/03_踩坑记_count_distinct_负值/"/>
+
+
+
+
+
+  <title>踩坑记 | flink sql count_retract 还有这种坑！ | antigeneral's blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-150061865-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">antigeneral's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-link"></i> <br />
+            
+            links
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/03_%E8%B8%A9%E5%9D%91%E8%AE%B0_count_distinct_%E8%B4%9F%E5%80%BC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">踩坑记 | flink sql count_retract 还有这种坑！</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-12T14:21:53+08:00">
+                2021-11-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/03_%E8%B8%A9%E5%9D%91%E8%AE%B0_count_distinct_%E8%B4%9F%E5%80%BC/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/11/12/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/01_one-data/03_踩坑记_count_distinct_负值/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  3.1k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  13
+                </span>
+              
+            </div>
+          
+
+          
+              <div class="post-description">
+                  本系列每篇文章都比较短小，不定期更新，从一些博主的脑洞想法出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍博主对流批一体来源以及未来发展方向的一些理解，阅读时长大概 2 分钟，话不多说，直接进入正文！
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>感谢您的<strong>关注  +  点赞 + 再看</strong>，对博主的肯定，会督促博主持续的输出更多的优质实战内容！！！</p>
+</blockquote>
+<h1 id="1-序篇"><a href="#1-序篇" class="headerlink" title="1.序篇"></a>1.序篇</h1><p>通过本文你可了解到</p>
+<ol>
+<li>踩坑场景篇-这个坑是啥样的</li>
+<li>问题排查篇-坑的排查过程</li>
+<li>问题原理解析篇-导致问题的机制是什么</li>
+<li>避坑篇-如何避免这种问题</li>
+<li>展望篇-有什么机制可以根本避免这种情况</li>
+</ol>
+<p>先说下结论：在非窗口类 flink sql 任务中，会存在 retract 机制，即上游会向下游发送<strong>撤回消息（做减法）</strong>，<strong>最新的结果消息（做加法）</strong>两条消息来计算结果，保证结果正确性。</p>
+<p>而如果我们在上下游中间使用了映射类 udf 改变了<strong>撤回消息（做减法）</strong>的一些字段值时，就可能会导致<strong>撤回消息（做减法）</strong>不能被正常处理，最终导致结果的错误。</p>
+<h1 id="2-踩坑场景篇-这个坑是啥样的"><a href="#2-踩坑场景篇-这个坑是啥样的" class="headerlink" title="2.踩坑场景篇-这个坑是啥样的"></a>2.踩坑场景篇-这个坑是啥样的</h1><p>在介绍坑之前我们先介绍下我们的需求、实现方案的背景。</p>
+<h2 id="2-1-背景"><a href="#2-1-背景" class="headerlink" title="2.1.背景"></a>2.1.背景</h2><p>在各类游戏中都会有一种场景，一个用户可以从 A 等级升级到 B 等级，用户可以不断的升级，但是一个用户同一时刻只会在同一个等级。需求指标就是当前分钟各个等级的用户数。</p>
+<h2 id="2-2-预期效果"><a href="#2-2-预期效果" class="headerlink" title="2.2.预期效果"></a>2.2.预期效果</h2><p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/03_%E8%B8%A9%E5%9D%91%E8%AE%B0_count_distinct_%E8%B4%9F%E5%80%BC/2.png" alt="2"></p>
+<h2 id="2-3-解决思路"><a href="#2-3-解决思路" class="headerlink" title="2.3.解决思路"></a>2.3.解决思路</h2><ol>
+<li>获取到当前所有用户的最新等级</li>
+<li>一个用户同一时刻只会在一个等级，所以对每一个等级的用户做 count 操作</li>
+</ol>
+<h2 id="2-4-解决方案"><a href="#2-4-解决方案" class="headerlink" title="2.4.解决方案"></a>2.4.解决方案</h2><ol>
+<li>获取到当前所有用户的最新等级：flink sql row_number() 就可以实现，按照数据的 rowtime 进行逆序排序就可以获取到用户当前最新的等级</li>
+<li>对每一个等级的用户做 count 操作：对 row_number() 的后的明细结果进行 count 操作</li>
+</ol>
+<h3 id="2-4-1-sql"><a href="#2-4-1-sql" class="headerlink" title="2.4.1.sql"></a>2.4.1.sql</h3><p>具体实现 sql 如下，非常简单：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">WITH</span> detail_tmp <span class="keyword">AS</span> (</span><br><span class="line">  <span class="keyword">SELECT</span></span><br><span class="line">    等级,</span><br><span class="line">    id,</span><br><span class="line">    `<span class="type">timestamp</span>`</span><br><span class="line">  <span class="keyword">FROM</span></span><br><span class="line">    (</span><br><span class="line">      <span class="keyword">SELECT</span></span><br><span class="line">        等级,</span><br><span class="line">        id,</span><br><span class="line">        `<span class="type">timestamp</span>`,</span><br><span class="line">        <span class="comment">-- row_number 获取最新状态</span></span><br><span class="line">        <span class="built_in">row_number</span>() <span class="keyword">over</span>(</span><br><span class="line">          <span class="keyword">PARTITION</span> <span class="keyword">by</span> id</span><br><span class="line">          <span class="keyword">ORDER</span> <span class="keyword">BY</span></span><br><span class="line">            `<span class="type">timestamp</span>` <span class="keyword">DESC</span></span><br><span class="line">        ) <span class="keyword">AS</span> rn</span><br><span class="line">      <span class="keyword">FROM</span></span><br><span class="line">        source_db.source_table</span><br><span class="line">    )</span><br><span class="line">  <span class="keyword">WHERE</span></span><br><span class="line">    rn <span class="operator">=</span> <span class="number">1</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  DIM.中文等级 <span class="keyword">as</span> 等级,</span><br><span class="line">  <span class="built_in">sum</span>(part_uv) <span class="keyword">as</span> uv</span><br><span class="line"><span class="keyword">FROM</span></span><br><span class="line">  (</span><br><span class="line">    <span class="keyword">SELECT</span></span><br><span class="line">      等级,</span><br><span class="line">      <span class="built_in">count</span>(id) <span class="keyword">as</span> part_uv</span><br><span class="line">    <span class="keyword">FROM</span></span><br><span class="line">      detail_tmp</span><br><span class="line">    <span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">      等级,</span><br><span class="line">      <span class="built_in">mod</span>(id, <span class="number">1024</span>)</span><br><span class="line">  )</span><br><span class="line"><span class="comment">-- 上游数据的等级名称是数字，需求方要求给转换成中文，所以这里加了一个 udf 映射</span></span><br><span class="line"><span class="keyword">LEFT</span> <span class="keyword">JOIN</span> <span class="keyword">LATERAL</span> <span class="keyword">TABLE</span>(等级中文映射_UDF(等级)) <span class="keyword">AS</span> DIM(中文等级) <span class="keyword">ON</span> <span class="literal">TRUE</span></span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">  DIM.中文等级</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-2-参数配置"><a href="#2-4-2-参数配置" class="headerlink" title="2.4.2.参数配置"></a>2.4.2.参数配置</h3><p>使用 minibatch 参数方式控制数据输出频率。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">table.exec.mini-batch.enabled :</span> <span class="literal">true</span></span><br><span class="line"><span class="string">--</span> <span class="string">设定</span> <span class="string">60s</span> <span class="string">的触发间隔</span></span><br><span class="line"><span class="attr">table.exec.mini-batch.allow-latency :</span> <span class="string">60s</span></span><br><span class="line"><span class="attr">table.exec.mini-batch.size :</span> <span class="number">10000000000</span></span><br></pre></td></tr></table></figure>
+
+<p>任务 plan。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/03_%E8%B8%A9%E5%9D%91%E8%AE%B0_count_distinct_%E8%B4%9F%E5%80%BC/1.png" alt="1"></p>
+<h2 id="2-5-问题场景"><a href="#2-5-问题场景" class="headerlink" title="2.5.问题场景"></a>2.5.问题场景</h2><p>这段 SQL 跑了 n 年都没有问题，但是有一天运营在配置【等级中文映射_UDF】时，不小心将一个等级的中文名给映射错了，虽然马上恢复了，但是当天的实时数据和离线数据对比后却发现，实时产出的数值比离线大很多！！！而之前都是保持一致的。</p>
+<h1 id="3-问题排查篇-坑的排查过程"><a href="#3-问题排查篇-坑的排查过程" class="headerlink" title="3.问题排查篇-坑的排查过程"></a>3.问题排查篇-坑的排查过程</h1><p>首先我们想一下，这个指标是算 uv 的，运营将等级中文名配置错了，也应该是把原有等级的最终结果算少啊，怎么会算多呢？？？</p>
+<p>然后我们将场景复现了下，来看看代码：</p>
+<p>任务代码，大家可以直接 copy 到本地运行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();</span><br><span class="line"></span><br><span class="line">        env.setParallelism(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">        EnvironmentSettings settings = EnvironmentSettings</span><br><span class="line">                .newInstance()</span><br><span class="line">                .useBlinkPlanner()</span><br><span class="line">                .inStreamingMode().build();</span><br><span class="line"></span><br><span class="line">        StreamTableEnvironment tEnv = StreamTableEnvironment.create(env, settings);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 模拟输入</span></span><br><span class="line">        DataStream&lt;Tuple3&lt;String, Long, Long&gt;&gt; tuple3DataStream =</span><br><span class="line">                env.fromCollection(Arrays.asList(</span><br><span class="line">                        Tuple3.of(<span class="string">&quot;2&quot;</span>, <span class="number">1L</span>, <span class="number">1627218000000L</span>),</span><br><span class="line">                        Tuple3.of(<span class="string">&quot;2&quot;</span>, <span class="number">101L</span>, <span class="number">1627218000000L</span> + <span class="number">6000L</span>),</span><br><span class="line">                        Tuple3.of(<span class="string">&quot;2&quot;</span>, <span class="number">201L</span>, <span class="number">1627218000000L</span> + <span class="number">7000L</span>),</span><br><span class="line">                        Tuple3.of(<span class="string">&quot;2&quot;</span>, <span class="number">301L</span>, <span class="number">1627218000000L</span> + <span class="number">7000L</span>)));</span><br><span class="line">        <span class="comment">// 分桶取模 udf</span></span><br><span class="line">        tEnv.registerFunction(<span class="string">&quot;mod&quot;</span>, <span class="keyword">new</span> Mod_UDF());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 中文映射 udf</span></span><br><span class="line">        tEnv.registerFunction(<span class="string">&quot;status_mapper&quot;</span>, <span class="keyword">new</span> StatusMapper_UDF());</span><br><span class="line"></span><br><span class="line">        tEnv.createTemporaryView(<span class="string">&quot;source_db.source_table&quot;</span>, tuple3DataStream,</span><br><span class="line">                <span class="string">&quot;status, id, timestamp&quot;</span>);</span><br><span class="line"></span><br><span class="line">        String sql = <span class="string">&quot;WITH detail_tmp AS (\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  SELECT\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;    status,\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;    id,\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;    `timestamp`\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  FROM\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;    (\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;      SELECT\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;        status,\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;        id,\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;        `timestamp`,\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;        row_number() over(\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;          PARTITION by id\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;          ORDER BY\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;            `timestamp` DESC\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;        ) AS rn\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;      FROM source_db.source_table&quot;</span></span><br><span class="line">                + <span class="string">&quot;    )\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  WHERE\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;    rn = 1\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;)\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;SELECT\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  DIM.status_new as status,\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  sum(part_uv) as uv\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;FROM\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  (\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;    SELECT\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;      status,\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;      count(distinct id) as part_uv\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;    FROM\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;      detail_tmp\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;    GROUP BY\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;      status,\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;      mod(id, 100)\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  )\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;LEFT JOIN LATERAL TABLE(status_mapper(status)) AS DIM(status_new) ON TRUE\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;GROUP BY\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  DIM.status_new&quot;</span>;</span><br><span class="line"></span><br><span class="line">        Table result = tEnv.sqlQuery(sql);</span><br><span class="line"></span><br><span class="line">        tEnv.toRetractStream(result, Row.class).print();</span><br><span class="line"></span><br><span class="line">        env.execute();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>UDF 代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StatusMapper_UDF</span> <span class="keyword">extends</span> <span class="title">TableFunction</span>&lt;<span class="title">String</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">eval</span><span class="params">(String activityRound)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (activityRound == <span class="string">&quot;1&quot;</span>) &#123;</span><br><span class="line">            collector.collect(<span class="string">&quot;等级1&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (activityRound == <span class="string">&quot;2&quot;</span>) &#123;</span><br><span class="line">            collector.collect(<span class="string">&quot;等级2&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (activityRound == <span class="string">&quot;3&quot;</span>) &#123;</span><br><span class="line">            collector.collect(<span class="string">&quot;等级3&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>在正确情况（模拟 UDF 没有任何变动的情况下）的输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">(true,等级2,1)</span><br><span class="line">(false,等级2,1)</span><br><span class="line">(true,等级2,2)</span><br><span class="line">(false,等级2,2)</span><br><span class="line">(true,等级2,3)</span><br><span class="line">(false,等级2,3)</span><br><span class="line">(true,等级2,4)</span><br></pre></td></tr></table></figure>
+
+<p>最终等级2 的 uv 数为 4，结果复合预期✅。</p>
+<p>模拟下用户修改了 udf 配置之后，UDF 代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StatusMapper_UDF</span> <span class="keyword">extends</span> <span class="title">TableFunction</span>&lt;<span class="title">String</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">eval</span><span class="params">(String activityRound)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (i == <span class="number">5</span>) &#123;</span><br><span class="line">            collect(<span class="string">&quot;等级4&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="string">&quot;1&quot;</span>.equals(activityRound)) &#123;</span><br><span class="line">                collector.collect(<span class="string">&quot;等级1&quot;</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">&quot;2&quot;</span>.equals(activityRound)) &#123;</span><br><span class="line">                collector.collect(<span class="string">&quot;等级2&quot;</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">&quot;3&quot;</span>.equals(activityRound)) &#123;</span><br><span class="line">                collector.collect(<span class="string">&quot;等级3&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        i++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>得到的结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">(true,等级2,1)</span><br><span class="line">(false,等级2,1)</span><br><span class="line">(true,等级2,2)</span><br><span class="line">(false,等级2,2)</span><br><span class="line">(true,等级2,3)</span><br><span class="line">(false,等级2,3)</span><br><span class="line">(true,等级2,7)</span><br></pre></td></tr></table></figure>
+
+<p>最终等级2 的 uv 数为 7，很明显这是错误结果❌。</p>
+<p>因此可以确定是由于这个 UDF 的处理逻辑变换而导致的结果出现错误。</p>
+<p>下文就让我们来分析下其中缘由。</p>
+<h1 id="问题原理解析篇-导致问题的机制是什么"><a href="#问题原理解析篇-导致问题的机制是什么" class="headerlink" title="问题原理解析篇-导致问题的机制是什么"></a>问题原理解析篇-导致问题的机制是什么</h1><p>我们首先来分析下上述 SQL，可以发现整个 flink sql 任务是使用了 unbounded + minibatch 实现的，在 minibatch 触发条件触发时，上游算子会将之前的结果撤回，然后将最新的结果发出。</p>
+<p>这个任务的 execution plan 如图所示。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/03_%E8%B8%A9%E5%9D%91%E8%AE%B0_count_distinct_%E8%B4%9F%E5%80%BC/7.png" alt="7"></p>
+<p>可以从算子图中的一些计算逻辑可以看到，整个任务都是基于 retract 机制运行（count_retract、sum_retract 等）。</p>
+<p>而涉及到 udf 的核心逻辑是在 Operator(ID = 7)，和 Operator(ID = 12) 之间。当 Operator(ID = 7) GroupAggregate 结果发生改变之后，会发一条<strong>撤回消息（做减法）</strong>，一条<strong>最新的结果消息（做加法）</strong>到 Operator(ID = 12) GroupAggregate。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/03_%E8%B8%A9%E5%9D%91%E8%AE%B0_count_distinct_%E8%B4%9F%E5%80%BC/5.png" alt="5"></p>
+<blockquote>
+<p>Notes：<br>简单解释下上面说的<strong>撤回消息（做减法）</strong>，<strong>最新的结果消息（做加法）</strong>。举个算 count 的例子：当整个任务的第一条数据来之后，之前没有数据，所以不用撤回，结果就是 0（没有数据） + 1（第一条数据） = 1（结果），当第二条结果来之后，就要将上次发的 1 消息（可以理解为是整个任务的一个中间结果）撤回，将最新的结果 2 发下去。那么计算方法就是 1（上次的结果） - 1（撤回） + 2（当前最新的结果消息）= 2（结果）。</p>
+</blockquote>
+<p>通过算子图可以发现，【中文名称映射】UDF 是处于两个 GroupAggregate 之间的。也就是说 Operator(ID = 7) GroupAggregate 发出的<strong>撤回消息（做减法）</strong>，<strong>最新的结果消息（做加法）</strong>都会执行这个 UDF，那么就有可能<strong>撤回消息（做减法）</strong>中的某个作为下游 GroupAggregate 算子 key 的字段会被更改成其他值，那么这条消息就不会发到原来下游 GroupAggregate 算子的原始 key 中，那么原来的 key 的历史结果就撤回不了了。。。但是<strong>最新的结果消息（做加法）</strong>的字段没有被更改时，那么这个消息依然被发到了下游 GroupAggregate 算子，这就会导致没做减法，却做了加法，就会导致结果增加。</p>
+<p>从这个角度出发，我们来分析下上面的 case，从内层发给外层的消息一条一条来分析。</p>
+<p>内层消息怎么来看呢？其实就是将上面的 SQL 中的 left join 删除，重新跑一遍就可以得到结果，结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">(true,等级2,1)</span><br><span class="line">(false,等级2,1)</span><br><span class="line">(true,等级2,2)</span><br><span class="line">(false,等级2,2)</span><br><span class="line">(true,等级2,3)</span><br><span class="line">(false,等级4,3)</span><br><span class="line">(true,等级2,4)</span><br></pre></td></tr></table></figure>
+
+<p>来分析下内层消息发出之后对应到外层消息的操作：</p>
+<table>
+<thead>
+<tr>
+<th>内层</th>
+<th>外层</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>(true,等级2,1)</td>
+<td>(true,等级2,1)</td>
+</tr>
+<tr>
+<td>(false,等级2,1)</td>
+<td>(false,等级2,1)</td>
+</tr>
+<tr>
+<td>(true,等级2,2)</td>
+<td>(true,等级2,2)</td>
+</tr>
+<tr>
+<td>(false,等级2,2)</td>
+<td>(false,等级2,2)</td>
+</tr>
+<tr>
+<td>(true,等级2,3)</td>
+<td>(true,等级2,3)</td>
+</tr>
+</tbody></table>
+<p>前五条消息不会导致错误，不用详细说明。</p>
+<table>
+<thead>
+<tr>
+<th>内层</th>
+<th>外层</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>(true,等级2,1)</td>
+<td>(true,等级2,1)</td>
+</tr>
+<tr>
+<td>(false,等级2,1)</td>
+<td>(false,等级2,1)</td>
+</tr>
+<tr>
+<td>(true,等级2,2)</td>
+<td>(true,等级2,2)</td>
+</tr>
+<tr>
+<td>(false,等级2,2)</td>
+<td>(false,等级2,2)</td>
+</tr>
+<tr>
+<td>(true,等级2,3)</td>
+<td>(true,等级2,3)</td>
+</tr>
+<tr>
+<td>(false,等级4,3)</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>第六条消息发出之后，经过 udf 的处理之后，中文名被映射成了【等级4】，而其再通过 hash partition 策略向下发送消息时，就不能将这条撤回消息发到原本 key 为【等级2】的算子中了，这条撤回消息也无法被处理了。</p>
+<table>
+<thead>
+<tr>
+<th>内层</th>
+<th>外层</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>(true,等级2,1)</td>
+<td>(true,等级2,1)</td>
+</tr>
+<tr>
+<td>(false,等级2,1)</td>
+<td>(false,等级2,1)</td>
+</tr>
+<tr>
+<td>(true,等级2,2)</td>
+<td>(true,等级2,2)</td>
+</tr>
+<tr>
+<td>(false,等级2,2)</td>
+<td>(false,等级2,2)</td>
+</tr>
+<tr>
+<td>(true,等级2,3)</td>
+<td>(true,等级2,3)</td>
+</tr>
+<tr>
+<td>(false,等级4,3)</td>
+<td></td>
+</tr>
+<tr>
+<td>(true,等级2,4)</td>
+<td>(false,等级2,3) (true,等级2,7)</td>
+</tr>
+</tbody></table>
+<p>第七条消息 (true,等级2,4) 发出后，外层 GroupAggregate 算子首先会将上次发出的记过撤回，即(false,等级2,3)，然后将(true,等级2,4)累加到当前的记过上，即 3（上次结果）+ 4（这次最新的结果）= 7（结果）。就导致了上述的错误结果。</p>
+<p>定位到问题原因之后，我们来看看怎么避免上述错误。</p>
+<h1 id="6-避坑篇-如何避免这种问题"><a href="#6-避坑篇-如何避免这种问题" class="headerlink" title="6.避坑篇-如何避免这种问题"></a>6.避坑篇-如何避免这种问题</h1><h2 id="6-1-从源头避免"><a href="#6-1-从源头避免" class="headerlink" title="6.1.从源头避免"></a>6.1.从源头避免</h2><p>udf 这种映射维度的 udf 尽量在上线前就固定下来，避免后续更改造成的数据错误。</p>
+<h2 id="6-2-替换为-ScalarFunction-进行映射"><a href="#6-2-替换为-ScalarFunction-进行映射" class="headerlink" title="6.2.替换为 ScalarFunction 进行映射"></a>6.2.替换为 ScalarFunction 进行映射</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">WITH</span> detail_tmp <span class="keyword">AS</span> (</span><br><span class="line">  <span class="keyword">SELECT</span></span><br><span class="line">    status,</span><br><span class="line">    id,</span><br><span class="line">    `<span class="type">timestamp</span>`</span><br><span class="line">  <span class="keyword">FROM</span></span><br><span class="line">    (</span><br><span class="line">      <span class="keyword">SELECT</span></span><br><span class="line">        status,</span><br><span class="line">        id,</span><br><span class="line">        `<span class="type">timestamp</span>`,</span><br><span class="line">        <span class="built_in">row_number</span>() <span class="keyword">over</span>(</span><br><span class="line">          <span class="keyword">PARTITION</span> <span class="keyword">by</span> id</span><br><span class="line">          <span class="keyword">ORDER</span> <span class="keyword">BY</span></span><br><span class="line">            `<span class="type">timestamp</span>` <span class="keyword">DESC</span></span><br><span class="line">        ) <span class="keyword">AS</span> rn</span><br><span class="line">      <span class="keyword">FROM</span></span><br><span class="line">        (</span><br><span class="line">          <span class="keyword">SELECT</span></span><br><span class="line">            status,</span><br><span class="line">            id,</span><br><span class="line">            `<span class="type">timestamp</span>`</span><br><span class="line">          <span class="keyword">FROM</span></span><br><span class="line">            source_db.source_table</span><br><span class="line">        ) t1</span><br><span class="line">    ) t2</span><br><span class="line">  <span class="keyword">WHERE</span></span><br><span class="line">    rn <span class="operator">=</span> <span class="number">1</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  <span class="comment">-- 在此处进行中文名称映射</span></span><br><span class="line">  等级中文映射_UDF(status) <span class="keyword">as</span> status,</span><br><span class="line">  <span class="built_in">sum</span>(part_uv) <span class="keyword">as</span> uv</span><br><span class="line"><span class="keyword">FROM</span></span><br><span class="line">  (</span><br><span class="line">    <span class="keyword">SELECT</span></span><br><span class="line">      status,</span><br><span class="line">      <span class="built_in">count</span>(<span class="keyword">distinct</span> id) <span class="keyword">as</span> part_uv</span><br><span class="line">    <span class="keyword">FROM</span></span><br><span class="line">      detail_tmp</span><br><span class="line">    <span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">      status,</span><br><span class="line">      <span class="built_in">mod</span>(id, <span class="number">100</span>)</span><br><span class="line">  )</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">  status</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StatusMapper_UDF</span> <span class="keyword">extends</span> <span class="title">ScalarFunction</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">eval</span><span class="params">(String activityRound)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (i == <span class="number">5</span>) &#123;</span><br><span class="line">            i++;</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;等级4&quot;</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            i++;</span><br><span class="line">            <span class="keyword">if</span> (<span class="string">&quot;1&quot;</span>.equals(activityRound)) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="string">&quot;等级1&quot;</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">&quot;2&quot;</span>.equals(activityRound)) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="string">&quot;等级2&quot;</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">&quot;3&quot;</span>.equals(activityRound)) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="string">&quot;等级3&quot;</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;未知&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>还是刚刚的逻辑，刚刚的配方，我们先来看一下结果。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">(true,等级2,1)</span><br><span class="line">(false,等级2,1)</span><br><span class="line">(true,等级2,2)</span><br><span class="line">(false,等级2,2)</span><br><span class="line">(true,等级2,3)</span><br><span class="line">(false,等级4,3)</span><br><span class="line">(true,等级2,4)</span><br></pre></td></tr></table></figure>
+
+<p>发现虽然依然会有 <code>(false,等级4,3)</code> 这样的错误撤回数据（这是 udf 决定的，没法避免），但是我们可以发现最终的结果是 <code>(true,等级2,4)</code>，结果依然是正确的。</p>
+<p>再来分析下问什么这种方式可以解决，如图 plan。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/03_%E8%B8%A9%E5%9D%91%E8%AE%B0_count_distinct_%E8%B4%9F%E5%80%BC/6.png" alt="6"></p>
+<p>发现映射 udf 算子所处的位置不在两个 GroupAggregrate 之间了，因此在 retract 消息发送之后，不会被映射到错误其他 key 中，因此所有的 retract 消息都会正常处理。</p>
+<h1 id="7-展望篇-有什么机制可以根本避免这种情况"><a href="#7-展望篇-有什么机制可以根本避免这种情况" class="headerlink" title="7.展望篇-有什么机制可以根本避免这种情况"></a>7.展望篇-有什么机制可以根本避免这种情况</h1><p>可以将<strong>撤回消息（做减法）</strong>，<strong>最新的结果消息（做加法）</strong>做成一个原子消息从上游发给下游，下游统一进行原子性处理，关联 udf 时，也只对 group key 关联一次即可。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div></div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechat.png" alt=" 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.png" alt=" 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Flink/" rel="tag"># Apache Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/11/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/" rel="next" title="揭秘字节跳动埋点数据实时动态处理引擎">
+                <i class="fa fa-chevron-left"></i> 揭秘字节跳动埋点数据实时动态处理引擎
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/02_source_sink/" rel="prev" title="flink sql 知其所以然（一）| source\sink 原理">
+                flink sql 知其所以然（一）| source\sink 原理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/blog-img/avatar.jpeg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">115</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yangyichao-mango" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:1048262223@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%BA%8F%E7%AF%87"><span class="nav-number">1.</span> <span class="nav-text">1.序篇</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%B8%A9%E5%9D%91%E5%9C%BA%E6%99%AF%E7%AF%87-%E8%BF%99%E4%B8%AA%E5%9D%91%E6%98%AF%E5%95%A5%E6%A0%B7%E7%9A%84"><span class="nav-number">2.</span> <span class="nav-text">2.踩坑场景篇-这个坑是啥样的</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-%E8%83%8C%E6%99%AF"><span class="nav-number">2.1.</span> <span class="nav-text">2.1.背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-%E9%A2%84%E6%9C%9F%E6%95%88%E6%9E%9C"><span class="nav-number">2.2.</span> <span class="nav-text">2.2.预期效果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-%E8%A7%A3%E5%86%B3%E6%80%9D%E8%B7%AF"><span class="nav-number">2.3.</span> <span class="nav-text">2.3.解决思路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-4-%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">2.4.</span> <span class="nav-text">2.4.解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-1-sql"><span class="nav-number">2.4.1.</span> <span class="nav-text">2.4.1.sql</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-2-%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE"><span class="nav-number">2.4.2.</span> <span class="nav-text">2.4.2.参数配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-5-%E9%97%AE%E9%A2%98%E5%9C%BA%E6%99%AF"><span class="nav-number">2.5.</span> <span class="nav-text">2.5.问题场景</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E7%AF%87-%E5%9D%91%E7%9A%84%E6%8E%92%E6%9F%A5%E8%BF%87%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">3.问题排查篇-坑的排查过程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90%E7%AF%87-%E5%AF%BC%E8%87%B4%E9%97%AE%E9%A2%98%E7%9A%84%E6%9C%BA%E5%88%B6%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">4.</span> <span class="nav-text">问题原理解析篇-导致问题的机制是什么</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E9%81%BF%E5%9D%91%E7%AF%87-%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E8%BF%99%E7%A7%8D%E9%97%AE%E9%A2%98"><span class="nav-number">5.</span> <span class="nav-text">6.避坑篇-如何避免这种问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#6-1-%E4%BB%8E%E6%BA%90%E5%A4%B4%E9%81%BF%E5%85%8D"><span class="nav-number">5.1.</span> <span class="nav-text">6.1.从源头避免</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-2-%E6%9B%BF%E6%8D%A2%E4%B8%BA-ScalarFunction-%E8%BF%9B%E8%A1%8C%E6%98%A0%E5%B0%84"><span class="nav-number">5.2.</span> <span class="nav-text">6.2.替换为 ScalarFunction 进行映射</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%B1%95%E6%9C%9B%E7%AF%87-%E6%9C%89%E4%BB%80%E4%B9%88%E6%9C%BA%E5%88%B6%E5%8F%AF%E4%BB%A5%E6%A0%B9%E6%9C%AC%E9%81%BF%E5%85%8D%E8%BF%99%E7%A7%8D%E6%83%85%E5%86%B5"><span class="nav-number">6.</span> <span class="nav-text">7.展望篇-有什么机制可以根本避免这种情况</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">244.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://true.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'https://yangyichao-mango.github.io/2021/11/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/03_%E8%B8%A9%E5%9D%91%E8%AE%B0_count_distinct_%E8%B4%9F%E5%80%BC/';
+          this.page.identifier = '2021/11/12/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/01_one-data/03_踩坑记_count_distinct_负值/';
+          this.page.title = '踩坑记 | flink sql count_retract 还有这种坑！';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://true.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

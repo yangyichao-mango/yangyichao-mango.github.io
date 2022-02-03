@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="antigeneral's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="flink sql 知其所以然（六）：flink sql 约会 calcite">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84%20sql%20%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/index.html">
+<meta property="og:site_name" content="antigeneral&#39;s blog">
+<meta property="og:description" content="本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
+<meta property="og:locale">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/12.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/26.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/28.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/30.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/61.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/4.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/29.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/2.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/50.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/51.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/52.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/53.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/54.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/55.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/56.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/57.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/58.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/59.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/60.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/36.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/47.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/37.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/48.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/38.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/49.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/39.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/40.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/41.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/42.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/43.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/44.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/45.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/62.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/63.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/29.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/64.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/65.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/66.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/67.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/68.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/69.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/70.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/76.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/72.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/73.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/75.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/77.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/78.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/5.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/31.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/7.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/8.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/33.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/9.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/10.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/11.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/5.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/3.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/21.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/34.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/22.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/24.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/25.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/14.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/15.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/16.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/17.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/18.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/35.png">
+<meta property="article:published_time" content="2021-11-13T06:21:58.000Z">
+<meta property="article:modified_time" content="2021-09-02T16:05:42.560Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Flink">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/12.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/07_flink sql 知其所以然（六）：流批哄哄的 sql 语法解析器/"/>
+
+
+
+
+
+  <title>flink sql 知其所以然（六）：flink sql 约会 calcite | antigeneral's blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-150061865-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">antigeneral's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-link"></i> <br />
+            
+            links
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84%20sql%20%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">flink sql 知其所以然（六）：flink sql 约会 calcite</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-13T14:21:58+08:00">
+                2021-11-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84%20sql%20%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/07_flink sql 知其所以然（六）：流批哄哄的 sql 语法解析器/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  5.6k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  24
+                </span>
+              
+            </div>
+          
+
+          
+              <div class="post-description">
+                  本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>感谢您的小爱心（<strong>关注  +  点赞 + 再看</strong>），对博主的肯定，会督促博主持续的输出更多的优质实战内容！！！</p>
+</blockquote>
+<h1 id="1-序篇-本文结构"><a href="#1-序篇-本文结构" class="headerlink" title="1.序篇-本文结构"></a>1.序篇-本文结构</h1><p>本文主要介绍 flink sql 与 calcite 之间的关系。flink sql 的解析主要依赖 calcite。</p>
+<p>而博主通过此文抛砖引玉帮助大家理解 flink sql 在解析中是怎样依赖 calcite 的，以及 flink sql 解析的流程，sql parser 相关内容。希望对大家有所帮助。</p>
+<p>本文通过以下几节进行介绍，对某个章节感兴趣的可以直接划到对应章节。</p>
+<ol>
+<li><p>背景篇-一条 flink sql 的执行过程</p>
+<ul>
+<li>发挥自己的想象力</li>
+<li>看看 flink 的实现</li>
+</ul>
+</li>
+<li><p>简介篇-calcite 扮演的角色</p>
+<ul>
+<li>calcite 是啥？</li>
+<li>flink sql 为啥选择 calcite？</li>
+</ul>
+</li>
+<li><p>案例篇-calcite 的能力、案例</p>
+<ul>
+<li>先用用 calcite</li>
+<li>关系代数</li>
+<li>calcite 必知的基础 model</li>
+<li>calcite 的处理流程（以 flink sql 为例）</li>
+<li>calcite 怎么做到这么通用？</li>
+</ul>
+</li>
+<li><p>原理剖析篇-calcite 在 flink sql 中大展身手</p>
+<ul>
+<li>FlinkSqlParserImpl</li>
+<li>FlinkSqlParserImpl 的生成</li>
+</ul>
+</li>
+<li><p>总结与展望篇</p>
+</li>
+</ol>
+<h1 id="2-背景篇-一条-flink-sql-的执行过程"><a href="#2-背景篇-一条-flink-sql-的执行过程" class="headerlink" title="2.背景篇-一条 flink sql 的执行过程"></a>2.背景篇-一条 flink sql 的执行过程</h1><p>本节先给大家大致描述<code>一条 flink sql 的执行过程</code>，不了解详细内容不要紧，主要先了解整个流程，有了全局视角之后，后续会详述细节。</p>
+<p>在介绍一条 flink sql 的执行过程之前，先来看看 flink datastream 任务的执行过程，这对理解一条 flink sql 的执行过程有很大的帮助。</p>
+<ul>
+<li><p><strong>datastream</strong>：datastream 在使用时要在 flink datastream api 提供的各种 udf（比如 flatmap，keyedprocessfunction 等）中自定义处理逻辑，具体的业务执行逻辑都是敲代码、 java 文件写的，然后编译在 jvm 中执行，就和一个普通的 main 函数应用一模一样的流程。因为代码执行逻辑都是自己写的，所以这一部分相对好理解。</p>
+</li>
+<li><p><strong>sql</strong>：java 编译器不能识别和编译一条 sql 进行执行，那么一条 SQL 是咋执行的呢？</p>
+</li>
+</ul>
+<h2 id="2-1-先发挥自己的想象力"><a href="#2-1-先发挥自己的想象力" class="headerlink" title="2.1.先发挥自己的想象力"></a>2.1.先发挥自己的想象力</h2><p>我们逆向思维进行考虑，如果想让一条 flink sql 按照我们的预期在 jvm 中执行，需要哪些过程。</p>
+<ol>
+<li><strong>整体来说</strong>：参考 datastream，如果 jvm 能执行 datastream java code 编译后的 class 文件，那么加一个 sql 解析层，能将 sql 逻辑解析为 datastream 的各种算子，然后编译执行不就 vans 了。</li>
+<li><strong>sql parser</strong>：首先得有一个 sql parser 吧，得先能识别 sql 语法，将 sql 语法转化为 AST、具体的关系代数。</li>
+<li><strong>关系代数到 datastream 算子的映射</strong>：sql 逻辑解析为 datastream，需要有一个解析的映射逻辑吧。sql 是基于关系代数的，可以维护一个 sql 中的每个关系代数到具体 datastream 接口的映射关系，有了这些映射关系我们就可以将 sql 映射成一段可执行的 datastream 代码。举个例子：其可以将：<ul>
+<li>sql select xxx 解析为类似 datastream 中的 map</li>
+<li>where xxx 解析为 filter</li>
+<li>group by 解析成 keyby</li>
+<li>sum（xx），count（xxx）可以解析为 datastream 中的 aggregate function</li>
+<li>etc…</li>
+</ul>
+</li>
+<li><strong>代码生成</strong>：有了 sql AST，sql 到 datasretam 算子的映射关系之后，就要进行具体的代码生成了。比如去解析 sql AST 中具体哪些字段用作 where 逻辑，哪些字段用作 group by，都需要生成对应具体的 datastream 代码。</li>
+<li><strong>运行</strong>：经过上述流程之后，就可以将一个 sql 翻译成一个 datastream 作业了，happy 的执行。</li>
+</ol>
+<p>如下图所示，描绘了上述逻辑：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/12.png" alt="12"></p>
+<p>那么这个和 flink 实际实现有啥异同呢？</p>
+<p>flink 大致是这样做的，虽在 flink 本身的中间还有一些其他的流程，后来的版本也不是基于 datastream，但是整体的处理逻辑还是和上述一致的。</p>
+<p>所以不了解整体流程的同学可以先按照上述流程进行理解。</p>
+<p>按照 <code>博主的脑洞</code> 来总结一条 sql 的使命就是：<code>sql -&gt; AST -&gt; codegen(java code) -&gt; 让我们 run 起来好吗</code></p>
+<h2 id="2-2-看看-flink-的实现"><a href="#2-2-看看-flink-的实现" class="headerlink" title="2.2.看看 flink 的实现"></a>2.2.看看 flink 的实现</h2><p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/26.png" alt="26"></p>
+<p>上面手绘可能看不清，下面这张图更清楚。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/28.png" alt="28"></p>
+<p>标准的一条 flink sql 运行起来的流程如下：</p>
+<blockquote>
+<p>Notes：<br>刚开始对其中的 SqlNode，RelNode 概念可能比较模糊。先理解整个流程，后续会详细介绍这些概念。</p>
+</blockquote>
+<ol>
+<li><p><strong>sql 解析阶段</strong>：calcite parser 解析（sql -&gt; AST，AST 即 SqlNode Tree）</p>
+</li>
+<li><p><strong>SqlNode 验证阶段</strong>：calcite validator 校验（SqlNode -&gt; SqlNode，语法、表达式、表信息）</p>
+</li>
+<li><p><strong>语义分析阶段</strong>：SqlNode 转换为 RelNode，RelNode 即 Logical Plan（SqlNode -&gt; RelNode）</p>
+</li>
+<li><p><strong>优化阶段</strong>：calcite optimizer 优化（RelNode -&gt; RelNode，剪枝、谓词下推等）</p>
+</li>
+<li><p><strong>物理计划生成阶段</strong>：Logical Plan 转换为 Physical Plan（等同于 RelNode 转换成 DataSet\DataStream API）</p>
+</li>
+<li><p><strong>后续的运行逻辑与 datastream 一致</strong></p>
+</li>
+</ol>
+<p>可以发现 <code>flink 的实现</code> 比 <code>博主的脑洞</code> 整体主要框架上面是一致的。多出来的部分主要是 <strong>SqlNode 验证阶段</strong>，<strong>优化阶段</strong>。</p>
+<h1 id="3-简介篇-calcite-在-flink-sql-中的角色"><a href="#3-简介篇-calcite-在-flink-sql-中的角色" class="headerlink" title="3.简介篇-calcite 在 flink sql 中的角色"></a>3.简介篇-calcite 在 flink sql 中的角色</h1><p>大致了解了 <code>一条 flink sql 的运行流程</code> 之后，我们来看看 calcite 这玩意到底在 flink 里干了些啥。</p>
+<p>根据上文总结来说 calcite 在 flink sql 中担当了 <code>sql 解析、验证、优化</code>功能。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/30.png" alt="30"></p>
+<p>看着 calcite 干了这么多事，那 calcite 是个啥东东，它的定位是啥？</p>
+<h2 id="3-1-calcite-是啥？"><a href="#3-1-calcite-是啥？" class="headerlink" title="3.1.calcite 是啥？"></a>3.1.calcite 是啥？</h2><p>calcite 是一个动态数据的管理框架，它可以用来构建数据库系统的不同的解析的模块，但是它不包含数据存储数据处理等功能。</p>
+<p>calcite 的目标是一种方案，适应所有的需求场景，希望能为不同计算平台和数据源提供统一的 sql 解析引擎，但是它只是提供查询引擎，而没有真正的去存储这些数据。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/61.png" alt="61"></p>
+<p>下图是目前使用了 calcite 能力的其他组件，也可见官网 <a target="_blank" rel="noopener" href="https://calcite.apache.org/docs/powered_by.html">https://calcite.apache.org/docs/powered_by.html</a> 。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/4.png" alt="4"></p>
+<p>简单来说的话，可以先理解为 calcite 具有这几个功能（当然还有其他很牛逼的功能，感兴趣可以自查官网）。</p>
+<ol>
+<li><strong>自定义 sql 解析器</strong>：比如说我们新发明了一个引擎，然后我们要在这个引擎上来创造一套基于 sql 的接口，那么我们就可以使用直接 calcite，不用自己去写一套专门的 sql 的解析器，以及执行以及优化引擎，calcite 人都有。</li>
+<li><strong>sql parser（extends SqlAbstractParserImpl）</strong>：将 sql 的各种关系代数解析为具体的 AST，这些 AST 都能对应到具体的 java model，在 java 的世界里面，对象很重要，有了这些对象（<code>SqlSelect</code>、<code>SqlNode</code>），就可以根据这些对象做具体逻辑处理了。举个例子，如下图，一条简单的 <code>select c,d from source where a = &#39;6&#39;</code> sql，经过 calcite 的解析之后，就可以得到 AST model（SqlNode）。<br>可以看到有 <code>SqlSelect</code>、<code>SqlIdentifier</code>、<code>SqlIdentifier</code>、<code>SqlCharStringLiteral</code>。</li>
+<li><strong>sql validator（extends SqlValidatorImpl）</strong>：根据语法、表达式、表信息进行 SqlNode 正确性校验。</li>
+<li><strong>sql optimizer</strong>：剪枝、谓词下推等优化</li>
+</ol>
+<p>上面的这些能力整体组成如下图所示：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/29.png" alt="29"></p>
+<p>实际使用 calcite 解析一条 sql，跑起来看看。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/2.png" alt="2"></p>
+<h2 id="3-2-flink-sql-为什么选择-calcite？"><a href="#3-2-flink-sql-为什么选择-calcite？" class="headerlink" title="3.2.flink sql 为什么选择 calcite？"></a>3.2.flink sql 为什么选择 calcite？</h2><ol>
+<li>不用重复造轮子。有限的精力应该放在有价值的事情上。</li>
+<li>calcite 有针对 stream 表的解决方案。具体可见 <a target="_blank" rel="noopener" href="https://calcite.apache.org/docs/stream.html。">https://calcite.apache.org/docs/stream.html。</a> </li>
+</ol>
+<h1 id="4-案例篇-calcite-的能力、案例"><a href="#4-案例篇-calcite-的能力、案例" class="headerlink" title="4.案例篇-calcite 的能力、案例"></a>4.案例篇-calcite 的能力、案例</h1><h2 id="4-1-先用用-calcite"><a href="#4-1-先用用-calcite" class="headerlink" title="4.1.先用用 calcite"></a>4.1.先用用 calcite</h2><p><code>重中之重，在了解原理之前，先跑起来是王道，也会帮助我们逐步理解。</code></p>
+<p>官网已经有一个 csv 的案例了。感兴趣的可以直达 <a target="_blank" rel="noopener" href="https://calcite.apache.org/docs/tutorial.html">https://calcite.apache.org/docs/tutorial.html</a> 。</p>
+<p>跑完一个 csv demo，在详细了解 calcite 之前还需要了解下 sql，calcite 的支柱：关系代数。</p>
+<h2 id="4-2-关系代数"><a href="#4-2-关系代数" class="headerlink" title="4.2.关系代数"></a>4.2.关系代数</h2><p>sql 是基于关系代数的查询语言，是关系代数在工程上的一种很好的实现方案。在工程中，关系代数难表达，但是 sql 就易于理解。关系代数和 sql 的关系如下。</p>
+<ol>
+<li><p>可以将一条 sql 解析为一个关系代数表达式的组合。在 sql 中的操作都可以转化成关系代数的表达式。</p>
+</li>
+<li><p>sql 的执行优化（所有的优化的前提都是优化前和优化后最终执行结果相同，即等价交换）是基于关系代数运算的。</p>
+</li>
+</ol>
+<h3 id="4-2-1-常用关系代数"><a href="#4-2-1-常用关系代数" class="headerlink" title="4.2.1.常用关系代数"></a>4.2.1.常用关系代数</h3><p><strong>总结下，有哪些常用的关系代数：</strong></p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/50.png" alt="50"></p>
+<h3 id="4-2-2-sql-优化支柱之关系代数等价变换"><a href="#4-2-2-sql-优化支柱之关系代数等价变换" class="headerlink" title="4.2.2.sql 优化支柱之关系代数等价变换"></a>4.2.2.sql 优化支柱之关系代数等价变换</h3><p>关系代数等价变换是 calcite optimizer 的基础理论。</p>
+<p>下面是一些等价变换的例子。</p>
+<p>1.连接（<code>⋈</code>），笛卡尔积（<code>×</code>）的交换律</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/51.png" alt="51"></p>
+<p>2.连接（<code>⋈</code>），笛卡尔积（<code>×</code>）的结合律<br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/52.png" alt="52"></p>
+<p>3.投影（<code>Π</code>）的串接定律<br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/53.png" alt="53"></p>
+<p>4.选择（<code>σ</code>）的串接定律<br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/54.png" alt="54"></p>
+<p>5.选择（<code>σ</code>）与投影（<code>Π</code>）的交换<br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/55.png" alt="55"></p>
+<p>6.选择（<code>σ</code>）与笛卡尔积（<code>×</code>）的交换<br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/56.png" alt="56"></p>
+<p>7.选择（<code>σ</code>）与并（<code>∪</code>）的交换<br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/57.png" alt="57"></p>
+<p>8.选择（<code>σ</code>）与差（<code>-</code>）的交换<br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/58.png" alt="58"></p>
+<p>9.投影（<code>Π</code>）与笛卡尔积（<code>×</code>）的交换<br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/59.png" alt="59"></p>
+<p>10.投影（<code>Π</code>）与并（<code>∪</code>）的交换<br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/60.png" alt="60"></p>
+<p><strong>然后看一个基于关系代数优化的实际 sql 案例：</strong></p>
+<p>有三个关系 <code>A（a1,a2,a3,…）</code>、<code>B（b1,b2,b3, … ）</code>、<code>C（a1,b1,c1,c2, … ）</code></p>
+<p>有一个查询请求如下：</p>
+<p><code>SELECT A.a1 FROM A，B，C WHERE A.a1 = C.a1 AND B.b1 = C.b1 AND f(c1)</code></p>
+<p>1.首先将 sql 转为关系代数的语法树。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/36.png" alt="36"></p>
+<p>2.优化：选择（<code>σ</code>）的串接定律。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/47.png" alt="47"></p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/37.png" alt="37"></p>
+<p>3.优化：选择（<code>σ</code>）与笛卡尔积（<code>×</code>）的交换。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/48.png" alt="48"></p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/38.png" alt="38"></p>
+<p>4.优化：投影（<code>π</code>）与笛卡尔积（<code>×</code>）的交换。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/49.png" alt="49"></p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/39.png" alt="39"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/40.png" alt="40"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/41.png" alt="41"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/42.png" alt="42"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/43.png" alt="43"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/44.png" alt="44"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/45.png" alt="45"></p>
+<p>关于关系代数我们就有了大致的了解。</p>
+<p>除此之外，对于更深入了解 flink sql，calcite 而言，我们还需要了解一下在 calcite 代码体系中有哪些重要 model。</p>
+<h2 id="4-3-calcite-必知的基础-model"><a href="#4-3-calcite-必知的基础-model" class="headerlink" title="4.3.calcite 必知的基础 model"></a>4.3.calcite 必知的基础 model</h2><p>calcite 中有两个最最基础、重要的 model 在我们理解 flink sql 解析流程时需要知道的。</p>
+<ol>
+<li><strong>SqlNode</strong>：sql 转化而成，可以理解为直观表达 sql 层次结构的的 model</li>
+<li><strong>RelNode</strong>：SqlNode 转化而成，可以理解为将 SqlNode 转化为关系代数，表达关系代数层次结构的 model</li>
+</ol>
+<p>举个例子来说明下，下面这条 flink sql，经过解析之后的 <strong>SqlNode</strong>，<strong>RelNode</strong> 如下图：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  <span class="built_in">sum</span>(part_pv) <span class="keyword">as</span> pv,</span><br><span class="line">  window_start</span><br><span class="line"><span class="keyword">FROM</span> (</span><br><span class="line">	<span class="keyword">SELECT</span></span><br><span class="line">	  <span class="built_in">count</span>(<span class="number">1</span>) <span class="keyword">as</span> part_pv,</span><br><span class="line">	  <span class="built_in">cast</span>(tumble_start(rowtime, <span class="type">INTERVAL</span> <span class="string">&#x27;60&#x27;</span> <span class="keyword">SECOND</span>) <span class="keyword">as</span> <span class="type">bigint</span>) <span class="operator">*</span> <span class="number">1000</span> <span class="keyword">as</span> window_start</span><br><span class="line">	<span class="keyword">FROM</span></span><br><span class="line">	  source_db.source_table</span><br><span class="line">	<span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">	  tumble(rowtime, <span class="type">INTERVAL</span> <span class="string">&#x27;60&#x27;</span> <span class="keyword">SECOND</span>)</span><br><span class="line">	  , <span class="built_in">mod</span>(id, <span class="number">1024</span>)</span><br><span class="line">)</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">  window_start</span><br></pre></td></tr></table></figure>
+
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/62.png" alt="62"></p>
+<p>可以看到 SqlNode 包含的内容是 sql 的层次结构，包括 <code>selectList</code>，<code>from</code>，<code>where</code>，<code>group by</code> 等。</p>
+<p>RelNode 包含的是关系代数的层次结构，每一层都有一个 input 来承接。结合上面优化案例的树状结构一样。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/63.png" alt="63"></p>
+<h2 id="4-4-calcite-的处理流程（以-flink-sql-为例）"><a href="#4-4-calcite-的处理流程（以-flink-sql-为例）" class="headerlink" title="4.4.calcite 的处理流程（以 flink sql 为例）"></a>4.4.calcite 的处理流程（以 flink sql 为例）</h2><p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/29.png" alt="29"></p>
+<p>如上图所示，此处我们结合上节介绍的 calcite 的 model，以及 flink sql 的实现来走一遍其处理流程：</p>
+<ol>
+<li><strong>sql 解析阶段（sql –&gt; SqlNode）</strong></li>
+<li><strong>SqlNode 验证（SqlNode –&gt; SqlNode）</strong></li>
+<li><strong>语义分析（SqlNode –&gt; RelNode）</strong></li>
+<li><strong>优化阶段（RelNode –&gt; RelNode）</strong></li>
+</ol>
+<h3 id="4-4-1-flink-sql-demo"><a href="#4-4-1-flink-sql-demo" class="headerlink" title="4.4.1.flink sql demo"></a>4.4.1.flink sql demo</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  <span class="built_in">sum</span>(part_pv) <span class="keyword">as</span> pv,</span><br><span class="line">  window_start</span><br><span class="line"><span class="keyword">FROM</span> (</span><br><span class="line">	<span class="keyword">SELECT</span></span><br><span class="line">	  <span class="built_in">count</span>(<span class="number">1</span>) <span class="keyword">as</span> part_pv,</span><br><span class="line">	  <span class="built_in">cast</span>(tumble_start(rowtime, <span class="type">INTERVAL</span> <span class="string">&#x27;60&#x27;</span> <span class="keyword">SECOND</span>) <span class="keyword">as</span> <span class="type">bigint</span>) <span class="operator">*</span> <span class="number">1000</span> <span class="keyword">as</span> window_start</span><br><span class="line">	<span class="keyword">FROM</span></span><br><span class="line">	  source_db.source_table</span><br><span class="line">	<span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">	  tumble(rowtime, <span class="type">INTERVAL</span> <span class="string">&#x27;60&#x27;</span> <span class="keyword">SECOND</span>)</span><br><span class="line">	  , <span class="built_in">mod</span>(id, <span class="number">1024</span>)</span><br><span class="line">)</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">  window_start</span><br></pre></td></tr></table></figure>
+
+<p>其中前三步解析和转化，都在 在执行 <code>TableEnvironment#sqlQuery</code> 进行。</p>
+<p>最后一步优化，在执行 sink 操作时进行，即在这个例子中是 <code>tEnv.toRetractStream(result, Row.class)</code>。</p>
+<p>源码公众号后台回复<strong>flink sql 知其所以然（六）| flink sql 约会 calcite</strong>获取。</p>
+<h3 id="4-4-2-sql-解析阶段（sql-–-gt-SqlNode）"><a href="#4-4-2-sql-解析阶段（sql-–-gt-SqlNode）" class="headerlink" title="4.4.2.sql 解析阶段（sql –&gt; SqlNode）"></a>4.4.2.sql 解析阶段（sql –&gt; SqlNode）</h3><p>sql 解析阶段使用 Sql Parser 将 sql 解析为 <code>SqlNode</code>。这一步在执行 <code>TableEnvironment#sqlQuery</code> 进行。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/64.png" alt="64"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/65.png" alt="65"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/66.png" alt="66"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/67.png" alt="67"></p>
+<p>可以从上图看到 flink sql 具体实现类是 <code>FlinkSqlParserImpl</code>。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/68.png" alt="68"></p>
+<p>具体 parse 得到 SqlNode 如上图。</p>
+<h3 id="4-4-3-SqlNode-验证（SqlNode-–-gt-SqlNode）"><a href="#4-4-3-SqlNode-验证（SqlNode-–-gt-SqlNode）" class="headerlink" title="4.4.3.SqlNode 验证（SqlNode –&gt; SqlNode）"></a>4.4.3.SqlNode 验证（SqlNode –&gt; SqlNode）</h3><p>上面的第一步生产的 SqlNode 对象是一个未经验证的，这一步就是语法检查阶段，语法检查前需要知道元数据信息，这个检查会包括表名、字段名、函数名、数据类型的检查。进行语法检查的实现如下：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/69.png" alt="69"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/70.png" alt="70"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/76.png" alt="76"></p>
+<p>可以从上图看到 flink sql 校验器的具体实现类是 <code>FlinkCalciteSqlValidator</code>，其中包含了元数据信息，从而可以进行元数据信息检查。</p>
+<h3 id="4-4-4-语义分析（SqlNode-–-gt-RelNode）"><a href="#4-4-4-语义分析（SqlNode-–-gt-RelNode）" class="headerlink" title="4.4.4.语义分析（SqlNode –&gt; RelNode）"></a>4.4.4.语义分析（SqlNode –&gt; RelNode）</h3><p>这一步就是将 SqlNode 转换成 RelNode，也就是生成相应的关系代数层面的逻辑（这里一般都叫做逻辑计划：Logical Plan）。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/72.png" alt="72"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/73.png" alt="73"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/75.png" alt="75"></p>
+<h3 id="4-4-5-优化阶段（RelNode-–-gt-RelNode）"><a href="#4-4-5-优化阶段（RelNode-–-gt-RelNode）" class="headerlink" title="4.4.5.优化阶段（RelNode –&gt; RelNode）"></a>4.4.5.优化阶段（RelNode –&gt; RelNode）</h3><p>这一步就是优化阶段。详细内容可以自己 debug 代码查看，此处不赘述。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/77.png" alt="77"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/78.png" alt="78"></p>
+<h2 id="4-5-calcite-怎么做到这么通用？"><a href="#4-5-calcite-怎么做到这么通用？" class="headerlink" title="4.5.calcite 怎么做到这么通用？"></a>4.5.calcite 怎么做到这么通用？</h2><p>此处以 calcite parser 举例说明，其模块为什么这通用？其他的模块都是类似的方式。</p>
+<p><code>先说结论</code>：因为 calcite parser 模块提供了接口，具体的 parse 逻辑、规则是可以根据用户自定义进行配置的。大家可以看下图，博主画出了一张图进行详述。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/5.png" alt="5"></p>
+<p>如上图，引擎 sql 解析器的生成是有一个输入的，就是 <code>用户自定义语法分析规则变量</code>，具体引擎的 sql 解析器其实也是根据用户自定义的 <code>解析规则</code> 去生成的 <code>解析器</code>。其 <code>解析器</code> 的动态生成依赖 <code>javacc</code> 这样的组件。calcite 提供的是统一的 sql AST 模型、优化模型接口等，而具体的解析实现交给了用户自己去决定。</p>
+<p><code>javacc</code> 会根据 calcite 中定义的 <code>Parser.jj</code> 文件，生成具体的 sql parser 代码（如上图），这个 sql parser 的能力就是将 sql 转换成 AST （SqlNode）。关于 calcite 能力的更详细内容见 <a target="_blank" rel="noopener" href="https://matt33.com/2019/03/07/apache-calcite-process-flow/">https://matt33.com/2019/03/07/apache-calcite-process-flow/</a> 。</p>
+<p>上图涉及到的文件大家可以下载 <code>calcite 源码</code> <a target="_blank" rel="noopener" href="https://github.com/apache/calcite.git">https://github.com/apache/calcite.git</a> 之后，切换到 <code>core</code> module 之后查看。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/31.png" alt="31"></p>
+<h3 id="4-5-1-javacc-是啥？"><a href="#4-5-1-javacc-是啥？" class="headerlink" title="4.5.1.javacc 是啥？"></a>4.5.1.javacc 是啥？</h3><p><code>javacc</code> 是一个用 java 开发的最受欢迎的语法分析生成器。这个分析生成器工具可以读取上下文无关且有着特殊意义的语法并把它转换成可以识别且匹配该语法的 java 程序。它是 100% 的纯 java 代码，可以在多种平台上运行。</p>
+<p>简单解释 <code>javacc</code> 就是它是一个通用的语法分析生产器，用户可以使用 <code>javacc</code> 任意定义一套 DSL 及解析器。</p>
+<p>举个例子，如果哪天你觉得 sql 也不够简洁通用，你可以使用 <code>javacc</code> 自己定义一套更简洁的 <code>user-define-ql</code>。然后使用 javacc 作为你的 <code>user-define-ql</code> 的解析器。是不是很流批，可以自己去搞编译器了。</p>
+<h3 id="4-5-2-跑跑-javacc"><a href="#4-5-2-跑跑-javacc" class="headerlink" title="4.5.2.跑跑 javacc"></a>4.5.2.跑跑 javacc</h3><p>这里不介绍具体的 javacc 语法，直接以官网的 <code>Simple1.jj</code> 为案例。详细语法和功能可以参考官网（<a target="_blank" rel="noopener" href="https://javacc.github.io/javacc/）">https://javacc.github.io/javacc/）</a> 或者一下博客。</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/Gavin_Liu/archive/2009/03/07/1405029.html">https://www.cnblogs.com/Gavin_Liu/archive/2009/03/07/1405029.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.yangguo.info/2014/12/13/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-Javacc%E4%BD%BF%E7%94%A8/">https://www.yangguo.info/2014/12/13/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86-Javacc%E4%BD%BF%E7%94%A8/</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.engr.mun.ca/~theo/JavaCC-Tutorial/javacc-tutorial.pdf">https://www.engr.mun.ca/~theo/JavaCC-Tutorial/javacc-tutorial.pdf</a></li>
+</ol>
+<p><code>Simple1.jj</code> 是用于识别一系列的 <code>&#123;相同数量的花括号&#125;</code>，之后跟着 0 个或多个行终结符。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/7.png" alt="7"></p>
+<p>下面是合法的字符串例子：</p>
+<p><code>&#123;&#125;</code>，<code>&#123;&#123;&#123;&#123;&#123;&#125;&#125;&#125;&#125;&#125;</code>，etc.</p>
+<p>下面是不合法的字符串例子：</p>
+<p><code>&#123;&#123;&#123;&#123;`，`&#123;&#125;&#123;&#125;`，`&#123;&#125;&#125;</code>，<code>&#123;&#123;&#125;&#123;&#125;&#125;</code>，etc.</p>
+<p>接下来让我们实际将 <code>Simple1.jj</code> 编译生成具体的规则代码。</p>
+<p>在 pom 中加入 javacc build 插件：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- This must be run AFTER the fmpp-maven-plugin --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.codehaus.mojo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>javacc-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>generate-sources<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">id</span>&gt;</span>javacc<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>javacc<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">sourceDirectory</span>&gt;</span>$&#123;project.build.directory&#125;/generated-sources/<span class="tag">&lt;/<span class="name">sourceDirectory</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">includes</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">include</span>&gt;</span>**/Simple1.jj<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">includes</span>&gt;</span></span><br><span class="line">                <span class="comment">&lt;!-- This must be kept synced with Apache Calcite. --&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">lookAhead</span>&gt;</span>1<span class="tag">&lt;/<span class="name">lookAhead</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">isStatic</span>&gt;</span>false<span class="tag">&lt;/<span class="name">isStatic</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">outputDirectory</span>&gt;</span>$&#123;project.build.directory&#125;/generated-sources/<span class="tag">&lt;/<span class="name">outputDirectory</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>在 compile 之后，就会在 <code>generated-sources</code> 下生成代码：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/8.png" alt="8"></p>
+<p>然后把代码 copy 到 Sources 路径下：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/33.png" alt="33"></p>
+<p>执行下代码，可以看到 <code>&#123;&#125;</code>，<code>&#123;&#123;&#125;&#125;</code> 都可以校验通过，一旦出现不符合规则的 <code>&#123;&#123;</code> 输入，就会抛出异常。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/9.png" alt="9"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/10.png" alt="10"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/11.png" alt="11"></p>
+<p>关于 javacc 基本上就了解个大概了。</p>
+<p>感兴趣的可以尝试自定义一个编译器。</p>
+<h3 id="4-5-3-fmpp-是啥？"><a href="#4-5-3-fmpp-是啥？" class="headerlink" title="4.5.3.fmpp 是啥？"></a>4.5.3.fmpp 是啥？</h3><p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/5.png" alt="5"></p>
+<p>fmpp 就是一个基于 freemarker 的模板生产器。用户可以统一管理自己的变量，然后用 <code>ftl 模板 + 变量</code> 生成对应的最终文件。在 calcite 中使用 fmpp 作为变量 + 模板的统一管理器。然后基于 fmpp 来生成对应的 <code>Parser.jj</code> 文件。</p>
+<h1 id="5-原理剖析篇-calcite-在-flink-sql-中大展身手"><a href="#5-原理剖析篇-calcite-在-flink-sql-中大展身手" class="headerlink" title="5.原理剖析篇-calcite 在 flink sql 中大展身手"></a>5.原理剖析篇-calcite 在 flink sql 中大展身手</h1><p>博主画了一张图，包含了其中重要组件之间的依赖关系。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/3.png" alt="3"></p>
+<p>你没猜错，还是上面那些流程，<code>fmpp（Parser.jj 模板生成）</code> -&gt; <code>javacc（Parser 生成）</code> -&gt; <code>calcite</code>。</p>
+<p>在介绍 Parser 生成流程之前，先看看 flink 最终生成的 Parser：<code>FlinkSqlParserImpl</code> （此处使用 Blink Planner）。</p>
+<h2 id="5-1-FlinkSqlParserImpl"><a href="#5-1-FlinkSqlParserImpl" class="headerlink" title="5.1.FlinkSqlParserImpl"></a>5.1.FlinkSqlParserImpl</h2><p>以下面这个案例出发（代码基于 flink 1.13.1 版本）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ParserTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();</span><br><span class="line"></span><br><span class="line">        env.setParallelism(<span class="number">10</span>);</span><br><span class="line"></span><br><span class="line">        EnvironmentSettings settings = EnvironmentSettings</span><br><span class="line">                .newInstance()</span><br><span class="line">                .useBlinkPlanner()</span><br><span class="line">                .inStreamingMode()</span><br><span class="line">                .build();</span><br><span class="line"></span><br><span class="line">        StreamTableEnvironment tEnv = StreamTableEnvironment.create(env, settings);</span><br><span class="line"></span><br><span class="line">        DataStream&lt;Tuple3&lt;String, Long, Long&gt;&gt; tuple3DataStream =</span><br><span class="line">                env.fromCollection(Arrays.asList(</span><br><span class="line">                        Tuple3.of(<span class="string">&quot;2&quot;</span>, <span class="number">1L</span>, <span class="number">1627254000000L</span>),</span><br><span class="line">                        Tuple3.of(<span class="string">&quot;2&quot;</span>, <span class="number">1L</span>, <span class="number">1627218000000L</span> + <span class="number">5000L</span>),</span><br><span class="line">                        Tuple3.of(<span class="string">&quot;2&quot;</span>, <span class="number">101L</span>, <span class="number">1627218000000L</span> + <span class="number">6000L</span>),</span><br><span class="line">                        Tuple3.of(<span class="string">&quot;2&quot;</span>, <span class="number">201L</span>, <span class="number">1627218000000L</span> + <span class="number">7000L</span>),</span><br><span class="line">                        Tuple3.of(<span class="string">&quot;2&quot;</span>, <span class="number">301L</span>, <span class="number">1627218000000L</span> + <span class="number">7000L</span>),</span><br><span class="line">                        Tuple3.of(<span class="string">&quot;2&quot;</span>, <span class="number">301L</span>, <span class="number">1627218000000L</span> + <span class="number">7000L</span>),</span><br><span class="line">                        Tuple3.of(<span class="string">&quot;2&quot;</span>, <span class="number">301L</span>, <span class="number">1627218000000L</span> + <span class="number">7000L</span>),</span><br><span class="line">                        Tuple3.of(<span class="string">&quot;2&quot;</span>, <span class="number">301L</span>, <span class="number">1627218000000L</span> + <span class="number">7000L</span>),</span><br><span class="line">                        Tuple3.of(<span class="string">&quot;2&quot;</span>, <span class="number">301L</span>, <span class="number">1627218000000L</span> + <span class="number">7000L</span>),</span><br><span class="line">                        Tuple3.of(<span class="string">&quot;2&quot;</span>, <span class="number">301L</span>, <span class="number">1627218000000L</span> + <span class="number">86400000</span> + <span class="number">7000L</span>)))</span><br><span class="line">                        .assignTimestampsAndWatermarks(</span><br><span class="line">                                <span class="keyword">new</span> BoundedOutOfOrdernessTimestampExtractor&lt;Tuple3&lt;String, Long, Long&gt;&gt;(Time.seconds(<span class="number">0L</span>)) &#123;</span><br><span class="line">                                    <span class="meta">@Override</span></span><br><span class="line">                                    <span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">extractTimestamp</span><span class="params">(Tuple3&lt;String, Long, Long&gt; element)</span> </span>&#123;</span><br><span class="line">                                        <span class="keyword">return</span> element.f2;</span><br><span class="line">                                    &#125;</span><br><span class="line">                                &#125;);</span><br><span class="line"></span><br><span class="line">        tEnv.registerFunction(<span class="string">&quot;mod&quot;</span>, <span class="keyword">new</span> Mod_UDF());</span><br><span class="line"></span><br><span class="line">        tEnv.registerFunction(<span class="string">&quot;status_mapper&quot;</span>, <span class="keyword">new</span> StatusMapper_UDF());</span><br><span class="line"></span><br><span class="line">        tEnv.createTemporaryView(<span class="string">&quot;source_db.source_table&quot;</span>, tuple3DataStream,</span><br><span class="line">                <span class="string">&quot;status, id, timestamp, rowtime.rowtime&quot;</span>);</span><br><span class="line"></span><br><span class="line">        String sql = <span class="string">&quot;SELECT\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  count(1),\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  cast(tumble_start(rowtime, INTERVAL &#x27;1&#x27; DAY) as string)\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;FROM\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  source_db.source_table\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;GROUP BY\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  tumble(rowtime, INTERVAL &#x27;1&#x27; DAY)&quot;</span>;</span><br><span class="line"></span><br><span class="line">        Table result = tEnv.sqlQuery(sql);</span><br><span class="line"></span><br><span class="line">        tEnv.toAppendStream(result, Row.class).print();</span><br><span class="line"></span><br><span class="line">        env.execute();</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>debug 过程如之前分析 sql -&gt; SqlNode 过程所示，如下图直接定位到 SqlParser：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/21.png" alt="21"></p>
+<p>如上图可以看到具体的 Parser 就是 <code>FlinkSqlParserImpl</code>。</p>
+<p>定位到具体的代码如下图所示（<code>flink-table-palnner-blink-2.11-1.13.1.jar</code>）。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/34.png" alt="34"></p>
+<p>最终 parse 的结果 SqlNode 如下图。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/22.png" alt="22"></p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/24.png" alt="24"><br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/25.png" alt="25"></p>
+<p>再来看看 <code>FlinkSqlParserImpl</code> 是怎么使用 calcite 生成的。</p>
+<p>具体到 flink 中的实现，位于源码中的 <code>flink-table</code>.<code>flink-sql-parser</code> 模块（源码基于 flink 1.13.1）。</p>
+<p>flink 是依赖 maven 插件实现的上面的整体流程。</p>
+<h2 id="5-2-FlinkSqlParserImpl-的生成"><a href="#5-2-FlinkSqlParserImpl-的生成" class="headerlink" title="5.2.FlinkSqlParserImpl 的生成"></a>5.2.FlinkSqlParserImpl 的生成</h2><p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/14.png" alt="14"></p>
+<p>接下来看看整个 Parser 生成流程。</p>
+<h3 id="5-2-1-flink-引入-calcite"><a href="#5-2-1-flink-引入-calcite" class="headerlink" title="5.2.1.flink 引入 calcite"></a>5.2.1.flink 引入 calcite</h3><p>使用 <code>maven-dependency-plugin</code> 将 calcite 解压到 flink 项目 build 目录下。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- Extract parser grammar template from calcite-core.jar and put</span></span><br><span class="line"><span class="comment">         it under $&#123;project.build.directory&#125; where all freemarker templates are. --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-dependency-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">id</span>&gt;</span>unpack-parser-template<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>initialize<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>unpack<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactItems</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">artifactItem</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.calcite<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>calcite-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">type</span>&gt;</span>jar<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">overWrite</span>&gt;</span>true<span class="tag">&lt;/<span class="name">overWrite</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">outputDirectory</span>&gt;</span>$&#123;project.build.directory&#125;/<span class="tag">&lt;/<span class="name">outputDirectory</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">includes</span>&gt;</span>**/Parser.jj<span class="tag">&lt;/<span class="name">includes</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">artifactItem</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">artifactItems</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/15.png" alt="15"></p>
+<h3 id="5-2-2-fmpp-生成-Parser-jj"><a href="#5-2-2-fmpp-生成-Parser-jj" class="headerlink" title="5.2.2.fmpp 生成 Parser.jj"></a>5.2.2.fmpp 生成 Parser.jj</h3><p>使用 <code>maven-resources-plugin</code> 将 <code>Parser.jj</code> 代码生成。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-resources-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">id</span>&gt;</span>copy-fmpp-resources<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>initialize<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>copy-resources<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">outputDirectory</span>&gt;</span>$&#123;project.build.directory&#125;/codegen<span class="tag">&lt;/<span class="name">outputDirectory</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">resources</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">resource</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">directory</span>&gt;</span>src/main/codegen<span class="tag">&lt;/<span class="name">directory</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">filtering</span>&gt;</span>false<span class="tag">&lt;/<span class="name">filtering</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">resource</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">resources</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.googlecode.fmpp-maven-plugin<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>fmpp-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.freemarker<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>freemarker<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.3.28<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">id</span>&gt;</span>generate-fmpp-sources<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>generate-sources<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>generate<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">cfgFile</span>&gt;</span>$&#123;project.build.directory&#125;/codegen/config.fmpp<span class="tag">&lt;/<span class="name">cfgFile</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">outputDirectory</span>&gt;</span>target/generated-sources<span class="tag">&lt;/<span class="name">outputDirectory</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">templateDirectory</span>&gt;</span>$&#123;project.build.directory&#125;/codegen/templates<span class="tag">&lt;/<span class="name">templateDirectory</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/16.png" alt="16"></p>
+<h3 id="5-2-3-javacc-生成-parser"><a href="#5-2-3-javacc-生成-parser" class="headerlink" title="5.2.3.javacc 生成 parser"></a>5.2.3.javacc 生成 parser</h3><p>使用 javacc 将根据 <code>Parser.jj</code> 文件生成 Parser。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- This must be run AFTER the fmpp-maven-plugin --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.codehaus.mojo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>javacc-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>generate-sources<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">id</span>&gt;</span>javacc<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>javacc<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">sourceDirectory</span>&gt;</span>$&#123;project.build.directory&#125;/generated-sources/<span class="tag">&lt;/<span class="name">sourceDirectory</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">includes</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">include</span>&gt;</span>**/Parser.jj<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">includes</span>&gt;</span></span><br><span class="line">                <span class="comment">&lt;!-- This must be kept synced with Apache Calcite. --&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">lookAhead</span>&gt;</span>1<span class="tag">&lt;/<span class="name">lookAhead</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">isStatic</span>&gt;</span>false<span class="tag">&lt;/<span class="name">isStatic</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">outputDirectory</span>&gt;</span>$&#123;project.build.directory&#125;/generated-sources/<span class="tag">&lt;/<span class="name">outputDirectory</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/17.png" alt="17"></p>
+<h3 id="5-2-4-看看-Parser"><a href="#5-2-4-看看-Parser" class="headerlink" title="5.2.4.看看 Parser"></a>5.2.4.看看 Parser</h3><p>最终生成的 <code>Parser</code> 就是 <code>FlinkSqlParserImpl</code>。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/18.png" alt="18"></p>
+<h3 id="5-2-5-blink-planner-引入-flink-sql-parser"><a href="#5-2-5-blink-planner-引入-flink-sql-parser" class="headerlink" title="5.2.5.blink planner 引入 flink-sql-parser"></a>5.2.5.blink planner 引入 flink-sql-parser</h3><p>blink planner（<code>flink-table-planner-blink</code>） 在打包时将 <code>flink-sql-parser</code>、<code>flink-sql-parser-hive</code> 打包进去。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84sql%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/35.png" alt="35"></p>
+<h1 id="6-总结与展望篇"><a href="#6-总结与展望篇" class="headerlink" title="6.总结与展望篇"></a>6.总结与展望篇</h1><p>本文主要介绍了 flink sql 与 calcite 之间的依赖关系，以及 flink sql parser 的生成过程。如果觉得对你理解 flink sql 解析有帮助，帮忙点个小爱心（关注 + 点赞 + 再看）三连吧。</p>
+<h1 id="7-参考文献"><a href="#7-参考文献" class="headerlink" title="7.参考文献"></a>7.参考文献</h1><p><a target="_blank" rel="noopener" href="https://www.slideshare.net/JordanHalterman/introduction-to-apache-calcite">https://www.slideshare.net/JordanHalterman/introduction-to-apache-calcite</a></p>
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1802.10233.pdf">https://arxiv.org/pdf/1802.10233.pdf</a></p>
+<p><a target="_blank" rel="noopener" href="https://changbo.tech/blog/7dec2e4.html">https://changbo.tech/blog/7dec2e4.html</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.liaojiayi.com/calcite/">http://www.liaojiayi.com/calcite/</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.zhihu.com/column/c_1110245426124554240">https://www.zhihu.com/column/c_1110245426124554240</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/QuinnNorris/article/details/70739094">https://blog.csdn.net/QuinnNorris/article/details/70739094</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.pianshen.com/article/72171186489/">https://www.pianshen.com/article/72171186489/</a></p>
+<p><a target="_blank" rel="noopener" href="https://matt33.com/2019/03/07/apache-calcite-process-flow/">https://matt33.com/2019/03/07/apache-calcite-process-flow/</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/edf503a2a1e7">https://www.jianshu.com/p/edf503a2a1e7</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/u013007900/article/details/78978271">https://blog.csdn.net/u013007900/article/details/78978271</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/u013007900/article/details/78993101">https://blog.csdn.net/u013007900/article/details/78993101</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.ptbird.cn/optimization-of-relational-algebraic-expression.html">http://www.ptbird.cn/optimization-of-relational-algebraic-expression.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://book.51cto.com/art/201306/400084.htm">https://book.51cto.com/art/201306/400084.htm</a></p>
+<p><a target="_blank" rel="noopener" href="https://book.51cto.com/art/201306/400085.htm">https://book.51cto.com/art/201306/400085.htm</a></p>
+<p><a target="_blank" rel="noopener" href="https://miaowenting.site/2019/11/10/Flink-SQL-with-Calcite/">https://miaowenting.site/2019/11/10/Flink-SQL-with-Calcite/</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div></div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechat.png" alt=" 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.png" alt=" 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Flink/" rel="tag"># Apache Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/02_flink-datastream/01_%E8%B8%A9%E5%9D%91%E8%AE%B0%7Cflinkstate%E5%BA%8F%E5%88%97%E5%8C%96javaenum%E7%AB%9F%E7%84%B6%E5%B2%94%E5%8A%88%E4%BA%86/" rel="next" title="踩坑记| flink state 序列化 java enum 竟然岔劈了">
+                <i class="fa fa-chevron-left"></i> 踩坑记| flink state 序列化 java enum 竟然岔劈了
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/08_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E4%B8%8D%E4%BC%9A%E8%BF%9E%E6%9C%80%E9%80%82%E5%90%88%20flink%20sql%20%E7%9A%84%20ETL%20%E5%92%8C%20group%20agg%20%E5%9C%BA%E6%99%AF%E9%83%BD%E6%B2%A1%E8%A7%81%E8%BF%87%E5%90%A7%EF%BC%9F/" rel="prev" title="flink sql 知其所以然（七）：不会连最适合 flink sql 的 ETL 和 group agg 场景都没见过吧？">
+                flink sql 知其所以然（七）：不会连最适合 flink sql 的 ETL 和 group agg 场景都没见过吧？ <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/blog-img/avatar.jpeg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">115</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yangyichao-mango" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:1048262223@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%BA%8F%E7%AF%87-%E6%9C%AC%E6%96%87%E7%BB%93%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">1.序篇-本文结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%83%8C%E6%99%AF%E7%AF%87-%E4%B8%80%E6%9D%A1-flink-sql-%E7%9A%84%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">2.背景篇-一条 flink sql 的执行过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-%E5%85%88%E5%8F%91%E6%8C%A5%E8%87%AA%E5%B7%B1%E7%9A%84%E6%83%B3%E8%B1%A1%E5%8A%9B"><span class="nav-number">2.1.</span> <span class="nav-text">2.1.先发挥自己的想象力</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-%E7%9C%8B%E7%9C%8B-flink-%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.2.</span> <span class="nav-text">2.2.看看 flink 的实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E7%AE%80%E4%BB%8B%E7%AF%87-calcite-%E5%9C%A8-flink-sql-%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2"><span class="nav-number">3.</span> <span class="nav-text">3.简介篇-calcite 在 flink sql 中的角色</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-calcite-%E6%98%AF%E5%95%A5%EF%BC%9F"><span class="nav-number">3.1.</span> <span class="nav-text">3.1.calcite 是啥？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-flink-sql-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9-calcite%EF%BC%9F"><span class="nav-number">3.2.</span> <span class="nav-text">3.2.flink sql 为什么选择 calcite？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E6%A1%88%E4%BE%8B%E7%AF%87-calcite-%E7%9A%84%E8%83%BD%E5%8A%9B%E3%80%81%E6%A1%88%E4%BE%8B"><span class="nav-number">4.</span> <span class="nav-text">4.案例篇-calcite 的能力、案例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E5%85%88%E7%94%A8%E7%94%A8-calcite"><span class="nav-number">4.1.</span> <span class="nav-text">4.1.先用用 calcite</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0"><span class="nav-number">4.2.</span> <span class="nav-text">4.2.关系代数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-1-%E5%B8%B8%E7%94%A8%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0"><span class="nav-number">4.2.1.</span> <span class="nav-text">4.2.1.常用关系代数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-2-sql-%E4%BC%98%E5%8C%96%E6%94%AF%E6%9F%B1%E4%B9%8B%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0%E7%AD%89%E4%BB%B7%E5%8F%98%E6%8D%A2"><span class="nav-number">4.2.2.</span> <span class="nav-text">4.2.2.sql 优化支柱之关系代数等价变换</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-calcite-%E5%BF%85%E7%9F%A5%E7%9A%84%E5%9F%BA%E7%A1%80-model"><span class="nav-number">4.3.</span> <span class="nav-text">4.3.calcite 必知的基础 model</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-calcite-%E7%9A%84%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%EF%BC%88%E4%BB%A5-flink-sql-%E4%B8%BA%E4%BE%8B%EF%BC%89"><span class="nav-number">4.4.</span> <span class="nav-text">4.4.calcite 的处理流程（以 flink sql 为例）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-1-flink-sql-demo"><span class="nav-number">4.4.1.</span> <span class="nav-text">4.4.1.flink sql demo</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-2-sql-%E8%A7%A3%E6%9E%90%E9%98%B6%E6%AE%B5%EF%BC%88sql-%E2%80%93-gt-SqlNode%EF%BC%89"><span class="nav-number">4.4.2.</span> <span class="nav-text">4.4.2.sql 解析阶段（sql –&gt; SqlNode）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-3-SqlNode-%E9%AA%8C%E8%AF%81%EF%BC%88SqlNode-%E2%80%93-gt-SqlNode%EF%BC%89"><span class="nav-number">4.4.3.</span> <span class="nav-text">4.4.3.SqlNode 验证（SqlNode –&gt; SqlNode）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-4-%E8%AF%AD%E4%B9%89%E5%88%86%E6%9E%90%EF%BC%88SqlNode-%E2%80%93-gt-RelNode%EF%BC%89"><span class="nav-number">4.4.4.</span> <span class="nav-text">4.4.4.语义分析（SqlNode –&gt; RelNode）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-5-%E4%BC%98%E5%8C%96%E9%98%B6%E6%AE%B5%EF%BC%88RelNode-%E2%80%93-gt-RelNode%EF%BC%89"><span class="nav-number">4.4.5.</span> <span class="nav-text">4.4.5.优化阶段（RelNode –&gt; RelNode）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-5-calcite-%E6%80%8E%E4%B9%88%E5%81%9A%E5%88%B0%E8%BF%99%E4%B9%88%E9%80%9A%E7%94%A8%EF%BC%9F"><span class="nav-number">4.5.</span> <span class="nav-text">4.5.calcite 怎么做到这么通用？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-1-javacc-%E6%98%AF%E5%95%A5%EF%BC%9F"><span class="nav-number">4.5.1.</span> <span class="nav-text">4.5.1.javacc 是啥？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-2-%E8%B7%91%E8%B7%91-javacc"><span class="nav-number">4.5.2.</span> <span class="nav-text">4.5.2.跑跑 javacc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-3-fmpp-%E6%98%AF%E5%95%A5%EF%BC%9F"><span class="nav-number">4.5.3.</span> <span class="nav-text">4.5.3.fmpp 是啥？</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E5%8E%9F%E7%90%86%E5%89%96%E6%9E%90%E7%AF%87-calcite-%E5%9C%A8-flink-sql-%E4%B8%AD%E5%A4%A7%E5%B1%95%E8%BA%AB%E6%89%8B"><span class="nav-number">5.</span> <span class="nav-text">5.原理剖析篇-calcite 在 flink sql 中大展身手</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#5-1-FlinkSqlParserImpl"><span class="nav-number">5.1.</span> <span class="nav-text">5.1.FlinkSqlParserImpl</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2-FlinkSqlParserImpl-%E7%9A%84%E7%94%9F%E6%88%90"><span class="nav-number">5.2.</span> <span class="nav-text">5.2.FlinkSqlParserImpl 的生成</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-1-flink-%E5%BC%95%E5%85%A5-calcite"><span class="nav-number">5.2.1.</span> <span class="nav-text">5.2.1.flink 引入 calcite</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-2-fmpp-%E7%94%9F%E6%88%90-Parser-jj"><span class="nav-number">5.2.2.</span> <span class="nav-text">5.2.2.fmpp 生成 Parser.jj</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-3-javacc-%E7%94%9F%E6%88%90-parser"><span class="nav-number">5.2.3.</span> <span class="nav-text">5.2.3.javacc 生成 parser</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-4-%E7%9C%8B%E7%9C%8B-Parser"><span class="nav-number">5.2.4.</span> <span class="nav-text">5.2.4.看看 Parser</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-5-blink-planner-%E5%BC%95%E5%85%A5-flink-sql-parser"><span class="nav-number">5.2.5.</span> <span class="nav-text">5.2.5.blink planner 引入 flink-sql-parser</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E6%80%BB%E7%BB%93%E4%B8%8E%E5%B1%95%E6%9C%9B%E7%AF%87"><span class="nav-number">6.</span> <span class="nav-text">6.总结与展望篇</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-number">7.</span> <span class="nav-text">7.参考文献</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">244.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://true.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'https://yangyichao-mango.github.io/2021/11/13/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/07_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E6%B5%81%E6%89%B9%E5%93%84%E5%93%84%E7%9A%84%20sql%20%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8/';
+          this.page.identifier = '2021/11/13/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/07_flink sql 知其所以然（六）：流批哄哄的 sql 语法解析器/';
+          this.page.title = 'flink sql 知其所以然（六）：flink sql 约会 calcite';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://true.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

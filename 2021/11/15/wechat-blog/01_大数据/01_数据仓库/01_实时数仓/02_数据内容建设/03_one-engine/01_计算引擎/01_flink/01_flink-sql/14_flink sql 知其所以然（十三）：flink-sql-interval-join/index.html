@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="antigeneral's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="flink sql 知其所以然（十三）：流 join 很难嘛？？？（下）">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/14_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%89%EF%BC%89%EF%BC%9Aflink-sql-interval-join/index.html">
+<meta property="og:site_name" content="antigeneral&#39;s blog">
+<meta property="og:description" content="本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
+<meta property="og:locale">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/15_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%89%EF%BC%89%EF%BC%9Aflinksqlintervaljoin/1.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/15_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%89%EF%BC%89%EF%BC%9Aflinksqlintervaljoin/2.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/15_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%89%EF%BC%89%EF%BC%9Aflinksqlintervaljoin/3.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/15_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%89%EF%BC%89%EF%BC%9Aflinksqlintervaljoin/4.png">
+<meta property="article:published_time" content="2021-11-15T06:25:59.000Z">
+<meta property="article:modified_time" content="2021-11-27T04:03:39.780Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Flink">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/15_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%89%EF%BC%89%EF%BC%9Aflinksqlintervaljoin/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2021/11/15/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/14_flink sql 知其所以然（十三）：flink-sql-interval-join/"/>
+
+
+
+
+
+  <title>flink sql 知其所以然（十三）：流 join 很难嘛？？？（下） | antigeneral's blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-150061865-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">antigeneral's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-link"></i> <br />
+            
+            links
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/14_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%89%EF%BC%89%EF%BC%9Aflink-sql-interval-join/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">flink sql 知其所以然（十三）：流 join 很难嘛？？？（下）</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-15T14:25:59+08:00">
+                2021-11-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/14_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%89%EF%BC%89%EF%BC%9Aflink-sql-interval-join/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/11/15/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/14_flink sql 知其所以然（十三）：flink-sql-interval-join/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  3.1k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  12
+                </span>
+              
+            </div>
+          
+
+          
+              <div class="post-description">
+                  本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>看了那么多的技术文，你能明白作者想让你在读完文章后学到什么吗？</p>
+<p>大数据羊说的文章会让你明白</p>
+<ol>
+<li><p>博主会阐明博主期望本文能给小伙伴们带来什么帮助，让小伙伴萌能直观明白博主的心思</p>
+</li>
+<li><p>博主会以实际的应用场景和案例入手，不只是知识点的简单堆砌</p>
+</li>
+<li><p>博主会把重要的知识点的原理进行剖析，让小伙伴萌做到深入浅出</p>
+</li>
+</ol>
+<h1 id="1-序篇"><a href="#1-序篇" class="headerlink" title="1.序篇"></a>1.序篇</h1><p>源码公众号后台回复<strong>1.13.2 sql interval join 的奇妙解析之路</strong>获取。</p>
+<p>本节是 flink sql 流 join 系列的下篇，上篇的链接如下：</p>
+<p>废话不多说，咱们先直接上本文的目录和结论，小伙伴可以先看结论快速了解博主期望本文能给小伙伴们带来什么帮助：</p>
+<ol>
+<li><strong>背景及应用场景介绍</strong>：博主期望你能了解到，flink sql 提供的丰富的 join 方式（总结 6 种：regular join，维表 join，快照 join，interval join，array 拍平，table function）对我们满足需求提供了强大的后盾，<br>这 6 种 join 中涉及到流与流的 join 最常用的是 regular join 以及 interval join，本节主要介绍 interval join</li>
+<li><strong>来一个实战案例</strong>：博主以上节说到的曝光日志流点击日志流为案例展开，主要是想告诉小伙伴 flink sql left join 数据不会互相等待，存在 retract 问题，会导致写入 kafka 的数据量变大，<br>然后转变思路为使用 flink sql interval join 的方式可以使得数据互相等待一段时间进行 join，这种方式不会存在 retract 问题</li>
+<li><strong>flink sql interval join 的解决方案以及原理的介绍</strong>：主要介绍 interval join 的在上述实战案例的运行结果及分析源码机制，博主期望你能了解到，interval join 的执行机制是会在你设置的 interval 区间之内互相等待一段时间，一旦时间推进（事件时间由 watermark 推进）到区间之外（即当前这条数据再也不可能被另一条流的数据 join 到时），outer join 会输出没有 join 到的数据，inner join 会从 state 中删除这条数据</li>
+<li><strong>总结及展望</strong></li>
+</ol>
+<h1 id="2-背景及应用场景介绍"><a href="#2-背景及应用场景介绍" class="headerlink" title="2.背景及应用场景介绍"></a>2.背景及应用场景介绍</h1><p>书接上文，上文介绍了曝光流在关联点击流时，使用 flink sql regular join 存在的 retract 问题。</p>
+<p>本文介绍怎么使用 flink sql interval join 解决这些问题。</p>
+<h1 id="3-来一个实战案例"><a href="#3-来一个实战案例" class="headerlink" title="3.来一个实战案例"></a>3.来一个实战案例</h1><p>看看上节的实际案例，来看看在具体输入值的场景下，输出值应该长啥样。</p>
+<p>场景：即常见的曝光日志流（show_log）通过 log_id 关联点击日志流（click_log），将数据的关联结果进行下发。</p>
+<p>来一波输入数据：</p>
+<p>曝光数据：</p>
+<table>
+<thead>
+<tr>
+<th>log_id</th>
+<th>timestamp</th>
+<th>show_params</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>2021-11-01 00:01:03</td>
+<td>show_params</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2021-11-01 00:03:00</td>
+<td>show_params2</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2021-11-01 00:05:00</td>
+<td>show_params3</td>
+</tr>
+</tbody></table>
+<p>点击数据：</p>
+<table>
+<thead>
+<tr>
+<th>log_id</th>
+<th>timestamp</th>
+<th>click_params</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>2021-11-01 00:01:53</td>
+<td>click_params</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2021-11-01 00:02:01</td>
+<td>click_params2</td>
+</tr>
+</tbody></table>
+<p>预期输出数据如下：</p>
+<table>
+<thead>
+<tr>
+<th>log_id</th>
+<th>timestamp</th>
+<th>show_params</th>
+<th>click_params</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>2021-11-01 00:01:00</td>
+<td>show_params</td>
+<td>click_params</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2021-11-01 00:01:00</td>
+<td>show_params2</td>
+<td>click_params2</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2021-11-01 00:02:00</td>
+<td>show_params3</td>
+<td>null</td>
+</tr>
+</tbody></table>
+<p>上节的 flink sql regular join 解决方案如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> sink_table</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    show_log.log_id <span class="keyword">as</span> log_id,</span><br><span class="line">    show_log.timestamp <span class="keyword">as</span> <span class="type">timestamp</span>,</span><br><span class="line">    show_log.show_params <span class="keyword">as</span> show_params,</span><br><span class="line">    click_log.click_params <span class="keyword">as</span> click_params</span><br><span class="line"><span class="keyword">FROM</span> show_log</span><br><span class="line"><span class="keyword">LEFT</span> <span class="keyword">JOIN</span> click_log <span class="keyword">ON</span> show_log.log_id <span class="operator">=</span> click_log.log_id;</span><br></pre></td></tr></table></figure>
+
+<p>上节说道，flink sql left join 在流数据到达时，如果左表流（show_log）join 不到右表流（click_log）<br>，则不会等待右流直接输出（show_log，null），在后续右表流数据代打时，会将（show_log，null）撤回，发送（show_log，click_log）。<br>这就是为什么产生了 retract 流，从而导致重复写入 kafka。</p>
+<p>对此，我们也是提出了对应的解决思路，既然 left join 中左流不会等待右流，那么能不能让左流强行等待右流一段时间，实在等不到在数据关联不到的数据即可。</p>
+<p>当当当！！！</p>
+<p>本文的 flink sql interval join 登场，它就能等。</p>
+<h1 id="4-flink-sql-interval-join"><a href="#4-flink-sql-interval-join" class="headerlink" title="4.flink sql interval join"></a>4.flink sql interval join</h1><h2 id="4-1-interval-join-定义"><a href="#4-1-interval-join-定义" class="headerlink" title="4.1.interval join 定义"></a>4.1.interval join 定义</h2><p>大家先通过下面这句话和图简单了解一下 interval join 的作用（熟悉 DataStream 的小伙伴萌可能已经使用过了），后续会详细介绍原理。</p>
+<p>interval join 就是用一个流的数据去关联另一个流的一段时间区间内的数据。关联到就下发关联到的数据，关联不到且在超时后就根据是否是 outer join（left join，right join，full join）下发没关联到的数据。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/15_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%89%EF%BC%89%EF%BC%9Aflinksqlintervaljoin/1.png" alt="interval join"></p>
+<h2 id="4-2-案例解决方案"><a href="#4-2-案例解决方案" class="headerlink" title="4.2.案例解决方案"></a>4.2.案例解决方案</h2><p>来看看上述案例的 flink sql interval join sql 怎么写：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> sink_table</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    show_log.log_id <span class="keyword">as</span> log_id,</span><br><span class="line">    show_log.timestamp <span class="keyword">as</span> <span class="type">timestamp</span>,</span><br><span class="line">    show_log.show_params <span class="keyword">as</span> show_params,</span><br><span class="line">    click_log.click_params <span class="keyword">as</span> click_params</span><br><span class="line"><span class="keyword">FROM</span> show_log <span class="keyword">LEFT</span> <span class="keyword">JOIN</span> click_log <span class="keyword">ON</span> show_log.log_id <span class="operator">=</span> click_log.log_id</span><br><span class="line"><span class="keyword">AND</span> show_log.row_time </span><br><span class="line">    <span class="keyword">BETWEEN</span> click_log.row_time <span class="operator">-</span> <span class="type">INTERVAL</span> <span class="string">&#x27;10&#x27;</span> <span class="keyword">MINUTE</span> </span><br><span class="line">    <span class="keyword">AND</span> click_log.row_time <span class="operator">+</span> <span class="type">INTERVAL</span> <span class="string">&#x27;10&#x27;</span> <span class="keyword">MINUTE</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这里设置了 <code>show_log.row_time BETWEEN click_log.row_time - INTERVAL &#39;10&#39; MINUTE AND click_log.row_time + INTERVAL &#39;10&#39; MINUTE</code><br>代表 show_log 表中的数据会和 click_log 表中的 row_time 在前后 10 分钟之内的数据进行关联。</p>
+<p>运行结果如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator">+</span>[<span class="number">1</span> <span class="operator">|</span> <span class="number">2021</span><span class="number">-11</span><span class="number">-01</span> <span class="number">00</span>:<span class="number">01</span>:<span class="number">03</span> <span class="operator">|</span> show_params <span class="operator">|</span> click_params]</span><br><span class="line"><span class="operator">+</span>[<span class="number">2</span> <span class="operator">|</span> <span class="number">2021</span><span class="number">-11</span><span class="number">-01</span> <span class="number">00</span>:<span class="number">03</span>:<span class="number">00</span> <span class="operator">|</span> show_params <span class="operator">|</span> click_params]</span><br><span class="line"><span class="operator">+</span>[<span class="number">3</span> <span class="operator">|</span> <span class="number">2021</span><span class="number">-11</span><span class="number">-01</span> <span class="number">00</span>:<span class="number">05</span>:<span class="number">00</span> <span class="operator">|</span> show_params <span class="operator">|</span> <span class="keyword">null</span>]</span><br></pre></td></tr></table></figure>
+
+<p>如上就是我们期望的正确结果了。</p>
+<p>flink web ui 算子图如下：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/15_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%89%EF%BC%89%EF%BC%9Aflinksqlintervaljoin/2.png" alt="flink web ui"></p>
+<p>那么此时你可能有一个问题，结果中的前两条数据 join 到了输出我是理解的，那当 show_log join 不到 click_log 时为啥也输出了？原理是啥？</p>
+<p>博主带你们来定位到具体的实现源码。先看一下 transformations。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/15_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%89%EF%BC%89%EF%BC%9Aflinksqlintervaljoin/3.png" alt="transformations"></p>
+<p>可以看到事件时间下 interval join 的具体 operator 是 <code>org.apache.flink.table.runtime.operators.join.KeyedCoProcessOperatorWithWatermarkDelay</code>。</p>
+<p>其核心逻辑就集中在 <code>processElement1</code> 和 <code>processElement2</code> 中，在 <code>processElement1</code> 和 <code>processElement2</code> 中使用 <code>org.apache.flink.table.runtime.operators.join.interval.RowTimeIntervalJoin</code> 来处理具体 join 逻辑。<code>RowTimeIntervalJoin</code> 重要方法如下图所示。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/15_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%89%EF%BC%89%EF%BC%9Aflinksqlintervaljoin/4.png" alt="TimeIntervalJoin"></p>
+<p>下面详细给大家解释一下。</p>
+<h2 id="4-3-TimeIntervalJoin-简版说明"><a href="#4-3-TimeIntervalJoin-简版说明" class="headerlink" title="4.3.TimeIntervalJoin 简版说明"></a>4.3.TimeIntervalJoin 简版说明</h2><p>join 时，左流和右流会在 interval 时间之内相互等待，如果等到了则输出数据[+（show_log，click_log）]，如果等不到，并且另一条流的时间已经推进到当前这条数据在也不可能 join 到另一条流的数据时，则直接输出[+（show_log，null）]，[+（null，click_log）]。</p>
+<p>举个例子，<code>show_log.row_time BETWEEN click_log.row_time - INTERVAL &#39;10&#39; MINUTE AND click_log.row_time + INTERVAL &#39;10&#39; MINUTE</code>，<br>当 click_log 的时间推进到 <code>2021-11-01 11:00:00</code> 时，这时 show_log 来一条 <code>2021-11-01 02:00:00</code> 的数据，<br>那这条 show_log 必然不可能和 click_log 中的数据 join 到了，因为 click_log 中 <code>2021-11-01 01:50:00</code> 到 <code>2021-11-01 02:10:00</code> 之间的数据以及过期删除了。则 show_log 直接输出 [+（show_log，null）]</p>
+<blockquote>
+<p>Notes：<br>如果你设置了 allowLateness，join 不到的数据的输出和 state 的清理会多保留 allowLateness 时间</p>
+</blockquote>
+<h2 id="4-4-TimeIntervalJoin-详细实现说明"><a href="#4-4-TimeIntervalJoin-详细实现说明" class="headerlink" title="4.4.TimeIntervalJoin 详细实现说明"></a>4.4.TimeIntervalJoin 详细实现说明</h2><p>以上面案例的 show_log（左表） interval join click_log（右表） 为例（不管是 inner interval join，left interval join，right interval join 还是 full interval join，都会按照下面的流程执行）：</p>
+<ol>
+<li><strong>第一步</strong>，首先如果 join xxx on 中的条件是等式则代表 join 是在相同 key 下进行的（上述案例中 join 的 key 即 show_log.log_id，click_log.log_id），相同 key 的数据会被发送到一个并发中进行处理。如果 join xxx on 中的条件是不等式，则两个流的 source 算子向 join 算子下发数据是按照 global 的 partition 策略进行下发的，并且 join 算子并发会被设置为 1，所有的数据会被发送到这一个并发中处理。</li>
+<li><strong>第二步</strong>，相同 key 下，一条 show_log 的数据先到达，首先会计算出下面要使用的最重要的三类时间戳：</li>
+</ol>
+<ul>
+<li>根据 show_log 的时间戳（l_time）计算出能关联到的右流的时间区间下限（r_lower）、上限（r_upper）</li>
+<li>根据 show_log 目前的 watermark 计算出目前右流的数据能够过期做过期处理的时间的最小值（r_expire）</li>
+<li>获取左流的 l_watermark，右流的 r_watermark，这两个时间戳在事件语义的任务中都是 watermark</li>
+</ul>
+<ol start="3">
+<li><strong>第三步</strong>，遍历所有同 key 下的 click_log 来做 join</li>
+</ol>
+<ul>
+<li>对于遍历的每一条 click_log，走如下步骤</li>
+<li>经过判断，如果 on 中的条件为 true，则和 click_log 关联，输出[+（show_log，click_log）]数据；如果 on 中的条件为 false，则啥也不干</li>
+<li>接着判断当前这条 click_log 的数据时间（r_time）是否小于右流的数据过期时间的最小值（r_expire）（即判断这条 click_log 是否永远不会再被 show_log join 到了）。<br>如果小于，并且当前 click_log 这一侧是 outer join，则不用等直接输出[+（null，click_log）]），从状态删除这条 click_log；如果 click_log 这一侧不是 outer join，则直接从状态里删除这条 click_log。</li>
+</ul>
+<ol start="4">
+<li><strong>第四步</strong>，判断右流的时间戳（r_watermark）是否小于能关联到的右流的时间区间上限（r_upper）：</li>
+</ol>
+<ul>
+<li>如果是，则说明这条 show_log 还有可能被 click_log join 到，则 show_log 放到 state 中，并注册后面用于状态清除的 timer。</li>
+<li>如果否，则说明关联不到了，则输出[+（show_log，null）]</li>
+</ul>
+<ol start="5">
+<li><strong>第五步</strong>，timer 触发时：</li>
+</ol>
+<ul>
+<li>timer 触发时，根据当前 l_watermark，r_watermark 以及 state 中存储的 show_log，click_log 的 l_time，r_time 判断是否再也不会被对方 join 到，如果是，则根据是否为 outer join 对应输出[+（show_log，null）]，[+（null，click_log）]，并从状态中删除对应的 show_log，click_log。</li>
+</ul>
+<p>上面只是左流 show_log 数据到达时的执行流程（即 <code>ProcessElement1</code>），当右流 click_log 到达时也是完全类似的执行流程（即 <code>ProcessElement2</code>）。</p>
+<h2 id="4-5-使用注意事项"><a href="#4-5-使用注意事项" class="headerlink" title="4.5.使用注意事项"></a>4.5.使用注意事项</h2><p>小伙伴萌在使用 interval join 需要注意的两点事项：</p>
+<ol>
+<li><strong>interval join 的时间区间取决于日志的真实情况</strong>：设置大了容易造成任务的 state 太大，并且时效性也会变差。设置小了，join 不到，下发的数据在后续使用时，数据质量会存在问题。所以小伙伴萌在使用时建议先使用离线数据做一遍两条流的时间戳 diff 比较，来确定真实情况下的时间戳 diff 的分布是怎样的。<br>举例：你通过离线数据 join 并做时间戳 diff 后发现 99% 的数据都能在时间戳相差 5min 以内 join 到，那么你就有依据去设置 interval 时间差为 5min。</li>
+<li><strong>interval join 中的时间区间条件即支持事件时间，也支持处理时间</strong>。事件时间由 watermark 推进。</li>
+</ol>
+<h1 id="5-总结与展望"><a href="#5-总结与展望" class="headerlink" title="5.总结与展望"></a>5.总结与展望</h1><p>源码公众号后台回复<strong>1.13.2 sql interval join 的奇妙解析之路</strong>获取。</p>
+<p>本文主要介绍了 flink sql interval 是怎么避免出现 flink regular join 存在的 retract 问题的，并通过解析其实现说明了运行原理，博主期望你读完本文之后能了解到：</p>
+<ol>
+<li><strong>背景及应用场景介绍</strong>：博主期望你能了解到，flink sql 提供的丰富的 join 方式（总结 6 种：regular join，维表 join，快照 join，interval join，array 拍平，table function）对我们满足需求提供了强大的后盾，<br>这 6 种 join 中涉及到流与流的 join 最常用的是 regular join 以及 interval join，本节主要介绍 interval join</li>
+<li><strong>来一个实战案例</strong>：博主以上节说到的曝光日志流点击日志流为案例展开，主要是想告诉小伙伴 flink sql left join 数据不会互相等待，存在 retract 问题，会导致写入 kafka 的数据量变大，<br>然后转变思路为使用 flink sql interval join 的方式可以使得数据互相等待一段时间进行 join，这种方式不会存在 retract 问题</li>
+<li><strong>flink sql interval join 的解决方案以及原理的介绍</strong>：主要介绍 interval join 的在上述实战案例的运行结果及分析源码机制，博主期望你能了解到，interval join 的执行机制是会在你设置的 interval 区间之内互相等待一段时间，一旦时间推进（事件时间由 watermark 推进）到区间之外（即当前这条数据再也不可能被另一条流的数据 join 到时），outer join 会输出没有 join 到的数据，inner join 会从 state 中删除这条数据</li>
+<li><strong>总结及展望</strong></li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div></div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechat.png" alt=" 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.png" alt=" 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Flink/" rel="tag"># Apache Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/11_%E6%B5%81%E6%89%B9%E4%B8%80%E4%BD%93%E7%9A%84%E7%AE%80%E5%8D%95%E6%80%9D%E8%80%83/" rel="next" title="当我们在做流批一体时，我们在做什么？">
+                <i class="fa fa-chevron-left"></i> 当我们在做流批一体时，我们在做什么？
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/13_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%BA%8C%EF%BC%89%EF%BC%9Aflink-sql-join/" rel="prev" title="flink sql 知其所以然（十二）：流 join 很难嘛？？？（上）">
+                flink sql 知其所以然（十二）：流 join 很难嘛？？？（上） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/blog-img/avatar.jpeg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">115</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yangyichao-mango" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:1048262223@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%BA%8F%E7%AF%87"><span class="nav-number">1.</span> <span class="nav-text">1.序篇</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%83%8C%E6%99%AF%E5%8F%8A%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">2.背景及应用场景介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E6%9D%A5%E4%B8%80%E4%B8%AA%E5%AE%9E%E6%88%98%E6%A1%88%E4%BE%8B"><span class="nav-number">3.</span> <span class="nav-text">3.来一个实战案例</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-flink-sql-interval-join"><span class="nav-number">4.</span> <span class="nav-text">4.flink sql interval join</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-interval-join-%E5%AE%9A%E4%B9%89"><span class="nav-number">4.1.</span> <span class="nav-text">4.1.interval join 定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-%E6%A1%88%E4%BE%8B%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">4.2.</span> <span class="nav-text">4.2.案例解决方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-TimeIntervalJoin-%E7%AE%80%E7%89%88%E8%AF%B4%E6%98%8E"><span class="nav-number">4.3.</span> <span class="nav-text">4.3.TimeIntervalJoin 简版说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-TimeIntervalJoin-%E8%AF%A6%E7%BB%86%E5%AE%9E%E7%8E%B0%E8%AF%B4%E6%98%8E"><span class="nav-number">4.4.</span> <span class="nav-text">4.4.TimeIntervalJoin 详细实现说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-5-%E4%BD%BF%E7%94%A8%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="nav-number">4.5.</span> <span class="nav-text">4.5.使用注意事项</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E6%80%BB%E7%BB%93%E4%B8%8E%E5%B1%95%E6%9C%9B"><span class="nav-number">5.</span> <span class="nav-text">5.总结与展望</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">244.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://true.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'https://yangyichao-mango.github.io/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/14_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%89%EF%BC%89%EF%BC%9Aflink-sql-interval-join/';
+          this.page.identifier = '2021/11/15/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/14_flink sql 知其所以然（十三）：flink-sql-interval-join/';
+          this.page.title = 'flink sql 知其所以然（十三）：流 join 很难嘛？？？（下）';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://true.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

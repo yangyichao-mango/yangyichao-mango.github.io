@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="antigeneral's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="flink sql 知其所以然（十四）：维表 join 的性能优化之路（上）">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/15_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E5%9B%9B%EF%BC%89%EF%BC%9Aflink-sql-lookup-join/index.html">
+<meta property="og:site_name" content="antigeneral&#39;s blog">
+<meta property="og:description" content="本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
+<meta property="og:locale">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/16_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E5%9B%9B%EF%BC%89%EF%BC%9Aflink_sql_lookup_join/2.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/16_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E5%9B%9B%EF%BC%89%EF%BC%9Aflink_sql_lookup_join/3.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/16_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E5%9B%9B%EF%BC%89%EF%BC%9Aflink_sql_lookup_join/1.png">
+<meta property="article:published_time" content="2021-11-15T06:26:59.000Z">
+<meta property="article:modified_time" content="2021-11-30T15:05:31.957Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Flink">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/16_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E5%9B%9B%EF%BC%89%EF%BC%9Aflink_sql_lookup_join/2.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2021/11/15/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/15_flink sql 知其所以然（十四）：flink-sql-lookup-join/"/>
+
+
+
+
+
+  <title>flink sql 知其所以然（十四）：维表 join 的性能优化之路（上） | antigeneral's blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-150061865-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">antigeneral's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-link"></i> <br />
+            
+            links
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/15_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E5%9B%9B%EF%BC%89%EF%BC%9Aflink-sql-lookup-join/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">flink sql 知其所以然（十四）：维表 join 的性能优化之路（上）</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-15T14:26:59+08:00">
+                2021-11-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/15_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E5%9B%9B%EF%BC%89%EF%BC%9Aflink-sql-lookup-join/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/11/15/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/15_flink sql 知其所以然（十四）：flink-sql-lookup-join/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  3.6k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  14
+                </span>
+              
+            </div>
+          
+
+          
+              <div class="post-description">
+                  本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>看了那么多的技术文，你能明白作者想让你在读完文章后学到什么吗？</p>
+<p>大数据羊说的文章会让你明白</p>
+<ol>
+<li><p>博主会阐明博主期望本文能给小伙伴们带来什么帮助，让小伙伴萌能直观明白博主的心思</p>
+</li>
+<li><p>博主会以实际的应用场景和案例入手，不只是知识点的简单堆砌</p>
+</li>
+<li><p>博主会把重要的知识点的原理进行剖析，让小伙伴萌做到深入浅出</p>
+</li>
+</ol>
+<h1 id="1-序篇"><a href="#1-序篇" class="headerlink" title="1.序篇"></a>1.序篇</h1><p>源码公众号后台回复<strong>1.13.2 sql lookup join</strong>获取。</p>
+<p>废话不多说，咱们先直接上本文的目录和结论，小伙伴可以先看结论快速了解博主期望本文能给小伙伴们带来什么帮助：</p>
+<ol>
+<li><strong>背景及应用场景介绍</strong>：博主期望你能了解到，flink sql 提供了轻松访问<strong>外部存储</strong>的 lookup join（与上节不同，上节说的是流与流的 join）。lookup join 可以简单理解为使用 flatmap 访问外部存储数据然后将维度字段拼接到当前这条数据上面</li>
+<li><strong>来一个实战案例</strong>：博主以曝光用户日志流关联用户画像（年龄、性别）维表为例介绍 lookup join 应该达到的关联的预期效果。</li>
+<li><strong>flink sql lookup join 的解决方案以及原理的介绍</strong>：主要介绍 lookup join 的在上述实战案例的 sql 写法，博主期望你能了解到，lookup join 是基于处理时间的，并且 lookup join 经常会由于访问外部存储的 qps 过高而导致背压，产出延迟等性能问题。<br>我们可以借鉴在 DataStream api 中的维表 join 优化思路在 flink sql 使用 <code>local cache</code>，<code>异步访问维表</code>，<code>批量访问维表</code>三种方式去解决性能问题。</li>
+<li><strong>总结及展望</strong>：官方并没有提供 <code>批量访问维表</code> 的能力，因此博主自己实现了一套，具体使用方式和原理实现敬请期待下篇文章。</li>
+</ol>
+<h1 id="2-背景及应用场景介绍"><a href="#2-背景及应用场景介绍" class="headerlink" title="2.背景及应用场景介绍"></a>2.背景及应用场景介绍</h1><p>维表作为 sql 任务中一种常见表的类型，其本质就是关联表数据的额外数据属性，通常在 join 语句中进行使用。比如源数据有人的 id，你现在想要得到人的性别、年龄，那么可以通过用户 id 去关联人的性别、年龄，就可以得到更全的数据。</p>
+<p>维表 join 在离线数仓中是最常见的一种数据处理方式了，在实时数仓的场景中，flink sql 目前也支持了维表的 join，即 lookup join，生产环境可以用 mysql，redis，hbase 来作为高速维表存储引擎。</p>
+<blockquote>
+<p>Notes：</p>
+<p>在实时数仓中，常用实时维表有两种更新频率</p>
+<ol>
+<li>实时的更新：维度信息是实时新建的，实时写入到高速存储引擎中。然后其他实时任务在做处理时实时的关联这些维度信息。</li>
+<li>周期性的更新：对于一些缓慢变化维度，比如年龄、性别的用户画像等，几万年都不变化一次的东西😂，实时维表的更新可以是小时级别，天级别的。</li>
+</ol>
+</blockquote>
+<h1 id="3-来一个实战案例"><a href="#3-来一个实战案例" class="headerlink" title="3.来一个实战案例"></a>3.来一个实战案例</h1><p>来看看在具体场景下，对应输入值的输出值应该长啥样。</p>
+<p>需求指标：使用曝光用户日志流（show_log）关联用户画像维表（user_profile）关联到用户的维度之后，提供给下游计算分性别，年龄段的曝光用户数使用。<br>此处我们只关心关联维表这一部分的输入输出数据。</p>
+<p>来一波输入数据：</p>
+<p><strong>曝光用户日志流（show_log）数据（数据存储在 kafka 中）：</strong></p>
+<table>
+<thead>
+<tr>
+<th>log_id</th>
+<th>timestamp</th>
+<th>user_id</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>2021-11-01 00:01:03</td>
+<td>a</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2021-11-01 00:03:00</td>
+<td>b</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2021-11-01 00:05:00</td>
+<td>c</td>
+</tr>
+<tr>
+<td>4</td>
+<td>2021-11-01 00:06:00</td>
+<td>b</td>
+</tr>
+<tr>
+<td>5</td>
+<td>2021-11-01 00:07:00</td>
+<td>c</td>
+</tr>
+</tbody></table>
+<p><strong>用户画像维表（user_profile）数据（数据存储在 redis 中）：</strong></p>
+<table>
+<thead>
+<tr>
+<th>user_id(主键)</th>
+<th>age</th>
+<th>sex</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>a</td>
+<td>12-18</td>
+<td>男</td>
+</tr>
+<tr>
+<td>b</td>
+<td>18-24</td>
+<td>女</td>
+</tr>
+<tr>
+<td>c</td>
+<td>18-24</td>
+<td>男</td>
+</tr>
+</tbody></table>
+<p>注意：redis 中的数据结构存储是按照 key，value 去存储的。其中 key 为 user_id，value 为 age，sex 的 json。如下图所示：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/16_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E5%9B%9B%EF%BC%89%EF%BC%9Aflink_sql_lookup_join/2.png" alt="user_profile redis"></p>
+<p>预期输出数据如下：</p>
+<table>
+<thead>
+<tr>
+<th>log_id</th>
+<th>timestamp</th>
+<th>user_id</th>
+<th>age</th>
+<th>sex</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>2021-11-01 00:01:03</td>
+<td>a</td>
+<td>12-18</td>
+<td>男</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2021-11-01 00:03:00</td>
+<td>b</td>
+<td>18-24</td>
+<td>女</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2021-11-01 00:05:00</td>
+<td>c</td>
+<td>18-24</td>
+<td>男</td>
+</tr>
+<tr>
+<td>4</td>
+<td>2021-11-01 00:06:00</td>
+<td>b</td>
+<td>18-24</td>
+<td>女</td>
+</tr>
+<tr>
+<td>5</td>
+<td>2021-11-01 00:07:00</td>
+<td>c</td>
+<td>18-24</td>
+<td>男</td>
+</tr>
+</tbody></table>
+<p>flink sql lookup join 登场。下面是官网的链接。</p>
+<p><a target="_blank" rel="noopener" href="https://nightlies.apache.org/flink/flink-docs-release-1.13/docs/dev/table/sql/queries/joins/#lookup-join">https://nightlies.apache.org/flink/flink-docs-release-1.13/docs/dev/table/sql/queries/joins/#lookup-join</a></p>
+<h1 id="4-flink-sql-lookup-join"><a href="#4-flink-sql-lookup-join" class="headerlink" title="4.flink sql lookup join"></a>4.flink sql lookup join</h1><h2 id="4-1-lookup-join-定义"><a href="#4-1-lookup-join-定义" class="headerlink" title="4.1.lookup join 定义"></a>4.1.lookup join 定义</h2><p>以上述案例来说，lookup join 其实简单理解来，就是每来一条数据去 redis 里面搂一次数据。然后把关联到的维度数据给拼接到当前数据中。</p>
+<p>熟悉 DataStream api 的小伙伴萌，简单来理解，就是 lookup join 的算子就是 DataStream api 中的 flatmap 算子中处理每一条来的数据，针对每一条数据去访问用户画像的 redis。（实际上，flink sql api 中也确实是这样实现的！sql 生成的 lookup join 代码就是继承了 flatmap）</p>
+<h2 id="4-2-上述案例解决方案"><a href="#4-2-上述案例解决方案" class="headerlink" title="4.2.上述案例解决方案"></a>4.2.上述案例解决方案</h2><p>来看看上述案例的 flink sql lookup join sql 怎么写：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> show_log (</span><br><span class="line">    log_id <span class="type">BIGINT</span>,</span><br><span class="line">    `<span class="type">timestamp</span>` <span class="keyword">as</span> <span class="built_in">cast</span>(<span class="built_in">CURRENT_TIMESTAMP</span> <span class="keyword">as</span> <span class="type">timestamp</span>(<span class="number">3</span>)),</span><br><span class="line">    user_id STRING,</span><br><span class="line">    proctime <span class="keyword">AS</span> PROCTIME()</span><br><span class="line">)</span><br><span class="line"><span class="keyword">WITH</span> (</span><br><span class="line">  <span class="string">&#x27;connector&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;datagen&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;rows-per-second&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;10&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;fields.user_id.length&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;1&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;fields.log_id.min&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;1&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;fields.log_id.max&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;10&#x27;</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> user_profile (</span><br><span class="line">    user_id STRING,</span><br><span class="line">    age STRING,</span><br><span class="line">    sex STRING</span><br><span class="line">    ) <span class="keyword">WITH</span> (</span><br><span class="line">  <span class="string">&#x27;connector&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;redis&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;hostname&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;port&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;6379&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;format&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;json&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;lookup.cache.max-rows&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;500&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;lookup.cache.ttl&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;3600&#x27;</span>,</span><br><span class="line">  <span class="string">&#x27;lookup.max-retries&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;1&#x27;</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> sink_table (</span><br><span class="line">    log_id <span class="type">BIGINT</span>,</span><br><span class="line">    `<span class="type">timestamp</span>` <span class="type">TIMESTAMP</span>(<span class="number">3</span>),</span><br><span class="line">    user_id STRING,</span><br><span class="line">    proctime <span class="type">TIMESTAMP</span>(<span class="number">3</span>),</span><br><span class="line">    age STRING,</span><br><span class="line">    sex STRING</span><br><span class="line">) <span class="keyword">WITH</span> (</span><br><span class="line">  <span class="string">&#x27;connector&#x27;</span> <span class="operator">=</span> <span class="string">&#x27;print&#x27;</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- lookup join 的 query 逻辑</span></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> sink_table</span><br><span class="line"><span class="keyword">SELECT</span> </span><br><span class="line">    s.log_id <span class="keyword">as</span> log_id</span><br><span class="line">    , s.`<span class="type">timestamp</span>` <span class="keyword">as</span> `<span class="type">timestamp</span>`</span><br><span class="line">    , s.user_id <span class="keyword">as</span> user_id</span><br><span class="line">    , s.proctime <span class="keyword">as</span> proctime</span><br><span class="line">    , u.sex <span class="keyword">as</span> sex</span><br><span class="line">    , u.age <span class="keyword">as</span> age</span><br><span class="line"><span class="keyword">FROM</span> show_log <span class="keyword">AS</span> s</span><br><span class="line"><span class="keyword">LEFT</span> <span class="keyword">JOIN</span> user_profile <span class="keyword">FOR</span> <span class="built_in">SYSTEM_TIME</span> <span class="keyword">AS</span> <span class="keyword">OF</span> s.proctime <span class="keyword">AS</span> u</span><br><span class="line"><span class="keyword">ON</span> s.user_id <span class="operator">=</span> u.user_id</span><br></pre></td></tr></table></figure>
+
+<p>这里使用了 <code>for SYSTEM_TIME as of</code> 时态表的语法来作为维表关联的标识语法。</p>
+<blockquote>
+<p>Notes：</p>
+<p>实时的 lookup 维表关联能使用处理时间去做关联。</p>
+</blockquote>
+<p>运行结果如下：</p>
+<table>
+<thead>
+<tr>
+<th>log_id</th>
+<th>timestamp</th>
+<th>user_id</th>
+<th>age</th>
+<th>sex</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>2021-11-01 00:01:03</td>
+<td>a</td>
+<td>12-18</td>
+<td>男</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2021-11-01 00:03:00</td>
+<td>b</td>
+<td>18-24</td>
+<td>女</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2021-11-01 00:05:00</td>
+<td>c</td>
+<td>18-24</td>
+<td>男</td>
+</tr>
+<tr>
+<td>4</td>
+<td>2021-11-01 00:06:00</td>
+<td>b</td>
+<td>18-24</td>
+<td>女</td>
+</tr>
+<tr>
+<td>5</td>
+<td>2021-11-01 00:07:00</td>
+<td>c</td>
+<td>18-24</td>
+<td>男</td>
+</tr>
+</tbody></table>
+<p>flink web ui 算子图如下：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/16_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E5%9B%9B%EF%BC%89%EF%BC%9Aflink_sql_lookup_join/3.png" alt="user_profile redis"></p>
+<p>但是！！！<br>但是！！！<br>但是！！！</p>
+<p>flink 官方并没有提供 redis 的维表 connector 实现。</p>
+<p>没错，博主自己实现了一套。关于 redis 维表的 connector 实现，直接参考下面的文章。都是可以从 github 上找到源码拿来用的！</p>
+<p>TODO</p>
+<h2 id="4-3-关于维表使用的一些注意事项"><a href="#4-3-关于维表使用的一些注意事项" class="headerlink" title="4.3.关于维表使用的一些注意事项"></a>4.3.关于维表使用的一些注意事项</h2><ol>
+<li><strong>同一条数据关联到的维度数据可能不同</strong>：实时数仓中常用的<strong>实时维表</strong>都是在不断的变化中的，当前流表数据关联完维表数据后，如果同一个 key 的维表的数据发生了变化，已关联到的维表的结果数据<strong>不会</strong>再同步更新。<br>举个例子，维表中 user_id 为 1 的数据在 08：00 时 age 由 12-18 变为了 18-24，那么当我们的任务在 08：01 failover 之后从 07：59 开始回溯数据时，原本应该关联到 12-18 的数据会关联到 18-24 的 age 数据。这是有可能会影响数据质量的。<br>所以小伙伴萌在评估你们的实时任务时要考虑到这一点。</li>
+<li><strong>会发生实时的新建及更新的维表博主建议小伙伴萌应该建立起数据延迟的监控机制，防止出现流表数据先于维表数据到达，导致关联不到维表数据</strong></li>
+</ol>
+<h2 id="4-4-再说说维表常见的性能问题及优化思路"><a href="#4-4-再说说维表常见的性能问题及优化思路" class="headerlink" title="4.4.再说说维表常见的性能问题及优化思路"></a>4.4.再说说维表常见的性能问题及优化思路</h2><p>所有的维表性能问题都可以总结为：高 qps 下访问维表存储引擎产生的任务背压，数据产出延迟问题。</p>
+<p>举个例子：</p>
+<ul>
+<li><strong>在没有使用维表的情况下</strong>：一条数据从输入 flink 任务到输出 flink 任务的时延假如为 <code>0.1 ms</code>，那么并行度为 <code>1</code> 的任务的吞吐可以达到 <code>1 query / 0.1 ms = 1w qps</code>。</li>
+<li><strong>在使用维表之后</strong>：每条数据访问维表的外部存储的时长为 <code>2 ms</code>，那么一条数据从输入 flink 任务到输出 flink 任务的时延就会变成 <code>2.1 ms</code>，那么同样并行度为 <code>1</code> 的任务的吞吐只能达到 <code>1 query / 2.1 ms = 476 qps</code>。两者的吞吐量相差 <code>21 倍</code>。</li>
+</ul>
+<p>这就是为什么维表 join 的算子会产生背压，任务产出会延迟。</p>
+<p>那么当然，解决方案也是有很多的。抛开 flink sql 想一下，如果我们使用 DataStream api，甚至是在做一个后端应用，需要访问外部存储时，常用的优化方案有哪些？这里列举一下：</p>
+<ol>
+<li><strong>按照 redis 维表的 key 分桶 + local cache</strong>：通过按照 key 分桶的方式，让大多数据的维表关联的数据访问走之前访问过得 local cache 即可。这样就可以把访问外部存储 2.1 ms 处理一个 query 变为访问内存的 0.1 ms 处理一个 query 的时长。</li>
+<li><strong>异步访问外存</strong>：DataStream api 有异步算子，可以利用线程池去同时多次请求维表外部存储。这样就可以把 2.1 ms 处理 1 个 query 变为 2.1 ms 处理 10 个 query。吞吐可变优化到 <code>10 / 2.1 ms = 4761 qps</code>。</li>
+<li><strong>批量访问外存</strong>：除了异步访问之外，我们还可以批量访问外部存储。举一个例子：在访问 redis 维表的 1 query 占用 2.1 ms 时长中，其中可能有 2 ms 都是在网络请求上面的耗时<br>，其中只有 0.1 ms 是 redis server 处理请求的时长。那么我们就可以使用 redis 提供的 pipeline 能力，在客户端（也就是 flink 任务 lookup join 算子中），攒一批数据，使用 pipeline 去同时访问 redis sever。<br>这样就可以把 2.1 ms 处理 1 个 query 变为 7ms（2ms + 50 * 0.1ms） 处理 50 个 query。吞吐可变为 <code>50 query / 7 ms = 7143 qps</code>。博主这里测试了下使用 redis pipeline 和未使用的时长消耗对比。如下图所示。</li>
+</ol>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/16_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E5%9B%9B%EF%BC%89%EF%BC%9Aflink_sql_lookup_join/1.png" alt="redis pipeline"></p>
+<p>博主认为上述优化效果中，最好用的是 1 + 3，2 相比 3 还是一条一条发请求，性能会差一些。</p>
+<p>既然 DataStream 可以这样做，flink sql 必须必的也可以借鉴上面的这些优化方案。具体怎么操作呢？看下文骚操作</p>
+<h2 id="4-5-lookup-join-的具体性能优化方案"><a href="#4-5-lookup-join-的具体性能优化方案" class="headerlink" title="4.5.lookup join 的具体性能优化方案"></a>4.5.lookup join 的具体性能优化方案</h2><ol>
+<li><strong>按照 redis 维表的 key 分桶 + local cache</strong>：sql 中如果要做分桶，得先做 group by，但是如果做了 group by 的聚合，就只能在 udaf 中做访问 redis 处理，并且 udaf 产出的结果只能是一条，所以这种实现起来非常复杂。我们选择不做 keyby 分桶。<br>但是我们可以直接使用 local cache 去做本地缓存，虽然【直接缓存】的效果比【先按照 key 分桶再做缓存】的效果差，但是也能一定程度上减少访问 redis 压力。在博主实现的 redis connector 中，内置了 local cache 的实现，小伙伴萌可以参考下面这部篇文章进行配置。<br>TODO</li>
+<li><strong>异步访问外存</strong>：目前博主实现的 redis connector 不支持异步访问，但是官方实现的 hbase connector 支持这个功能，参考下面链接文章的，点开之后搜索 <code>lookup.async</code>。<br><a target="_blank" rel="noopener" href="https://nightlies.apache.org/flink/flink-docs-release-1.13/docs/connectors/table/hbase/">https://nightlies.apache.org/flink/flink-docs-release-1.13/docs/connectors/table/hbase/</a></li>
+<li><strong>批量访问外存</strong>：这玩意官方必然没有实现啊，但是，但是，但是，经过博主周末两天的疯狂 debug，改了改源码，搞定了基于 redis 的批量访问外存优化的功能。</li>
+</ol>
+<h2 id="4-6-基于-redis-connector-的批量访问机制优化"><a href="#4-6-基于-redis-connector-的批量访问机制优化" class="headerlink" title="4.6.基于 redis connector 的批量访问机制优化"></a>4.6.基于 redis connector 的批量访问机制优化</h2><p>先描述一下大概是个什么东西，具体怎么用。</p>
+<p>你只需要在 StreamTableEnvironment 中的 table config 配置上 <code>is.dim.batch.mode</code> 为 <code>true</code>，sql 不用做任何改动的情况下，flink lookup join 算子会自动优化，优化效果如下：</p>
+<p>lookup join 算子的每个 task 上，<code>每攒够 30 条数据</code> or <code>每隔五秒（处理时间）</code> 去触发一次批量访问 redis 的请求，使用的是 jedis client 的 pipeline 功能访问 redis server。实测性能有很大提升。</p>
+<p>关于这个批量访问机制的优化介绍和使用方式介绍，小伙伴们先别急，下篇文章会详细介绍到。</p>
+<h1 id="5-总结与展望"><a href="#5-总结与展望" class="headerlink" title="5.总结与展望"></a>5.总结与展望</h1><p>源码公众号后台回复<strong>1.13.2 sql lookup join</strong>获取。</p>
+<p>本文主要介绍了 flink sql lookup join 的使用方式，并介绍了一些经常出现的性能问题以及优化思路，总结如下：</p>
+<ol>
+<li><strong>背景及应用场景介绍</strong>：博主期望你能了解到，flink sql 提供了轻松访问<strong>外部存储</strong>的 lookup join（与上节不同，上节说的是流与流的 join）。lookup join 可以简单理解为使用 flatmap 访问外部存储数据然后将维度字段拼接到当前这条数据上面</li>
+<li><strong>来一个实战案例</strong>：博主以曝光用户日志流关联用户画像（年龄、性别）维表为例介绍 lookup join 应该达到的关联的预期效果。</li>
+<li><strong>flink sql lookup join 的解决方案以及原理的介绍</strong>：主要介绍 lookup join 的在上述实战案例的 sql 写法，博主期望你能了解到，lookup join 是基于处理时间的，并且 lookup join 经常会由于访问外部存储的 qps 过高而导致背压，产出延迟等性能问题。<br>我们可以借鉴在 DataStream api 中的维表 join 优化思路在 flink sql 使用 <code>local cache</code>，<code>异步访问维表</code>，<code>批量访问维表</code>三种方式去解决性能问题。</li>
+<li><strong>总结及展望</strong>：官方并没有提供 <code>批量访问维表</code> 的能力，因此博主自己实现了一套，具体使用方式和原理实现敬请期待下篇文章。</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div></div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechat.png" alt=" 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.png" alt=" 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Flink/" rel="tag"># Apache Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/13_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%BA%8C%EF%BC%89%EF%BC%9Aflink-sql-join/" rel="next" title="flink sql 知其所以然（十二）：流 join 很难嘛？？？（上）">
+                <i class="fa fa-chevron-left"></i> flink sql 知其所以然（十二）：流 join 很难嘛？？？（上）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/17_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E5%85%AD%EF%BC%89%EF%BC%9Aflink-sql-%E5%BC%80%E5%8F%91%E5%88%A9%E5%99%A8%E4%B9%8Bdlink/" rel="prev" title="flink sql 知其所以然（十六）：flink sql 开发企业级利器之 Dlink">
+                flink sql 知其所以然（十六）：flink sql 开发企业级利器之 Dlink <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/blog-img/avatar.jpeg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">115</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yangyichao-mango" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:1048262223@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%BA%8F%E7%AF%87"><span class="nav-number">1.</span> <span class="nav-text">1.序篇</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%83%8C%E6%99%AF%E5%8F%8A%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">2.背景及应用场景介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E6%9D%A5%E4%B8%80%E4%B8%AA%E5%AE%9E%E6%88%98%E6%A1%88%E4%BE%8B"><span class="nav-number">3.</span> <span class="nav-text">3.来一个实战案例</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-flink-sql-lookup-join"><span class="nav-number">4.</span> <span class="nav-text">4.flink sql lookup join</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-lookup-join-%E5%AE%9A%E4%B9%89"><span class="nav-number">4.1.</span> <span class="nav-text">4.1.lookup join 定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-%E4%B8%8A%E8%BF%B0%E6%A1%88%E4%BE%8B%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">4.2.</span> <span class="nav-text">4.2.上述案例解决方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-%E5%85%B3%E4%BA%8E%E7%BB%B4%E8%A1%A8%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="nav-number">4.3.</span> <span class="nav-text">4.3.关于维表使用的一些注意事项</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-%E5%86%8D%E8%AF%B4%E8%AF%B4%E7%BB%B4%E8%A1%A8%E5%B8%B8%E8%A7%81%E7%9A%84%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98%E5%8F%8A%E4%BC%98%E5%8C%96%E6%80%9D%E8%B7%AF"><span class="nav-number">4.4.</span> <span class="nav-text">4.4.再说说维表常见的性能问题及优化思路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-5-lookup-join-%E7%9A%84%E5%85%B7%E4%BD%93%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88"><span class="nav-number">4.5.</span> <span class="nav-text">4.5.lookup join 的具体性能优化方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-6-%E5%9F%BA%E4%BA%8E-redis-connector-%E7%9A%84%E6%89%B9%E9%87%8F%E8%AE%BF%E9%97%AE%E6%9C%BA%E5%88%B6%E4%BC%98%E5%8C%96"><span class="nav-number">4.6.</span> <span class="nav-text">4.6.基于 redis connector 的批量访问机制优化</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E6%80%BB%E7%BB%93%E4%B8%8E%E5%B1%95%E6%9C%9B"><span class="nav-number">5.</span> <span class="nav-text">5.总结与展望</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">244.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://true.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'https://yangyichao-mango.github.io/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/15_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E5%9B%9B%EF%BC%89%EF%BC%9Aflink-sql-lookup-join/';
+          this.page.identifier = '2021/11/15/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/15_flink sql 知其所以然（十四）：flink-sql-lookup-join/';
+          this.page.title = 'flink sql 知其所以然（十四）：维表 join 的性能优化之路（上）';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://true.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

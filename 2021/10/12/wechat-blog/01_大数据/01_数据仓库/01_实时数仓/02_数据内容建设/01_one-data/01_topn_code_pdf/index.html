@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="antigeneral's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本系列每篇文章都比较短小，不定期更新，从一些博主的脑洞想法出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍博主对流批一体来源以及未来发展方向的一些理解，阅读时长大概 2 分钟，话不多说，直接进入正文！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="实战 | flink sql 计算 top n - 1">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2021/10/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn_code_pdf/index.html">
+<meta property="og:site_name" content="antigeneral&#39;s blog">
+<meta property="og:description" content="本系列每篇文章都比较短小，不定期更新，从一些博主的脑洞想法出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍博主对流批一体来源以及未来发展方向的一些理解，阅读时长大概 2 分钟，话不多说，直接进入正文！">
+<meta property="og:locale">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/weibo-topn.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/topn-arch.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/1.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/2.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/3.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/4.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/5.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/6.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/7.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/8.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/9.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/weibo-topn.png">
+<meta property="article:published_time" content="2021-10-12T06:21:53.000Z">
+<meta property="article:modified_time" content="2021-07-22T13:03:14.324Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Flink">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/weibo-topn.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2021/10/12/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/01_one-data/01_topn_code_pdf/"/>
+
+
+
+
+
+  <title>实战 | flink sql 计算 top n - 1 | antigeneral's blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-150061865-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">antigeneral's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-link"></i> <br />
+            
+            links
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/10/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn_code_pdf/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">实战 | flink sql 计算 top n - 1</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-10-12T14:21:53+08:00">
+                2021-10-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/10/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn_code_pdf/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/10/12/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/01_one-data/01_topn_code_pdf/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  6.6k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  30
+                </span>
+              
+            </div>
+          
+
+          
+              <div class="post-description">
+                  本系列每篇文章都比较短小，不定期更新，从一些博主的脑洞想法出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍博主对流批一体来源以及未来发展方向的一些理解，阅读时长大概 2 分钟，话不多说，直接进入正文！
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>每家数字化企业在目前遇到流批一体概念的时候，都会对这个概念抱有一些疑问，到底什么是流批一体？这个概念的来源？这个概念能为用户、开发人员以及企业带来什么样的好处？跟随着博主的理解和脑洞出发吧。</p>
+</blockquote>
+<h1 id="1-序篇"><a href="#1-序篇" class="headerlink" title="1.序篇"></a>1.序篇</h1><p>通过本文你可以 get 到：</p>
+<ol>
+<li>背景篇</li>
+<li>定义篇-属于哪类特点的指标</li>
+<li>数据应用篇-预期效果是怎样的</li>
+<li>难点剖析篇-此类指标建设、保障的难点</li>
+<li>数据建设篇-具体实现方案详述</li>
+<li>数据服务篇-数据服务选型</li>
+<li>数据保障篇-数据时效监控以及保障方案</li>
+<li>效果篇-上述方案最终的效果</li>
+<li>现状以及展望篇</li>
+</ol>
+<h1 id="2-背景篇"><a href="#2-背景篇" class="headerlink" title="2.背景篇"></a>2.背景篇</h1><p>根据目前站内词条消费情况，计算 top 50 消费热度词条，每分钟更新一次，并且按照列表展现给用户。</p>
+<p>其实就是类似于微博的热搜榜。</p>
+<h1 id="3-定义篇-属于哪类特点的指标"><a href="#3-定义篇-属于哪类特点的指标" class="headerlink" title="3.定义篇-属于哪类特点的指标"></a>3.定义篇-属于哪类特点的指标</h1><p>这类指标可以统一划分到 topN 类别的指标中。即输入是具体词条消费日志，输出是词条消费排行榜。</p>
+<h1 id="4-数据应用篇-预期效果是怎样的"><a href="#4-数据应用篇-预期效果是怎样的" class="headerlink" title="4.数据应用篇-预期效果是怎样的"></a>4.数据应用篇-预期效果是怎样的</h1><p>预期效果如下，即与微博热搜榜相同，都属于实时热点，一分钟更新一次。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/weibo-topn.png" alt="1"></p>
+<h1 id="5-难点剖析篇-此类指标建设、保障的难点"><a href="#5-难点剖析篇-此类指标建设、保障的难点" class="headerlink" title="5.难点剖析篇-此类指标建设、保障的难点"></a>5.难点剖析篇-此类指标建设、保障的难点</h1><h2 id="5-1-数据建设"><a href="#5-1-数据建设" class="headerlink" title="5.1.数据建设"></a>5.1.数据建设</h2><h3 id="5-1-1-难点"><a href="#5-1-1-难点" class="headerlink" title="5.1.1.难点"></a>5.1.1.难点</h3><ol>
+<li>榜单类的指标有一个特点，就是客户端获取到的数据必须是同一分钟当时的词条消费热度，这就要求我们产出的每一条数据需要包含 topN 中的所有数据。这样才能保障用户获取到的数据的一致性。</li>
+<li>flink 任务大状态：词条多，状态大；词条具有时效性，所以对于低热词条需要进行删除</li>
+<li>flink 任务大流量、高性能：数据源是全站的词条消费流量，得扛得住突发流量的暴揍</li>
+</ol>
+<h3 id="5-1-2-业界方案调研"><a href="#5-1-2-业界方案调研" class="headerlink" title="5.1.2.业界方案调研"></a>5.1.2.业界方案调研</h3><h3 id="5-1-2-1-Flink-DataStream-api-实时计算-topN-热榜"><a href="#5-1-2-1-Flink-DataStream-api-实时计算-topN-热榜" class="headerlink" title="5.1.2.1.Flink DataStream api 实时计算 topN 热榜"></a>5.1.2.1.Flink DataStream api 实时计算 topN 热榜</h3><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/356760456。" title="Flink datastream api 实时计算topN热榜">Flink DataStream api 实时计算topN热榜</a></p>
+<ul>
+<li>优点：可以按照用户自定义逻辑计算排名，基于 watermark 推动整个任务的计算，具备数据可回溯性。</li>
+<li>缺点：开发成本高，而本期主要介绍 flink sql 的方案，这个方案可以供大家进行参考。</li>
+<li>结论：虽可实现，但并非 sql api 实现。</li>
+</ul>
+<h3 id="5-1-2-2-Flink-SQL-api-实时计算-topN-热榜"><a href="#5-1-2-2-Flink-SQL-api-实时计算-topN-热榜" class="headerlink" title="5.1.2.2.Flink SQL api 实时计算 topN 热榜"></a>5.1.2.2.Flink SQL api 实时计算 topN 热榜</h3><p><a target="_blank" rel="noopener" href="https://help.aliyun.com/document_detail/62508.html。" title="Flink sql TopN语句">Flink SQL TopN语句</a></p>
+<p><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/457445。" title="Flink SQL 功能解密系列 —— 流式 TopN 挑战与实现">Flink SQL 功能解密系列 —— 流式 TopN 挑战与实现</a></p>
+<ul>
+<li>优点：用户理解、开发成本低</li>
+<li>缺点：只有排名发生变化的词条才会输出，排名未发生变化数据不会输出（后续会在<strong>数据建设</strong>模块进行解释），不能做到每一条数据包含目前 topN 的所有数据的需求。</li>
+<li>结论：不满足需求。</li>
+</ul>
+<h3 id="5-1-2-3-结论"><a href="#5-1-2-3-结论" class="headerlink" title="5.1.2.3.结论"></a>5.1.2.3.结论</h3><p>我们需要制定自己的 flink sql 解决方案，以实现上述需求。这也是本节重点要讲述的内容，即在<strong>数据建设篇-具体实现方案详述</strong>详细展开。</p>
+<h2 id="5-2-数据保障"><a href="#5-2-数据保障" class="headerlink" title="5.2.数据保障"></a>5.2.数据保障</h2><h3 id="5-2-1-难点"><a href="#5-2-1-难点" class="headerlink" title="5.2.1.难点"></a>5.2.1.难点</h3><ol>
+<li>flink 任务高可用</li>
+<li>榜单数据可回溯性</li>
+</ol>
+<h3 id="5-2-2-业界方案调研"><a href="#5-2-2-业界方案调研" class="headerlink" title="5.2.2.业界方案调研"></a>5.2.2.业界方案调研</h3><ol>
+<li>flink 任务高可用：宕机之后快速恢复；有异地多活热备链路可随时切换</li>
+<li>榜单数据可回溯性：任务失败之后，按照词条时间数据的进行回溯</li>
+</ol>
+<h2 id="5-3-数据服务保障"><a href="#5-3-数据服务保障" class="headerlink" title="5.3.数据服务保障"></a>5.3.数据服务保障</h2><h3 id="5-3-1-难点"><a href="#5-3-1-难点" class="headerlink" title="5.3.1.难点"></a>5.3.1.难点</h3><ol>
+<li>数据服务引擎高可用</li>
+<li>数据服务 server 高可用</li>
+</ol>
+<h3 id="5-3-2-业界方案调研"><a href="#5-3-2-业界方案调研" class="headerlink" title="5.3.2.业界方案调研"></a>5.3.2.业界方案调研</h3><ol>
+<li>数据服务引擎高可用：数据服务引擎本身的高可用，异地双活实现</li>
+<li>数据服务 server 高可用：异地双活实现；上游不更新数据，数据服务 server 模块也能查询出上一次的结果进行展示，至少不会什么数据都展示不了</li>
+</ol>
+<h1 id="6-数据建设篇-具体实现方案详述"><a href="#6-数据建设篇-具体实现方案详述" class="headerlink" title="6.数据建设篇-具体实现方案详述"></a>6.数据建设篇-具体实现方案详述</h1><h2 id="6-1-整体数据服务架构"><a href="#6-1-整体数据服务架构" class="headerlink" title="6.1.整体数据服务架构"></a>6.1.整体数据服务架构</h2><p>首先，我们最初的方案是如下图所示，单机房的服务端，但是很明显基本没有高可用保障。我们本文主要介绍 flink sql 方案，所以下文先介绍 flink sql，后文 6.6 介绍各种高可用、高性能优化及保障。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/topn-arch.png" alt="2"></p>
+<h2 id="6-2-flink-方案设计"><a href="#6-2-flink-方案设计" class="headerlink" title="6.2.flink 方案设计"></a>6.2.flink 方案设计</h2><p>从本节开始，正式介绍 flink sql 相关的方案设计。</p>
+<p>我们会从以下三个角度去介绍：</p>
+<ol>
+<li>数据源：了解数据源的 schema</li>
+<li>数据汇：从数据应用角度出发设计数据汇的 schema</li>
+<li>数据建设：从数据源、数据汇从而推导出我们要实现的 flink sql 方案</li>
+</ol>
+<h2 id="6-3-数据源"><a href="#6-3-数据源" class="headerlink" title="6.3.数据源"></a>6.3.数据源</h2><p>数据源即安装在各位的手机微博客户端上报的用户消费明细日志，即用户消费一次某个词条，就会上报一条对应的日志。</p>
+<h3 id="6-3-1-schema"><a href="#6-3-1-schema" class="headerlink" title="6.3.1.schema"></a>6.3.1.schema</h3><table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>user_id</td>
+<td>消费词条的用户</td>
+</tr>
+<tr>
+<td>热搜词条_name</td>
+<td>消费词条名称</td>
+</tr>
+<tr>
+<td>timestamp</td>
+<td>消费词条时间戳</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+</tr>
+</tbody></table>
+<h2 id="6-4-数据汇"><a href="#6-4-数据汇" class="headerlink" title="6.4 数据汇"></a>6.4 数据汇</h2><h3 id="6-4-1-schema"><a href="#6-4-1-schema" class="headerlink" title="6.4.1.schema"></a>6.4.1.schema</h3><p>最开始设计的 schema 如下：</p>
+<table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>字段类型</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>timestamp</td>
+<td>bigint</td>
+<td>当前分钟词条时间戳</td>
+</tr>
+<tr>
+<td>热搜词条_name</td>
+<td>string</td>
+<td>词条名</td>
+</tr>
+<tr>
+<td>rn</td>
+<td>bigint</td>
+<td>排名 1 - 50</td>
+</tr>
+</tbody></table>
+<p>但是排名展示时，需要将这一分钟的前 50 名的数据全部查询到展示。而 flink 任务输出排名数据到外部存储时，保障前 50 名的词条数据事务性的输出（要么同时输出到数据服务中，要么一条也不输出）是一件比较复杂事情。所以我们索性将前 50 名的数据全部收集到同一条数据当中，时间戳最新的一条数据就是最新的结果数据。</p>
+<p>重新设计的 schema 如下：</p>
+<table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>字段类型</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>timestamp</td>
+<td>bigint</td>
+<td>当前分钟词条时间戳</td>
+</tr>
+<tr>
+<td>top50_list</td>
+<td>string</td>
+<td>top50 榜单，scheam 如 {1 : “排名第一的词条1”, 2 : “排名第二的词条1”,  3 : “排名第三的词条1”…} 前 50 名</td>
+</tr>
+</tbody></table>
+<h2 id="6-5-数据建设"><a href="#6-5-数据建设" class="headerlink" title="6.5.数据建设"></a>6.5.数据建设</h2><h3 id="6-5-1-方案1-内层-rownum-外层自定义-udf"><a href="#6-5-1-方案1-内层-rownum-外层自定义-udf" class="headerlink" title="6.5.1.方案1 - 内层 rownum + 外层自定义 udf"></a>6.5.1.方案1 - 内层 rownum + 外层自定义 udf</h3><ol>
+<li>从排名的角度出发，自然可以想到 <strong>rownum</strong> 进行排名</li>
+<li>最终要把排行榜合并到一条数据进行输出，那就必然会涉及到<strong>自定义 udf</strong> 将排名数据进行合并</li>
+</ol>
+<h4 id="6-5-1-1-sql"><a href="#6-5-1-1-sql" class="headerlink" title="6.5.1.1.sql"></a>6.5.1.1.sql</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span></span><br><span class="line">  target_db.target_table</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  <span class="built_in">max</span>(<span class="type">timestamp</span>) <span class="keyword">AS</span> <span class="type">timestamp</span>,</span><br><span class="line">  top50_udaf(热搜词条_name, cnt) <span class="keyword">AS</span> data <span class="comment">-- 外层 udaf 将所有数据进行 merge</span></span><br><span class="line"><span class="keyword">FROM</span></span><br><span class="line">  (</span><br><span class="line">    <span class="keyword">SELECT</span></span><br><span class="line">      热搜词条_name,</span><br><span class="line">      cnt,</span><br><span class="line">      <span class="type">timestamp</span>,</span><br><span class="line">      <span class="built_in">row_number</span>() <span class="keyword">over</span>(</span><br><span class="line">        <span class="keyword">PARTITION</span> <span class="keyword">by</span></span><br><span class="line">          热搜词条_name</span><br><span class="line">        <span class="keyword">ORDER</span> <span class="keyword">BY</span></span><br><span class="line">          cnt <span class="keyword">ASC</span></span><br><span class="line">      ) <span class="keyword">AS</span> rn <span class="comment">-- 内层 rownum 进行排名</span></span><br><span class="line">    <span class="keyword">FROM</span></span><br><span class="line">      (</span><br><span class="line">        <span class="keyword">SELECT</span></span><br><span class="line">          热搜词条_name,</span><br><span class="line">          <span class="built_in">sum</span>(cnt) <span class="keyword">AS</span> cnt,</span><br><span class="line">          <span class="built_in">max</span>(<span class="type">timestamp</span>) <span class="keyword">AS</span> <span class="type">timestamp</span></span><br><span class="line">        <span class="keyword">FROM</span></span><br><span class="line">          (</span><br><span class="line">            <span class="keyword">SELECT</span></span><br><span class="line">              热搜词条_name,</span><br><span class="line">              <span class="built_in">count</span>(<span class="number">1</span>) <span class="keyword">AS</span> cnt,</span><br><span class="line">              <span class="built_in">max</span>(<span class="type">timestamp</span>) <span class="keyword">AS</span> <span class="type">timestamp</span></span><br><span class="line">            <span class="keyword">FROM</span></span><br><span class="line">              source_db.source_table</span><br><span class="line">            <span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">              热搜词条_name,</span><br><span class="line">              hash_mod_bucket(user_id, <span class="number">2048</span>)</span><br><span class="line">          )</span><br><span class="line">        <span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">          热搜词条_name</span><br><span class="line">      )</span><br><span class="line">  )</span><br><span class="line"><span class="keyword">WHERE</span></span><br><span class="line">  rn <span class="operator">&lt;=</span> <span class="number">100</span></span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">  <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+
+<h4 id="6-5-1-2-udf"><a href="#6-5-1-2-udf" class="headerlink" title="6.5.1.2.udf"></a>6.5.1.2.udf</h4><ul>
+<li><p>udaf 开发参考： <a target="_blank" rel="noopener" href="https://www.alibabacloud.com/help/zh/doc-detail/69553.htm?spm=a2c63.o282931.b99.244.4ad11889wWZiHL">https://www.alibabacloud.com/help/zh/doc-detail/69553.htm?spm=a2c63.o282931.b99.244.4ad11889wWZiHL</a></p>
+</li>
+<li><p>top50_udaf：作用是将已经经过上游处理的消费量排前 100 名词条拿到进行排序后，合并成一个 top50 排行榜 json 字符串产出。</p>
+</li>
+<li><p>Accumulator：由需求可以知道，当前 udaf 是为了计算前 50 名的消费词条，所以 Accumulator 应该存储截止当前时间按照消费 cnt 数排名的前 100 名的词条。我们由此就可以想到使用 <strong>最小堆</strong> 来当做 Accumulator，Accumulator 中只存储消费 cnt 前 100 的数据。</p>
+</li>
+<li><p>最小堆的实现参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/jiutianhe/article/details/41441881">https://blog.csdn.net/jiutianhe/article/details/41441881</a></p>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TopN</span>&lt;<span class="title">T</span>&gt; <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> PriorityQueue&lt;T&gt; queue;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> maxSize;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Comparator&lt;T&gt; comparator;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> PriorityQueue&lt;T&gt; <span class="title">getQueue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> queue;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">TopN</span><span class="params">(<span class="keyword">int</span> maxSize, Comparator&lt;T&gt; comparator)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (maxSize &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">this</span>.maxSize = maxSize;</span><br><span class="line">        <span class="keyword">this</span>.queue = <span class="keyword">new</span> PriorityQueue&lt;T&gt;(maxSize, comparator);</span><br><span class="line">        <span class="keyword">this</span>.comparator = comparator;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(T e)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (queue.size() &lt; <span class="keyword">this</span>.maxSize) &#123;</span><br><span class="line">            queue.add(e);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 如果队列已经超过 maxSize，则与最小堆堆顶的元素（最小值）进行比较判断</span></span><br><span class="line">            T peek = queue.peek();</span><br><span class="line">            <span class="keyword">if</span> (comparator.compare(e, peek) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                queue.poll();</span><br><span class="line">                queue.add(e);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>topN 通用基类实现如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">TopN_UDAF</span> <span class="keyword">extends</span> <span class="title">AggregateFunction</span>&lt;<span class="title">Map</span>&lt;<span class="title">String</span>, <span class="title">Long</span>&gt;, <span class="title">TopN</span>&lt;<span class="title">Tuple2</span>&lt;<span class="title">String</span>, <span class="title">Long</span>&gt;&gt;&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> topN;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">TopN_UDAF</span><span class="params">(<span class="keyword">int</span> topN)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.topN = topN;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> TopN&lt;Tuple2&lt;String, Long&gt;&gt; createAccumulator() &#123;</span><br><span class="line">        <span class="comment">// 创建 acc -&gt; 最小堆实现的 TopN</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> TopN&lt;&gt;(<span class="keyword">this</span>.topN, <span class="keyword">new</span> Comparator&lt;Tuple2&lt;String, Long&gt;&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(Tuple2&lt;String, Long&gt; o1, Tuple2&lt;String, Long&gt; o2)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (o1.equals(o2)) &#123;</span><br><span class="line">                    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> o1.f1.compareTo(o2.f1);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, Long&gt; <span class="title">getValue</span><span class="params">(TopN&lt;Tuple2&lt;String, Long&gt;&gt; acc)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">        <span class="comment">// 将最小堆中数据拿到，然后排序之后放入结果 map 中传出</span></span><br><span class="line"></span><br><span class="line">        PriorityQueue&lt;Tuple2&lt;String, Long&gt;&gt; p = acc.getQueue();</span><br><span class="line"></span><br><span class="line">        List&lt;Tuple2&lt;String, Long&gt;&gt; topNList = p.stream()</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line"></span><br><span class="line">        Collections.sort(topNList</span><br><span class="line">                , <span class="keyword">new</span> Comparator&lt;Tuple2&lt;String, Long&gt;&gt;() &#123;</span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(Tuple2&lt;String, Long&gt; o1, Tuple2&lt;String, Long&gt; o2)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">                        <span class="keyword">if</span> (o1.equals(o2)) &#123;</span><br><span class="line">                            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">                        &#125;</span><br><span class="line"></span><br><span class="line">                        <span class="keyword">return</span> o1.f1.compareTo(o2.f1);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line"></span><br><span class="line">        Map&lt;String, Long&gt; map = Maps.newLinkedHashMap();</span><br><span class="line"></span><br><span class="line">        top100List.forEach(<span class="keyword">new</span> Consumer&lt;Tuple2&lt;String, Long&gt;&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(Tuple2&lt;String, Long&gt; t)</span> </span>&#123;</span><br><span class="line">                map.put(t.f0, t.f1);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> map;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accumulate</span><span class="params">(TopN&lt;Tuple2&lt;String, Long&gt;&gt; acc, String id, <span class="keyword">long</span> cnt)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 获取到当前结果中的最小值，如果当前时间的消费 cnt 小于最小堆中的结果，直接进行过滤</span></span><br><span class="line">        <span class="keyword">long</span> min = CollectionUtils.isNotEmpty(acc.getQueue()) ? acc.getQueue().peek().f1 : <span class="number">0L</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (cnt &gt; min) &#123;</span><br><span class="line">            <span class="comment">// 1.如果最小堆中不存在当前词条，则直接将当前时间放入最小堆中；</span></span><br><span class="line">            <span class="comment">// 2.如果最小堆中已经存在当前词条存在，那么将消费 cnt 大的那个放入最小堆中</span></span><br><span class="line">            Tuple2&lt;String, Long&gt; t = Tuple2.of(id, cnt);</span><br><span class="line"></span><br><span class="line">            Map&lt;String, Long&gt; idCntMap = acc.getQueue()</span><br><span class="line">                    .stream()</span><br><span class="line">                    .collect(Collectors.toMap(tInner -&gt; tInner.f0, tInner -&gt; tInner.f1));</span><br><span class="line"></span><br><span class="line">            Long oldCnt = idCntMap.get(id);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">null</span> == oldCnt) &#123;</span><br><span class="line">                acc.add(t);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (cnt &gt; oldCnt) &#123;</span><br><span class="line">                    acc.getQueue().remove(Tuple2.of(id, oldCnt));</span><br><span class="line">                    acc.add(t);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">retract</span><span class="params">(TopN&lt;Tuple2&lt;String, Long&gt;&gt; acc, String id, <span class="keyword">long</span> cnt)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 由于 topn 具有特殊性：即我们只取每一个词条的最大值进行排名，所以可以不需要实现 retract 方法，比较排名都在 accumulate 方法中已经实现完成</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> TypeInformation&lt;TopN&lt;Tuple2&lt;String, Long&gt;&gt;&gt; getAccumulatorType() &#123;</span><br><span class="line">        <span class="keyword">return</span> TypeInformation.of(<span class="keyword">new</span> TypeHint&lt;TopN&lt;Tuple2&lt;String, Long&gt;&gt;&gt;() &#123;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> TypeInformation&lt;Map&lt;String, Long&gt;&gt; getResultType() &#123;</span><br><span class="line">        <span class="keyword">return</span> TypeInformation.of(<span class="keyword">new</span> TypeHint&lt;Map&lt;String, Long&gt;&gt;() &#123;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>top100 实现类如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Top100_UDAF</span> <span class="keyword">extends</span> <span class="title">TopN_UDAF</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Top100_UDAF</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(<span class="number">100</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>或者也可以通过 open 方法动态获取到 topN 的配置参数，具体方式实现如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">open</span><span class="params">(FunctionContext context)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.open(context);</span><br><span class="line">    <span class="keyword">this</span>.topN = Integer.parseInt(context.getJobParameter(<span class="string">&quot;TopN_UDAF.topN&quot;</span>, <span class="string">&quot;100&quot;</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Notes：</p>
+<ul>
+<li>上述 udf 最好设计成一个固定大小排行榜的 udf，比如一个 udf 实现类就只能用于处理一个固定大小的排行，防止用户误用；</li>
+<li>sql 内层计算的排行榜大小一定要比 sql 外层（聚合）排行榜大小大。举反例：假如内层计算前 30 名，外层计算前 50 名，内层 A 分桶第 31 名可能比 B 分桶第 1 名的值还大，但是 A 桶的第 31 名就不会被输出。反之则正确。</li>
+</ul>
+</blockquote>
+<h4 id="6-5-1-3-flink-conf-yaml-参数配置"><a href="#6-5-1-3-flink-conf-yaml-参数配置" class="headerlink" title="6.5.1.3.flink-conf.yaml 参数配置"></a>6.5.1.3.flink-conf.yaml 参数配置</h4><p>由于上述 sql 是在无限流上的操作，所以上游数据每更新一次都会向下游发送一次 retract 消息以及最新的数据的消息进行计算。</p>
+<p>那么就会存在这样一个问题，即 source qps 为 x 时，任务内的吞吐就为 x * n 倍，sink qps 也为 x，这会导致性能大幅下降的同时也会导致输出结果数据量非常大。</p>
+<p>而我们只需要每分钟更新一次结果即可，所以可以使用 flink sql 自带的 minibatch 参数来控制输出结果的频次。</p>
+<p>minibatch 具体参考可参考下面两篇文章：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.alibabacloud.com/help/zh/doc-detail/182012.htm?spm=a2c63.p38356.b99.288.698a785cSiDhEG">https://www.alibabacloud.com/help/zh/doc-detail/182012.htm?spm=a2c63.p38356.b99.288.698a785cSiDhEG</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/aa2e94628e24">https://www.jianshu.com/p/aa2e94628e24</a></li>
+</ul>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">table.exec.mini-batch.enabled :</span> <span class="literal">true</span></span><br><span class="line"><span class="string">--</span> <span class="string">minibatch</span> <span class="string">是下面两个任意一个复合条件就会起触发计算</span></span><br><span class="line"><span class="string">--</span> <span class="string">60s</span> <span class="string">一次</span></span><br><span class="line"><span class="attr">table.exec.mini-batch.allow-latency :</span> <span class="number">60</span> <span class="string">s</span></span><br><span class="line"><span class="string">--</span> <span class="string">数量达到</span> <span class="number">10000000000</span> <span class="string">触发一次</span></span><br><span class="line"><span class="string">--</span> <span class="string">设置为</span> <span class="number">10000000000</span> <span class="string">是为了让上面的</span> <span class="string">allow-latency</span> <span class="string">触发，每</span> <span class="string">60s</span> <span class="string">输出一次来满足我们的需求</span></span><br><span class="line"><span class="attr">table.exec.mini-batch.size :</span> <span class="number">10000000000</span></span><br></pre></td></tr></table></figure>
+
+<p>状态过期，如果不设置的话，词条状态会越来越大，对非高热词条进行清除。</p>
+<p><a target="_blank" rel="noopener" href="http://apache-flink.147419.n8.nabble.com/Flink-sql-state-ttl-td10158.html">http://apache-flink.147419.n8.nabble.com/Flink-sql-state-ttl-td10158.html</a></p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">--</span> <span class="string">设置</span> <span class="number">1</span> <span class="string">天的</span> <span class="string">ttl，如果一天过后这个词条还没有更新，则直接删除</span></span><br><span class="line"><span class="attr">table.exec.state.ttl :</span> <span class="number">86400</span> <span class="string">s</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="6-5-2-方案2-内外层自定义-udf"><a href="#6-5-2-方案2-内外层自定义-udf" class="headerlink" title="6.5.2.方案2 - 内外层自定义 udf"></a>6.5.2.方案2 - 内外层自定义 udf</h3><ol>
+<li><strong>自定义内层排名 udf</strong></li>
+<li><strong>自定义 udf</strong> 将排名数据进行合并</li>
+</ol>
+<h4 id="6-5-2-1-sql"><a href="#6-5-2-1-sql" class="headerlink" title="6.5.2.1.sql"></a>6.5.2.1.sql</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> target_db.target_table</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  <span class="comment">-- 计算整体的前 50 名列表</span></span><br><span class="line">  top50_aggr_udaf(bucket_top100) <span class="keyword">AS</span> top50_list,</span><br><span class="line">  <span class="built_in">max</span>(<span class="type">timestamp</span>) <span class="keyword">AS</span> <span class="type">timestamp</span></span><br><span class="line"><span class="keyword">FROM</span></span><br><span class="line">  (</span><br><span class="line">    <span class="keyword">SELECT</span></span><br><span class="line">      <span class="built_in">max</span>(<span class="type">timestamp</span>) <span class="keyword">AS</span> <span class="type">timestamp</span>,</span><br><span class="line">      <span class="comment">-- udf 计算每一个分桶的前 100 名列表</span></span><br><span class="line">      top100_udaf(<span class="built_in">cast</span>(热搜词条_name <span class="keyword">AS</span> string), cnt) <span class="keyword">AS</span> bucket_top100</span><br><span class="line">    <span class="keyword">FROM</span></span><br><span class="line">      (</span><br><span class="line">        <span class="keyword">SELECT</span> 热搜词条_name,</span><br><span class="line">          <span class="built_in">sum</span>(cnt) <span class="keyword">AS</span> cnt, <span class="comment">-- 计算消费 cnt 数</span></span><br><span class="line">          <span class="built_in">max</span>(<span class="type">timestamp</span>) <span class="keyword">AS</span> <span class="type">timestamp</span></span><br><span class="line">        <span class="keyword">FROM</span></span><br><span class="line">        (</span><br><span class="line">          <span class="keyword">SELECT</span></span><br><span class="line">            热搜词条_name <span class="keyword">AS</span> 热搜词条_name,</span><br><span class="line">            <span class="built_in">count</span>(<span class="number">1</span>) <span class="keyword">AS</span> cnt,</span><br><span class="line">            <span class="built_in">max</span>(<span class="type">timestamp</span>) <span class="keyword">AS</span> <span class="type">timestamp</span></span><br><span class="line">          <span class="keyword">FROM</span></span><br><span class="line">            source_db.source_table</span><br><span class="line">          <span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">            热搜词条_name,</span><br><span class="line">            <span class="comment">-- 将数据打散，防止数据倾斜</span></span><br><span class="line">            hash_mod_bucket(user_id, <span class="number">2048</span>)</span><br><span class="line">        )</span><br><span class="line">        <span class="keyword">GROUP</span> <span class="keyword">BY</span> 热搜词条_name</span><br><span class="line">      )</span><br><span class="line">    <span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">      <span class="comment">-- 将数据打散，防止数据倾斜</span></span><br><span class="line">      hash_mod_bucket(热搜词条_name, <span class="number">2048</span>)</span><br><span class="line">  )</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">  <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+
+<h4 id="6-5-2-2-udf"><a href="#6-5-2-2-udf" class="headerlink" title="6.5.2.2.udf"></a>6.5.2.2.udf</h4><h5 id="6-5-2-2-1-top100-udaf"><a href="#6-5-2-2-1-top100-udaf" class="headerlink" title="6.5.2.2.1.top100_udaf"></a>6.5.2.2.1.top100_udaf</h5><p>此 udf 与 方案1 的 topN udf（见 4.2.1.2.udf） 完全相同。</p>
+<h5 id="6-5-2-2-2-top50-aggr-udaf"><a href="#6-5-2-2-2-top50-aggr-udaf" class="headerlink" title="6.5.2.2.2.top50_aggr_udaf"></a>6.5.2.2.2.top50_aggr_udaf</h5><ul>
+<li>Accumulator：依然同 top100_udaf 的实现，使用 <strong>最小堆</strong> 来当做 Accumulator；</li>
+<li>accmulate：接受上游分桶中的数据，然后将每个桶中的词条获取到之后按照消费 cnt 与当前的 Accumulator 进行 merge 操作；</li>
+<li>getValue：将 Accumulator 结果获取到之后放在 map 中并将结果输出；</li>
+<li>retract：同上，也不需要实现，将各个分桶的结果做 merge 即可；</li>
+</ul>
+<p>基类实现如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">TopNAggr_UDAF</span> <span class="keyword">extends</span> <span class="title">AggregateFunction</span>&lt;<span class="title">String</span>, <span class="title">TopN</span>&lt;<span class="title">Tuple2</span>&lt;<span class="title">String</span>, <span class="title">Long</span>&gt;&gt;&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// topN</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> topN;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">TopNAggr_UDAF</span><span class="params">(<span class="keyword">int</span> topN)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.topN = topN;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> TopN&lt;Tuple2&lt;String, Long&gt;&gt; createAccumulator() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> TopN&lt;&gt;(<span class="keyword">this</span>.topN, <span class="keyword">new</span> Comparator&lt;Tuple2&lt;String, Long&gt;&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(Tuple2&lt;String, Long&gt; o1, Tuple2&lt;String, Long&gt; o2)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (o1.equals(o2)) &#123;</span><br><span class="line">                    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> o1.f1.compareTo(o2.f1);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getValue</span><span class="params">(TopN&lt;Tuple2&lt;String, Long&gt;&gt; acc)</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 将结果从 acc 中拿到之后，其结果是乱序的，所以要把结果列表拿到之后进行再进行一遍排序</span></span><br><span class="line">        LinkedHashMap&lt;String, Map&lt;String, Long&gt;&gt; map = Maps.newLinkedHashMap();</span><br><span class="line"></span><br><span class="line">        List&lt;Tuple2&lt;String, Long&gt;&gt; topNList = acc</span><br><span class="line">                .getQueue()</span><br><span class="line">                .stream()</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line"></span><br><span class="line">        Collections.sort(topNList</span><br><span class="line">                , <span class="keyword">new</span> Comparator&lt;Tuple2&lt;String, Long&gt;&gt;() &#123;</span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(Tuple2&lt;String, Long&gt; o1, Tuple2&lt;String, Long&gt; o2)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">                        <span class="keyword">if</span> (o1.equals(o2)) &#123;</span><br><span class="line">                            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">                        &#125;</span><br><span class="line"></span><br><span class="line">                        <span class="keyword">return</span> o2.f1.compareTo(o1.f1);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (Tuple2&lt;String, Long&gt; t : topNList) &#123;</span><br><span class="line">            map.put(i + <span class="string">&quot;&quot;</span>, ImmutableMap.of(t.f0, t.f1));</span><br><span class="line">            i++;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> ObjectMapperUtils.toJSON(map);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accumulate</span><span class="params">(TopN&lt;Tuple2&lt;String, Long&gt;&gt; acc, Map&lt;String, Long&gt; map)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将 Accumulator 与分桶数据按照消费 cnt merge</span></span><br><span class="line">        Map&lt;String, Long&gt; idCntMap = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">        acc.getQueue().forEach(<span class="keyword">new</span> Consumer&lt;Tuple2&lt;String, Long&gt;&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(Tuple2&lt;String, Long&gt; t)</span> </span>&#123;</span><br><span class="line">                Long cnt = idCntMap.get(t.f0);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">null</span> == cnt) &#123;</span><br><span class="line">                    idCntMap.put(t.f0, t.f1);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    idCntMap.put(t.f0, cnt &gt; t.f1 ? cnt : t.f1);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        map.forEach(<span class="keyword">new</span> BiConsumer&lt;String, Long&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(String s, Long l)</span> </span>&#123;</span><br><span class="line">                Long cnt = idCntMap.get(s);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">null</span> == cnt) &#123;</span><br><span class="line">                    idCntMap.put(s, l);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    idCntMap.put(s, cnt &gt; l ? cnt : l);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        acc.getQueue().clear();</span><br><span class="line"></span><br><span class="line">        idCntMap.forEach(<span class="keyword">new</span> BiConsumer&lt;String, Long&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(String s, Long l)</span> </span>&#123;</span><br><span class="line">                acc.add(Tuple2.of(s, l));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">retract</span><span class="params">(TopN&lt;Tuple2&lt;String, Long&gt;&gt; acc, Map&lt;String, Long&gt; map)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 无需实现</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> TypeInformation&lt;TopN&lt;Tuple2&lt;String, Long&gt;&gt;&gt; getAccumulatorType() &#123;</span><br><span class="line">        <span class="keyword">return</span> TypeInformation.of(<span class="keyword">new</span> TypeHint&lt;TopN&lt;Tuple2&lt;String, Long&gt;&gt;&gt;() &#123;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> TypeInformation&lt;String&gt; <span class="title">getResultType</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> TypeInformation.of(String.class);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>top50 实现类如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Top50Aggr_UDAF</span> <span class="keyword">extends</span> <span class="title">TopNAggr_UDAF</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Top50Aggr_UDAF</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(<span class="number">50</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>或者也可以通过 open 方法动态获取到 topN 的配置参数，具体方式实现如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">open</span><span class="params">(FunctionContext context)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.open(context);</span><br><span class="line">    <span class="keyword">this</span>.topN = Integer.parseInt(context.getJobParameter(<span class="string">&quot;TopNAggr_UDAF.topN&quot;</span>, <span class="string">&quot;50&quot;</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="6-5-2-3-flink-conf-yaml-参数配置"><a href="#6-5-2-3-flink-conf-yaml-参数配置" class="headerlink" title="6.5.2.3.flink-conf.yaml 参数配置"></a>6.5.2.3.flink-conf.yaml 参数配置</h4><p>参数同 4.2.1.3 flink-conf.yaml 参数配置</p>
+<h3 id="6-5-3-方案3-cumulate-window"><a href="#6-5-3-方案3-cumulate-window" class="headerlink" title="6.5.3.方案3 - cumulate window"></a>6.5.3.方案3 - cumulate window</h3><p>如果你需要计算的是每天的排行榜，也可以使用 1.13 版本中最新的 cumulate window 进行计算。</p>
+<h4 id="6-5-3-1-sql"><a href="#6-5-3-1-sql" class="headerlink" title="6.5.3.1.sql"></a>6.5.3.1.sql</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span></span><br><span class="line">  target_db.target_table</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  top50_aggr_udaf(bucket_top100, <span class="built_in">cast</span>(<span class="number">10</span> <span class="keyword">AS</span> <span class="type">bigint</span>)) <span class="keyword">AS</span> top50_list,</span><br><span class="line">  <span class="built_in">cast</span>(TUMBLE_START(<span class="type">timestamp</span>, <span class="type">INTERVAL</span> <span class="string">&#x27;60&#x27;</span> <span class="keyword">SECOND</span>) <span class="keyword">AS</span> <span class="type">bigint</span>) <span class="operator">*</span> <span class="number">1000</span> <span class="keyword">AS</span> <span class="type">timestamp</span></span><br><span class="line"><span class="keyword">FROM</span></span><br><span class="line">  (</span><br><span class="line">    <span class="keyword">SELECT</span></span><br><span class="line">      top100_udaf(<span class="built_in">cast</span>(热搜词条_name <span class="keyword">AS</span> string), cnt) <span class="keyword">AS</span> bucket_top100,</span><br><span class="line">      TUMBLE_ROWTIME(<span class="type">timestamp</span>, <span class="type">INTERVAL</span> <span class="string">&#x27;60&#x27;</span> <span class="keyword">SECOND</span>) <span class="keyword">AS</span> <span class="type">timestamp</span></span><br><span class="line">    <span class="keyword">FROM</span></span><br><span class="line">      (</span><br><span class="line">        <span class="keyword">SELECT</span></span><br><span class="line">          热搜词条_name,</span><br><span class="line">          <span class="built_in">count</span>(<span class="number">1</span>) <span class="keyword">AS</span> cnt,</span><br><span class="line">          cumulate_rowtime(<span class="type">timestamp</span>, <span class="type">INTERVAL</span> <span class="string">&#x27;60&#x27;</span> <span class="keyword">SECOND</span>, <span class="type">INTERVAL</span> <span class="string">&#x27;1&#x27;</span> <span class="keyword">DAY</span>) <span class="keyword">AS</span> <span class="type">timestamp</span></span><br><span class="line">        <span class="keyword">FROM</span></span><br><span class="line">          source_db.source_table</span><br><span class="line">        <span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">          热搜词条_name,</span><br><span class="line">          CUMULATE(<span class="type">timestamp</span>, <span class="type">INTERVAL</span> <span class="string">&#x27;60&#x27;</span> <span class="keyword">SECOND</span>, <span class="type">INTERVAL</span> <span class="string">&#x27;1&#x27;</span> <span class="keyword">DAY</span>)</span><br><span class="line">      )</span><br><span class="line">    <span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">      hash_mod_bucket(热搜词条_name),</span><br><span class="line">      TUMBLE(window_start, <span class="type">INTERVAL</span> <span class="string">&#x27;60&#x27;</span> <span class="keyword">SECOND</span>)</span><br><span class="line">  )</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">  TUMBLE(window_start, <span class="type">INTERVAL</span> <span class="string">&#x27;60&#x27;</span> <span class="keyword">SECOND</span>)</span><br></pre></td></tr></table></figure>
+
+<h4 id="6-5-3-2-udf"><a href="#6-5-3-2-udf" class="headerlink" title="6.5.3.2.udf"></a>6.5.3.2.udf</h4><h5 id="6-5-3-2-1-top100-udaf"><a href="#6-5-3-2-1-top100-udaf" class="headerlink" title="6.5.3.2.1.top100_udaf"></a>6.5.3.2.1.top100_udaf</h5><ul>
+<li>Accumulator：由需求可以知道，当前 udaf 是为了计算前 100 名的消费词条，所以 Accumulator 应该存储截止当前时间按照消费 cnt 数排名的前 100 名的词条。我们由此就可以想到使用 <strong>最小堆</strong> 来当做 Accumulator，Accumulator 中只存储消费 cnt 前 100 的数据。</li>
+<li>getValue：将 Accumulator 中的数据转换为 map 格式输出；</li>
+<li>acumulate：将词条以及消费 cnt 存入 topN Accumulator 中；</li>
+<li>merge：将所有 topN Accumulator 进行 merge 操作，取所有 topN 最大的；</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">TopN_UDAF</span> <span class="keyword">extends</span> <span class="title">AggregateFunction</span>&lt;<span class="title">Map</span>&lt;<span class="title">String</span>, <span class="title">Long</span>&gt;, <span class="title">TopN</span>&lt;<span class="title">Tuple2</span>&lt;<span class="title">String</span>, <span class="title">Long</span>&gt;&gt;&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> topN;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">TopN_UDAF</span><span class="params">(<span class="keyword">int</span> topN)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.topN = topN;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> TopN&lt;Tuple2&lt;String, Long&gt;&gt; createAccumulator() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> TopN&lt;&gt;(<span class="keyword">this</span>.topN, <span class="keyword">new</span> Comparator&lt;Tuple2&lt;String, Long&gt;&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(Tuple2&lt;String, Long&gt; o1, Tuple2&lt;String, Long&gt; o2)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">if</span> (o1.equals(o2)) &#123;</span><br><span class="line">                    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> o1.f1.compareTo(o2.f1);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, Long&gt; <span class="title">getValue</span><span class="params">(TopN&lt;Tuple2&lt;String, Long&gt;&gt; acc)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        PriorityQueue&lt;Tuple2&lt;String, Long&gt;&gt; p = acc.getQueue();</span><br><span class="line"></span><br><span class="line">        List&lt;Tuple2&lt;String, Long&gt;&gt; topNList = p.stream().collect(Collectors.toList());</span><br><span class="line"></span><br><span class="line">        Collections.sort(topNList</span><br><span class="line">                , <span class="keyword">new</span> Comparator&lt;Tuple2&lt;String, Long&gt;&gt;() &#123;</span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(Tuple2&lt;String, Long&gt; o1, Tuple2&lt;String, Long&gt; o2)</span> </span>&#123;</span><br><span class="line">                        <span class="keyword">if</span> (o1.equals(o2)) &#123;</span><br><span class="line">                            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">                        &#125;</span><br><span class="line"></span><br><span class="line">                        <span class="keyword">return</span> o1.f1.compareTo(o2.f1);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line"></span><br><span class="line">        Map&lt;String, Long&gt; map = Maps.newLinkedHashMap();</span><br><span class="line"></span><br><span class="line">        topNList.forEach(<span class="keyword">new</span> Consumer&lt;Tuple2&lt;String, Long&gt;&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(Tuple2&lt;String, Long&gt; t)</span> </span>&#123;</span><br><span class="line">                map.put(t.f0, t.f1);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> map;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accumulate</span><span class="params">(TopN&lt;Tuple2&lt;String, Long&gt;&gt; acc, String id, <span class="keyword">long</span> cnt)</span> </span>&#123;</span><br><span class="line">        Tuple2&lt;String, Long&gt; t = Tuple2.of(id, cnt);</span><br><span class="line">        acc.add(t);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">merge</span><span class="params">(TopN&lt;Tuple2&lt;String, Long&gt;&gt; acc, Iterable&lt;TopN&lt;Tuple2&lt;String, Long&gt;&gt;&gt; its)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        its.forEach(<span class="keyword">new</span> Consumer&lt;TopN&lt;Tuple2&lt;String, Long&gt;&gt;&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(TopN&lt;Tuple2&lt;String, Long&gt;&gt; topN)</span> </span>&#123;</span><br><span class="line">                topN.getQueue().iterator().forEachRemaining(<span class="keyword">new</span> Consumer&lt;Tuple2&lt;String, Long&gt;&gt;() &#123;</span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(Tuple2&lt;String, Long&gt; t)</span> </span>&#123;</span><br><span class="line">                        acc.add(t);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> TypeInformation&lt;TopN&lt;Tuple2&lt;String, Long&gt;&gt;&gt; getAccumulatorType() &#123;</span><br><span class="line">        <span class="keyword">return</span> TypeInformation.of(<span class="keyword">new</span> TypeHint&lt;TopN&lt;Tuple2&lt;String, Long&gt;&gt;&gt;() &#123;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> TypeInformation&lt;Map&lt;String, Long&gt;&gt; getResultType() &#123;</span><br><span class="line">        <span class="keyword">return</span> TypeInformation.of(<span class="keyword">new</span> TypeHint&lt;Map&lt;String, Long&gt;&gt;() &#123;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="6-5-3-2-2-top50Aggr-udaf"><a href="#6-5-3-2-2-top50Aggr-udaf" class="headerlink" title="6.5.3.2.2.top50Aggr_udaf"></a>6.5.3.2.2.top50Aggr_udaf</h5><ul>
+<li>getValue：将 Accumulator 结果获取到之后，拿到 top50 之后放在 map 中并将结果输出；</li>
+<li>acumulate：将内层桶的数据合并到当前 Acumulator 中，即将内层分桶的所有词条的数据以及消费 cnt 拿到之后进行累加；</li>
+<li>merge：将 Accumulator 合并，相同词条的消费 cnt 相加；</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">TopNAggr_UDAF</span> <span class="keyword">extends</span> <span class="title">AggregateFunction</span>&lt;<span class="title">String</span>, <span class="title">Map</span>&lt;<span class="title">String</span>, <span class="title">Long</span>&gt;&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> topN;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">TopNAggr_UDAF</span><span class="params">(<span class="keyword">int</span> topN)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.topN = topN;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, Long&gt; <span class="title">createAccumulator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Maps.newHashMap();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getValue</span><span class="params">(Map&lt;String, Long&gt; acc)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        TopN&lt;Tuple2&lt;String, Long&gt;&gt; topN = <span class="keyword">new</span> TopN&lt;&gt;(<span class="keyword">this</span>.topN, <span class="keyword">new</span> Comparator&lt;Tuple2&lt;String, Long&gt;&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(Tuple2&lt;String, Long&gt; o1, Tuple2&lt;String, Long&gt; o2)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">if</span> (o1.equals(o2)) &#123;</span><br><span class="line">                    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> o1.f1.compareTo(o2.f1);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        acc.forEach(<span class="keyword">new</span> BiConsumer&lt;String, Long&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(String s, Long l)</span> </span>&#123;</span><br><span class="line">                Tuple2&lt;String, Long&gt; t = Tuple2.of(s, l);</span><br><span class="line">                topN.add(t);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        LinkedHashMap&lt;String, Map&lt;String, Long&gt;&gt; map = Maps.newLinkedHashMap();</span><br><span class="line"></span><br><span class="line">        List&lt;Tuple2&lt;String, Long&gt;&gt; topNList = topN</span><br><span class="line">                .getQueue()</span><br><span class="line">                .stream()</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line"></span><br><span class="line">        Collections.sort(topNList</span><br><span class="line">                , <span class="keyword">new</span> Comparator&lt;Tuple2&lt;String, Long&gt;&gt;() &#123;</span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(Tuple2&lt;String, Long&gt; o1, Tuple2&lt;String, Long&gt; o2)</span> </span>&#123;</span><br><span class="line">                        <span class="keyword">if</span> (o1.equals(o2)) &#123;</span><br><span class="line">                            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">                        &#125;</span><br><span class="line"></span><br><span class="line">                        <span class="keyword">return</span> o2.f1.compareTo(o1.f1);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (Tuple2&lt;String, Long&gt; t : topNList) &#123;</span><br><span class="line">            map.put(i + <span class="string">&quot;&quot;</span>, ImmutableMap.of(t.f0, t.f1));</span><br><span class="line">            i++;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> ObjectMapperUtils.toJSON(map);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accumulate</span><span class="params">(Map&lt;String, Long&gt; acc, Map&lt;String, Long&gt; map)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        map.forEach(<span class="keyword">new</span> BiConsumer&lt;String, Long&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(String s, Long l)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">                Long history = acc.get(s);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">null</span> != history) &#123;</span><br><span class="line">                    acc.put(s, l + history);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    acc.put(s, l);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">merge</span><span class="params">(Map&lt;String, Long&gt; acc, Iterable&lt;Map&lt;String, Long&gt;&gt; its)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        its.forEach(<span class="keyword">new</span> Consumer&lt;Map&lt;String, Long&gt;&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(Map&lt;String, Long&gt; map)</span> </span>&#123;</span><br><span class="line">                map.forEach(<span class="keyword">new</span> BiConsumer&lt;String, Long&gt;() &#123;</span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(String s, Long l)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">                        Long history = acc.get(s);</span><br><span class="line"></span><br><span class="line">                        <span class="keyword">if</span> (<span class="keyword">null</span> != history) &#123;</span><br><span class="line">                            acc.put(s, l + history);</span><br><span class="line">                        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                            acc.put(s, l);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> TypeInformation&lt;Map&lt;String, Long&gt;&gt; getAccumulatorType() &#123;</span><br><span class="line">        <span class="keyword">return</span> TypeInformation.of(<span class="keyword">new</span> TypeHint&lt;Map&lt;String, Long&gt;&gt;() &#123;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> TypeInformation&lt;String&gt; <span class="title">getResultType</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> TypeInformation.of(String.class);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="6-5-3-3-flink-conf-yaml-参数配置"><a href="#6-5-3-3-flink-conf-yaml-参数配置" class="headerlink" title="6.5.3.3.flink-conf.yaml 参数配置"></a>6.5.3.3.flink-conf.yaml 参数配置</h4><p>时间戳的时区设置，注意需要我们将时区设置为本地的时区。</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">--</span> <span class="string">北京时区</span></span><br><span class="line"><span class="attr">table.local-time-zone :</span> <span class="string">GMT+08:00</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="6-6-高可用、高性能"><a href="#6-6-高可用、高性能" class="headerlink" title="6.6.高可用、高性能"></a>6.6.高可用、高性能</h2><h3 id="6-6-1-整体高可用保障"><a href="#6-6-1-整体高可用保障" class="headerlink" title="6.6.1.整体高可用保障"></a>6.6.1.整体高可用保障</h3><p>异地双链路热备如下图：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/1.png" alt="2"></p>
+<p>可能会发现图中有异地机房，但是我们目前只画出了 A 地区机房的数据链路，B 地区机房还没有画全，接着我们一步一步将这个图进行补全。</p>
+<blockquote>
+<p><strong>Notes：</strong></p>
+<p><strong>异地双机房只是双链路的热备的一种案例。如果有同城双机房、双集群也可进行同样的服务部署。</strong></p>
+<p><strong>为什么说异地机房的保障能力 &gt; 同城异地机房 &gt; 同城同机房双集群容灾能力？</strong></p>
+<p><strong>同城同机房：只要这个机房挂了，即使你有两套链路也没救。</strong><br><strong>同城异地机房：很小几率情况会同城异地两个机房都挂了，除非整个城市被炸了。</strong><br><strong>异地机房：几乎不可能同时异地两个机房都被炸了。。。</strong></p>
+</blockquote>
+<h4 id="6-6-1-1-数据源日志高可用"><a href="#6-6-1-1-数据源日志高可用" class="headerlink" title="6.6.1.1.数据源日志高可用"></a>6.6.1.1.数据源日志高可用</h4><ul>
+<li>数据源日志 server 服务高可用：异地机房，当一个机房挂了之后，在客户端可以自动将日志发送到另一个机房</li>
+<li>数据源日志 kafka 服务高可用：kafka 使用异地机房，每个机房的 kafka 承担 50% 的流量，一旦一个机房的 kafka 集群宕机，则 producer 端可以自动将 100% 的流量切换到另一个机房的 kafka。</li>
+</ul>
+<p>正常情况下如图所示：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/2.png" alt="2"></p>
+<p>当发生 A 地机房 webserver 宕机时，客户端自动切换上报日志至 B 地机房 webserver。如下图所示：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/3.png" alt="2"></p>
+<p>kafka 也相同。如下图所示：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/4.png" alt="2"></p>
+<h4 id="6-6-1-2-flink-任务高可用"><a href="#6-6-1-2-flink-任务高可用" class="headerlink" title="6.6.1.2.flink 任务高可用"></a>6.6.1.2.flink 任务高可用</h4><p>flink 任务以 A 地机房做主链路，B 地机房启动相同的任务做热备双跑链路。</p>
+<p>当 A 地机房 flink 任务宕机且无法恢复时，则 B 地机房的任务做热备替换。</p>
+<p>正常情况下如图所示：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/5.png" alt="2"></p>
+<p>当 A 地机房 flink 任务宕机且无法恢复时，热备链路 flink 任务就可以顶上。如下图所示：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/6.png" alt="2"></p>
+<h4 id="6-6-1-3-数据服务高可用"><a href="#6-6-1-3-数据服务高可用" class="headerlink" title="6.6.1.3.数据服务高可用"></a>6.6.1.3.数据服务高可用</h4><p>正常情况如下：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/7.png" alt="2"></p>
+<p>当 A 地 OLAP 或者 KV 存储挂了之后，webserver 可以自动切换至 B 地 OLAP 或者 KV 存储。如下图所示：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/8.png" alt="2"></p>
+<p>当 A 地 webserver 挂了之后，客户端可以自动拉取 B 地 webserver 数据，如下图所示：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/9.png" alt="2"></p>
+<h3 id="6-6-2-大流量、高性能"><a href="#6-6-2-大流量、高性能" class="headerlink" title="6.6.2.大流量、高性能"></a>6.6.2.大流量、高性能</h3><h4 id="6-6-2-1-数据源"><a href="#6-6-2-1-数据源" class="headerlink" title="6.6.2.1.数据源"></a>6.6.2.1.数据源</h4><ul>
+<li>任务数据源反序列化性能提升：静态反序列化性能 &gt; 动态反序列化性能。举例 ProtoBuf。可以在 source 端先进行代码生成，然后用生成好的代码去反序列化源消息的性能会远好于使用 ProtoBuf Dynamic Message。<a target="_blank" rel="noopener" href="https://issues.apache.org/jira/browse/FLINK-18202?jql=project%20%3D%20FLINK%20AND%20text%20~%20%22protobuf%22%20ORDER%20BY%20created%20DESC。" title="flink 官方实现">flink 官方实现</a></li>
+</ul>
+<h3 id="6-6-3-缩减状态大小"><a href="#6-6-3-缩减状态大小" class="headerlink" title="6.6.3.缩减状态大小"></a>6.6.3.缩减状态大小</h3><ul>
+<li>将状态中的 string 长度做映射之后变小</li>
+<li>增量 checkpoint，减小任务做 checkpoint 的压力</li>
+</ul>
+<h1 id="7-数据服务篇-数据服务选型"><a href="#7-数据服务篇-数据服务选型" class="headerlink" title="7.数据服务篇-数据服务选型"></a>7.数据服务篇-数据服务选型</h1><h2 id="7-1-kv-存储"><a href="#7-1-kv-存储" class="headerlink" title="7.1.kv 存储"></a>7.1.kv 存储</h2><p>根据我们上述设计的数据汇 schema 来看，最适合存储引擎就是 kv 引擎，因为前端只需要展示最新的排行榜数据即可。所以我们可以使用 redis 等 kv 存储引擎来存储最新的数据。</p>
+<h2 id="7-2-OLAP"><a href="#7-2-OLAP" class="headerlink" title="7.2.OLAP"></a>7.2.OLAP</h2><p>如果用户有需求需要记录上述数据的历史记录，我们也可以使用时序数据库或者 OLAP 引擎直接进行存储。</p>
+<h1 id="8-数据保障篇-数据时效监控以及保障方案"><a href="#8-数据保障篇-数据时效监控以及保障方案" class="headerlink" title="8.数据保障篇-数据时效监控以及保障方案"></a>8.数据保障篇-数据时效监控以及保障方案</h1><h2 id="8-1-数据时效保障"><a href="#8-1-数据时效保障" class="headerlink" title="8.1.数据时效保障"></a>8.1.数据时效保障</h2><p>见下文。</p>
+<h2 id="8-2-数据质量保障"><a href="#8-2-数据质量保障" class="headerlink" title="8.2.数据质量保障"></a>8.2.数据质量保障</h2><p>数据质量保障篇楼主正在 gang…</p>
+<h1 id="9-效果篇-上述方案最终的效果"><a href="#9-效果篇-上述方案最终的效果" class="headerlink" title="9.效果篇-上述方案最终的效果"></a>9.效果篇-上述方案最终的效果</h1><h2 id="9-1-输出结果示例"><a href="#9-1-输出结果示例" class="headerlink" title="9.1.输出结果示例"></a>9.1.输出结果示例</h2><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;1&quot;</span>: &#123;</span><br><span class="line">    <span class="attr">&quot;黄子韬  杨紫是我哥们&quot;</span>: <span class="number">1672825</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">&quot;2&quot;</span>: &#123;</span><br><span class="line">    <span class="attr">&quot;延乔墓前的来信破防了&quot;</span>: <span class="number">1087416</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">&quot;3&quot;</span>: &#123;</span><br><span class="line">    <span class="attr">&quot;孟子义 张翰同学站起来&quot;</span>: <span class="number">747703</span></span><br><span class="line">  &#125;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="9-2-应用产品示例"><a href="#9-2-应用产品示例" class="headerlink" title="9.2.应用产品示例"></a>9.2.应用产品示例</h2><p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn/weibo-topn.png" alt="1"></p>
+<h1 id="10-现状以及展望篇"><a href="#10-现状以及展望篇" class="headerlink" title="10.现状以及展望篇"></a>10.现状以及展望篇</h1><ol>
+<li>虽然上述 udf 是通用的 udf，但是是否能够脱离自定义 udf，直接计算出 top 50 的值？</li>
+</ol>
+<p>我目前的一个想法就是将结果 schema 拍平。举例：</p>
+<table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>字段类型</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>timestamp</td>
+<td>bigint</td>
+<td>当前分钟事件时间戳</td>
+</tr>
+<tr>
+<td>热搜词条_1</td>
+<td>string</td>
+<td>第一名的热搜词条名称</td>
+</tr>
+<tr>
+<td>热搜词条_2</td>
+<td>string</td>
+<td>第二名的热搜词条名称</td>
+</tr>
+<tr>
+<td>热搜词条_3</td>
+<td>string</td>
+<td>第三名的热搜词条名称</td>
+</tr>
+<tr>
+<td>热搜词条_4</td>
+<td>string</td>
+<td>第四名的热搜词条名称</td>
+</tr>
+<tr>
+<td>热搜词条_5</td>
+<td>string</td>
+<td>第五名的热搜词条名称</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr>
+<td>热搜词条_n</td>
+<td>string</td>
+<td>第 n 名的词条名称</td>
+</tr>
+</tbody></table>
+<p>每一次输出都将目前每一个排名的数据产出。但是目前在 flink sql 的实现思路上不太明显。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div></div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechat.png" alt=" 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.png" alt=" 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Flink/" rel="tag"># Apache Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/10/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/03_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E7%AE%A1%E7%90%86/01_dqc/01_%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F%E7%AE%A1%E7%90%86/01_quality_dqc/" rel="next" title="管理 | 实时数仓数据质量保障">
+                <i class="fa fa-chevron-left"></i> 管理 | 实时数仓数据质量保障
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/10/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/02_dau-rownum/" rel="prev" title="实战 | flink sql 计算多维 puv">
+                实战 | flink sql 计算多维 puv <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/blog-img/avatar.jpeg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">115</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yangyichao-mango" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:1048262223@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%BA%8F%E7%AF%87"><span class="nav-number">1.</span> <span class="nav-text">1.序篇</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%83%8C%E6%99%AF%E7%AF%87"><span class="nav-number">2.</span> <span class="nav-text">2.背景篇</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%AE%9A%E4%B9%89%E7%AF%87-%E5%B1%9E%E4%BA%8E%E5%93%AA%E7%B1%BB%E7%89%B9%E7%82%B9%E7%9A%84%E6%8C%87%E6%A0%87"><span class="nav-number">3.</span> <span class="nav-text">3.定义篇-属于哪类特点的指标</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E6%95%B0%E6%8D%AE%E5%BA%94%E7%94%A8%E7%AF%87-%E9%A2%84%E6%9C%9F%E6%95%88%E6%9E%9C%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="nav-number">4.</span> <span class="nav-text">4.数据应用篇-预期效果是怎样的</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E9%9A%BE%E7%82%B9%E5%89%96%E6%9E%90%E7%AF%87-%E6%AD%A4%E7%B1%BB%E6%8C%87%E6%A0%87%E5%BB%BA%E8%AE%BE%E3%80%81%E4%BF%9D%E9%9A%9C%E7%9A%84%E9%9A%BE%E7%82%B9"><span class="nav-number">5.</span> <span class="nav-text">5.难点剖析篇-此类指标建设、保障的难点</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#5-1-%E6%95%B0%E6%8D%AE%E5%BB%BA%E8%AE%BE"><span class="nav-number">5.1.</span> <span class="nav-text">5.1.数据建设</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-1-%E9%9A%BE%E7%82%B9"><span class="nav-number">5.1.1.</span> <span class="nav-text">5.1.1.难点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-2-%E4%B8%9A%E7%95%8C%E6%96%B9%E6%A1%88%E8%B0%83%E7%A0%94"><span class="nav-number">5.1.2.</span> <span class="nav-text">5.1.2.业界方案调研</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-2-1-Flink-DataStream-api-%E5%AE%9E%E6%97%B6%E8%AE%A1%E7%AE%97-topN-%E7%83%AD%E6%A6%9C"><span class="nav-number">5.1.3.</span> <span class="nav-text">5.1.2.1.Flink DataStream api 实时计算 topN 热榜</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-2-2-Flink-SQL-api-%E5%AE%9E%E6%97%B6%E8%AE%A1%E7%AE%97-topN-%E7%83%AD%E6%A6%9C"><span class="nav-number">5.1.4.</span> <span class="nav-text">5.1.2.2.Flink SQL api 实时计算 topN 热榜</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-2-3-%E7%BB%93%E8%AE%BA"><span class="nav-number">5.1.5.</span> <span class="nav-text">5.1.2.3.结论</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2-%E6%95%B0%E6%8D%AE%E4%BF%9D%E9%9A%9C"><span class="nav-number">5.2.</span> <span class="nav-text">5.2.数据保障</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-1-%E9%9A%BE%E7%82%B9"><span class="nav-number">5.2.1.</span> <span class="nav-text">5.2.1.难点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-2-%E4%B8%9A%E7%95%8C%E6%96%B9%E6%A1%88%E8%B0%83%E7%A0%94"><span class="nav-number">5.2.2.</span> <span class="nav-text">5.2.2.业界方案调研</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-3-%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1%E4%BF%9D%E9%9A%9C"><span class="nav-number">5.3.</span> <span class="nav-text">5.3.数据服务保障</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-1-%E9%9A%BE%E7%82%B9"><span class="nav-number">5.3.1.</span> <span class="nav-text">5.3.1.难点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-2-%E4%B8%9A%E7%95%8C%E6%96%B9%E6%A1%88%E8%B0%83%E7%A0%94"><span class="nav-number">5.3.2.</span> <span class="nav-text">5.3.2.业界方案调研</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E6%95%B0%E6%8D%AE%E5%BB%BA%E8%AE%BE%E7%AF%87-%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%A1%88%E8%AF%A6%E8%BF%B0"><span class="nav-number">6.</span> <span class="nav-text">6.数据建设篇-具体实现方案详述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#6-1-%E6%95%B4%E4%BD%93%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1%E6%9E%B6%E6%9E%84"><span class="nav-number">6.1.</span> <span class="nav-text">6.1.整体数据服务架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-2-flink-%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1"><span class="nav-number">6.2.</span> <span class="nav-text">6.2.flink 方案设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-3-%E6%95%B0%E6%8D%AE%E6%BA%90"><span class="nav-number">6.3.</span> <span class="nav-text">6.3.数据源</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-1-schema"><span class="nav-number">6.3.1.</span> <span class="nav-text">6.3.1.schema</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-4-%E6%95%B0%E6%8D%AE%E6%B1%87"><span class="nav-number">6.4.</span> <span class="nav-text">6.4 数据汇</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-4-1-schema"><span class="nav-number">6.4.1.</span> <span class="nav-text">6.4.1.schema</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-5-%E6%95%B0%E6%8D%AE%E5%BB%BA%E8%AE%BE"><span class="nav-number">6.5.</span> <span class="nav-text">6.5.数据建设</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-5-1-%E6%96%B9%E6%A1%881-%E5%86%85%E5%B1%82-rownum-%E5%A4%96%E5%B1%82%E8%87%AA%E5%AE%9A%E4%B9%89-udf"><span class="nav-number">6.5.1.</span> <span class="nav-text">6.5.1.方案1 - 内层 rownum + 外层自定义 udf</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#6-5-1-1-sql"><span class="nav-number">6.5.1.1.</span> <span class="nav-text">6.5.1.1.sql</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-5-1-2-udf"><span class="nav-number">6.5.1.2.</span> <span class="nav-text">6.5.1.2.udf</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-5-1-3-flink-conf-yaml-%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE"><span class="nav-number">6.5.1.3.</span> <span class="nav-text">6.5.1.3.flink-conf.yaml 参数配置</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-5-2-%E6%96%B9%E6%A1%882-%E5%86%85%E5%A4%96%E5%B1%82%E8%87%AA%E5%AE%9A%E4%B9%89-udf"><span class="nav-number">6.5.2.</span> <span class="nav-text">6.5.2.方案2 - 内外层自定义 udf</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#6-5-2-1-sql"><span class="nav-number">6.5.2.1.</span> <span class="nav-text">6.5.2.1.sql</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-5-2-2-udf"><span class="nav-number">6.5.2.2.</span> <span class="nav-text">6.5.2.2.udf</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#6-5-2-2-1-top100-udaf"><span class="nav-number">6.5.2.2.1.</span> <span class="nav-text">6.5.2.2.1.top100_udaf</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#6-5-2-2-2-top50-aggr-udaf"><span class="nav-number">6.5.2.2.2.</span> <span class="nav-text">6.5.2.2.2.top50_aggr_udaf</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-5-2-3-flink-conf-yaml-%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE"><span class="nav-number">6.5.2.3.</span> <span class="nav-text">6.5.2.3.flink-conf.yaml 参数配置</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-5-3-%E6%96%B9%E6%A1%883-cumulate-window"><span class="nav-number">6.5.3.</span> <span class="nav-text">6.5.3.方案3 - cumulate window</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#6-5-3-1-sql"><span class="nav-number">6.5.3.1.</span> <span class="nav-text">6.5.3.1.sql</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-5-3-2-udf"><span class="nav-number">6.5.3.2.</span> <span class="nav-text">6.5.3.2.udf</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#6-5-3-2-1-top100-udaf"><span class="nav-number">6.5.3.2.1.</span> <span class="nav-text">6.5.3.2.1.top100_udaf</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#6-5-3-2-2-top50Aggr-udaf"><span class="nav-number">6.5.3.2.2.</span> <span class="nav-text">6.5.3.2.2.top50Aggr_udaf</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-5-3-3-flink-conf-yaml-%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE"><span class="nav-number">6.5.3.3.</span> <span class="nav-text">6.5.3.3.flink-conf.yaml 参数配置</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-6-%E9%AB%98%E5%8F%AF%E7%94%A8%E3%80%81%E9%AB%98%E6%80%A7%E8%83%BD"><span class="nav-number">6.6.</span> <span class="nav-text">6.6.高可用、高性能</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-6-1-%E6%95%B4%E4%BD%93%E9%AB%98%E5%8F%AF%E7%94%A8%E4%BF%9D%E9%9A%9C"><span class="nav-number">6.6.1.</span> <span class="nav-text">6.6.1.整体高可用保障</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#6-6-1-1-%E6%95%B0%E6%8D%AE%E6%BA%90%E6%97%A5%E5%BF%97%E9%AB%98%E5%8F%AF%E7%94%A8"><span class="nav-number">6.6.1.1.</span> <span class="nav-text">6.6.1.1.数据源日志高可用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-6-1-2-flink-%E4%BB%BB%E5%8A%A1%E9%AB%98%E5%8F%AF%E7%94%A8"><span class="nav-number">6.6.1.2.</span> <span class="nav-text">6.6.1.2.flink 任务高可用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-6-1-3-%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1%E9%AB%98%E5%8F%AF%E7%94%A8"><span class="nav-number">6.6.1.3.</span> <span class="nav-text">6.6.1.3.数据服务高可用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-6-2-%E5%A4%A7%E6%B5%81%E9%87%8F%E3%80%81%E9%AB%98%E6%80%A7%E8%83%BD"><span class="nav-number">6.6.2.</span> <span class="nav-text">6.6.2.大流量、高性能</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#6-6-2-1-%E6%95%B0%E6%8D%AE%E6%BA%90"><span class="nav-number">6.6.2.1.</span> <span class="nav-text">6.6.2.1.数据源</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-6-3-%E7%BC%A9%E5%87%8F%E7%8A%B6%E6%80%81%E5%A4%A7%E5%B0%8F"><span class="nav-number">6.6.3.</span> <span class="nav-text">6.6.3.缩减状态大小</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1%E7%AF%87-%E6%95%B0%E6%8D%AE%E6%9C%8D%E5%8A%A1%E9%80%89%E5%9E%8B"><span class="nav-number">7.</span> <span class="nav-text">7.数据服务篇-数据服务选型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#7-1-kv-%E5%AD%98%E5%82%A8"><span class="nav-number">7.1.</span> <span class="nav-text">7.1.kv 存储</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-2-OLAP"><span class="nav-number">7.2.</span> <span class="nav-text">7.2.OLAP</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-%E6%95%B0%E6%8D%AE%E4%BF%9D%E9%9A%9C%E7%AF%87-%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E7%9B%91%E6%8E%A7%E4%BB%A5%E5%8F%8A%E4%BF%9D%E9%9A%9C%E6%96%B9%E6%A1%88"><span class="nav-number">8.</span> <span class="nav-text">8.数据保障篇-数据时效监控以及保障方案</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#8-1-%E6%95%B0%E6%8D%AE%E6%97%B6%E6%95%88%E4%BF%9D%E9%9A%9C"><span class="nav-number">8.1.</span> <span class="nav-text">8.1.数据时效保障</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-2-%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F%E4%BF%9D%E9%9A%9C"><span class="nav-number">8.2.</span> <span class="nav-text">8.2.数据质量保障</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-%E6%95%88%E6%9E%9C%E7%AF%87-%E4%B8%8A%E8%BF%B0%E6%96%B9%E6%A1%88%E6%9C%80%E7%BB%88%E7%9A%84%E6%95%88%E6%9E%9C"><span class="nav-number">9.</span> <span class="nav-text">9.效果篇-上述方案最终的效果</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#9-1-%E8%BE%93%E5%87%BA%E7%BB%93%E6%9E%9C%E7%A4%BA%E4%BE%8B"><span class="nav-number">9.1.</span> <span class="nav-text">9.1.输出结果示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-2-%E5%BA%94%E7%94%A8%E4%BA%A7%E5%93%81%E7%A4%BA%E4%BE%8B"><span class="nav-number">9.2.</span> <span class="nav-text">9.2.应用产品示例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-%E7%8E%B0%E7%8A%B6%E4%BB%A5%E5%8F%8A%E5%B1%95%E6%9C%9B%E7%AF%87"><span class="nav-number">10.</span> <span class="nav-text">10.现状以及展望篇</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">244.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://true.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'https://yangyichao-mango.github.io/2021/10/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/01_topn_code_pdf/';
+          this.page.identifier = '2021/10/12/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/01_one-data/01_topn_code_pdf/';
+          this.page.title = '实战 | flink sql 计算 top n - 1';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://true.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="antigeneral's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本系列每篇文章都比较短小，不定期更新，从一些博主的脑洞想法出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍博主对流批一体来源以及未来发展方向的一些理解，阅读时长大概 2 分钟，话不多说，直接进入正文！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="揭秘字节跳动埋点数据实时动态处理引擎">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2021/11/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/index.html">
+<meta property="og:site_name" content="antigeneral&#39;s blog">
+<meta property="og:description" content="本系列每篇文章都比较短小，不定期更新，从一些博主的脑洞想法出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍博主对流批一体来源以及未来发展方向的一些理解，阅读时长大概 2 分钟，话不多说，直接进入正文！">
+<meta property="og:locale">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/6.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/2.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/8.gif">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/9.gif">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/3.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/4.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/5.png">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/7.gif">
+<meta property="article:published_time" content="2021-11-12T06:21:53.000Z">
+<meta property="article:modified_time" content="2021-08-05T12:32:20.232Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Flink">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/6.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2021/11/12/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/01_one-data/05_揭秘字节跳动埋点数据实时动态处理引擎/"/>
+
+
+
+
+
+  <title>揭秘字节跳动埋点数据实时动态处理引擎 | antigeneral's blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-150061865-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">antigeneral's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-link"></i> <br />
+            
+            links
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">揭秘字节跳动埋点数据实时动态处理引擎</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-12T14:21:53+08:00">
+                2021-11-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/11/12/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/01_one-data/05_揭秘字节跳动埋点数据实时动态处理引擎/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  3.7k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  14
+                </span>
+              
+            </div>
+          
+
+          
+              <div class="post-description">
+                  本系列每篇文章都比较短小，不定期更新，从一些博主的脑洞想法出发抛砖引玉，提高小伙伴的姿♂势水平。本文介绍博主对流批一体来源以及未来发展方向的一些理解，阅读时长大概 2 分钟，话不多说，直接进入正文！
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>感谢您的<strong>关注  +  点赞 + 再看</strong>，对博主的肯定，会督促博主持续的输出更多的优质实战内容！！！</p>
+</blockquote>
+<h1 id="1-序篇-先说结论"><a href="#1-序篇-先说结论" class="headerlink" title="1.序篇-先说结论"></a>1.序篇-先说结论</h1><p>宝贝们，还记得前几天博主去的火山引擎大数据场嘛，其中比较令大家感兴趣的就是最后一讲，字节一站式埋点平台的 flink 标准化清洗及拆流任务。</p>
+<p>其中大家感觉比较流啤的就是的就是字节做到了：</p>
+<ol>
+<li>不重启任务可以上下线新的拆流及清洗规则，所有的规则变更都不需要涉及到任务的重启。</li>
+<li>清洗 udf，rpc 接口热加载</li>
+</ol>
+<p>总的来说就是任务永不停，不可能停止的，好么，beiber。</p>
+<blockquote>
+<p>字节火山引擎 PPT。公众号回复 20210724 获取。</p>
+</blockquote>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/6.png" alt="6"></p>
+<blockquote>
+<p>本文博主就主要介绍第一点，即做到规则动态变化，可以做到动态添加一个 sink kafka topic，动态删除一个 sink kafka topic，而不重启任务。相信能抛砖引玉，给大家一些启发。</p>
+</blockquote>
+<p>本文从以下几个章节详细介绍框架实现：</p>
+<ol>
+<li>背景篇-为啥需要这么个框架</li>
+<li>定义、目标篇-做这个框架的目标、预期效果是什么</li>
+<li>难点剖析篇-此框架建设的难点、业界目前的实现</li>
+<li>数据建设篇-框架具体方案设计</li>
+<li>数据保障篇-框架的保障方案</li>
+<li>总结与展望篇</li>
+</ol>
+<h1 id="2-背景篇-为啥需要这么个框架"><a href="#2-背景篇-为啥需要这么个框架" class="headerlink" title="2.背景篇-为啥需要这么个框架"></a>2.背景篇-为啥需要这么个框架</h1><p>首先来看看字节他们做这件事情的背景：</p>
+<ol>
+<li>任务重启造成数据的延迟：对于字节这种企业来说且每天都会新上线很多的埋点，把这些新的埋点拆流条件加入 flink 任务就要重启，但是字节客户端日志流量都是千万级别 qps 的，就意味着这个 flink 任务一旦重启耗时肯定是很长的，这对时延敏感的业务是不可接受的。</li>
+<li>减少对于原始客户端日志的烟囱式消费，节约资源</li>
+<li>统一标准化的埋点平台：用户能通过埋点平台用到正确的数据</li>
+<li>与埋点平台联动的、统一化的、标准化的流式数据处理平台：用户能通过这个平台去获取想要的统一标准化的数据</li>
+<li>数据的分级保障能力：Dump 日志，日志的产出需要分优先级进行保障（死保、尽力保…），用户能放心的用数据</li>
+</ol>
+<p>如图：<br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/2.png" alt="2"></p>
+<p>因此诞生了这个框架。</p>
+<h1 id="3-定义、目标篇-做这个框架的目标、预期效果是什么"><a href="#3-定义、目标篇-做这个框架的目标、预期效果是什么" class="headerlink" title="3.定义、目标篇-做这个框架的目标、预期效果是什么"></a>3.定义、目标篇-做这个框架的目标、预期效果是什么</h1><p>上述的痛点很多，本节就从最痛的<strong>任务重启的延迟</strong>角度出发解决问题，揭秘字节动态配置化的 flink 任务的实现。</p>
+<p>预期效果如下：</p>
+<ol>
+<li><strong>即在任务不停止的情况下可以动态的上线一个动态规则、一个 sink kafka topic，上线某个、某类埋点对应的流数据的 kafka topic</strong></li>
+</ol>
+<p>如图左边是修改配置，添加了一个拆流规则以及对应 topic，右边这个规则 topic 就开始产出数据，对应的 console consumer 就消费到了复合规则的数据。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/8.gif" alt="8"></p>
+<ol start="2">
+<li><strong>即在任务不停止的情况下可以动态的下线一个动态规则、一个 sink kafka topic，下线某个、某类埋点对应的流数据的 kafka topic</strong></li>
+</ol>
+<p>如图左边是修改配置，删除了一个拆流规则以及对应 topic，右边这个规则 topic 就不产出数据了，对应的 console consumer 就没有新数据可以消费了。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/9.gif" alt="9"></p>
+<h1 id="4-难点剖析篇-此框架建设的难点、业界目前的实现"><a href="#4-难点剖析篇-此框架建设的难点、业界目前的实现" class="headerlink" title="4.难点剖析篇-此框架建设的难点、业界目前的实现"></a>4.难点剖析篇-此框架建设的难点、业界目前的实现</h1><p>首先带大家分析下，实现这个框架，最基本的模块都需要包含什么：</p>
+<ol>
+<li>flink 任务：本身就是一个 Map 任务，逻辑简单</li>
+<li>动态上下线规则配置：肯定得有一个动态配置中心去告诉 flink 任务需要新上下线一个 kafka topic</li>
+<li>动态规则过滤引擎：flink 任务监听到规则发生动态变化之后，要热更新规则，将新的规律规则应用起来。需要一个动态代码执行引擎</li>
+<li>动态上下线 Kafka topic：目前大多数公司用的是 flink 自带的 kafka-connector，一旦涉及到需要添加一个下游，就需要添加一个 kafka producer operator，因为涉及到多加了一个 operator，那肯定得重启任务。需要动态添加删除 producer 的能力。</li>
+</ol>
+<h1 id="5-数据建设篇-框架具体方案设计"><a href="#5-数据建设篇-框架具体方案设计" class="headerlink" title="5.数据建设篇-框架具体方案设计"></a>5.数据建设篇-框架具体方案设计</h1><h2 id="5-1-方案设计"><a href="#5-1-方案设计" class="headerlink" title="5.1.方案设计"></a>5.1.方案设计</h2><h3 id="5-1-1-方案"><a href="#5-1-1-方案" class="headerlink" title="5.1.1.方案"></a>5.1.1.方案</h3><p>先说说方案选择的结论：</p>
+<ol>
+<li>flink 入口任务：Map 模型使用 ProcessFunction 底层算子</li>
+<li>动态上下线规则配置：配置中心开源的有很多，这里为了实现轻量化，实现简单，使用 zookeeper 作为动态规则配置中心。当然如果对 zk 压力大，也可以使用广播配置实现。</li>
+<li>动态规则引擎：规则引擎很多，比如常见的可以使用 JavaScript、Groovy、jython、mvel2、freemarker 等等，太多了。考虑到性能、易用性选用 janino 将动态规则动态编译出 class。然后作为动态规则引擎使用。后面会详述选用 janino 的原因。</li>
+<li>动态上下线 Kafka topic：去除 flink-kafka-connector，直接在 ProcessFunction 中使用原生 kafka-clients 输出数据，维护一个 producer 池。</li>
+</ol>
+<p>整体方案架构图如图所示：<br><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/3.png" alt="3"></p>
+<p><strong>项目代码、在博主公众号回复【揭秘字节跳动埋点数据实时动态处理引擎】获取：</strong></p>
+<h3 id="5-1-2-预期效果"><a href="#5-1-2-预期效果" class="headerlink" title="5.1.2.预期效果"></a>5.1.2.预期效果</h3><h4 id="5-1-2-1-上线配置"><a href="#5-1-2-1-上线配置" class="headerlink" title="5.1.2.1.上线配置"></a>5.1.2.1.上线配置</h4><p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/4.png" alt="4"></p>
+<h4 id="5-1-2-2-下线配置"><a href="#5-1-2-2-下线配置" class="headerlink" title="5.1.2.2.下线配置"></a>5.1.2.2.下线配置</h4><p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/5.png" alt="5"></p>
+<h2 id="5-2-具体实现"><a href="#5-2-具体实现" class="headerlink" title="5.2.具体实现"></a>5.2.具体实现</h2><p>整个任务的实现非常简单。</p>
+<p>本地运行，可以参考下面两篇安装 zk 和 kafka。</p>
+<ul>
+<li>zk：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/5491d16e6abd">https://www.jianshu.com/p/5491d16e6abd</a></li>
+<li>kafka：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/dd2578d47ff6">https://www.jianshu.com/p/dd2578d47ff6</a></li>
+</ul>
+<h3 id="5-2-1-flink-任务入口逻辑"><a href="#5-2-1-flink-任务入口逻辑" class="headerlink" title="5.2.1.flink 任务入口逻辑"></a>5.2.1.flink 任务入口逻辑</h3><p>首先来看看整个任务的入口逻辑，ProcessFunction 的功能很简单：</p>
+<ol>
+<li>针对数据源的每一条日志数据，遍历动态规则引擎池</li>
+<li>只要这条数据满足某一条规则的条件，就将这条日志数据写出到规则对应的 topic 中</li>
+</ol>
+<p><strong>项目代码、在博主公众号回复【揭秘字节跳动埋点数据实时动态处理引擎】获取：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"> env.addSource(<span class="keyword">new</span> UserDefinedSource())</span><br><span class="line">    .process(<span class="keyword">new</span> ProcessFunction&lt;ClientLogSource, ClientLogSink&gt;() &#123;</span><br><span class="line">        <span class="comment">// 动态规则配置中心</span></span><br><span class="line">        <span class="keyword">private</span> ZkBasedConfigCenter zkBasedConfigCenter;</span><br><span class="line">        <span class="comment">// kafka producer 管理中心</span></span><br><span class="line">        <span class="keyword">private</span> KafkaProducerCenter kafkaProducerCenter;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">open</span><span class="params">(Configuration parameters)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">            <span class="keyword">super</span>.open(parameters);</span><br><span class="line">            <span class="keyword">this</span>.zkBasedConfigCenter = ZkBasedConfigCenter.getInstance();</span><br><span class="line">            <span class="keyword">this</span>.kafkaProducerCenter = KafkaProducerCenter.getInstance();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processElement</span><span class="params">(ClientLogSource clientLogSource, Context context, Collector&lt;ClientLogSink&gt; collector)</span></span></span><br><span class="line"><span class="function">                <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 遍历所有的动态规则</span></span><br><span class="line">            <span class="keyword">this</span>.zkBasedConfigCenter.getMap().forEach(<span class="keyword">new</span> BiConsumer&lt;Long, DynamicProducerRule&gt;() &#123;</span><br><span class="line">                <span class="meta">@Override</span></span><br><span class="line">                <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(Long id, DynamicProducerRule dynamicProducerRule)</span> </span>&#123;</span><br><span class="line">                    <span class="comment">// 验证该条数据是否符合该条规则</span></span><br><span class="line">                    <span class="keyword">if</span> (dynamicProducerRule.eval(clientLogSource)) &#123;</span><br><span class="line">                        <span class="comment">// 将符合规则的数据发向对应规则的 topic 中</span></span><br><span class="line">                        kafkaProducerCenter.send(dynamicProducerRule.getTargetTopic(), clientLogSource.toString());</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">            <span class="keyword">super</span>.close();</span><br><span class="line">            <span class="comment">// 关闭规则池</span></span><br><span class="line">            <span class="keyword">this</span>.zkBasedConfigCenter.close();</span><br><span class="line">            <span class="comment">// 关闭 producer 池</span></span><br><span class="line">            <span class="keyword">this</span>.kafkaProducerCenter.close();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">env.execute();</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-2-动态上下线规则配置"><a href="#5-2-2-动态上下线规则配置" class="headerlink" title="5.2.2.动态上下线规则配置"></a>5.2.2.动态上下线规则配置</h3><p>来看 flink ProcessFunction 中的核心点，第一部分就是 ZkBasedConfigCenter。其功能包含：</p>
+<ol>
+<li>任务启动时，初始化加载 zk 配置，初始化规则池，将规则池中的配置规则编译成 class 可执行规则</li>
+<li>监听 zk 配置变更，将新增配置加入规则池，将下线配置从规则池删除</li>
+</ol>
+<h4 id="5-2-2-1-动态规则-schema-设计"><a href="#5-2-2-1-动态规则-schema-设计" class="headerlink" title="5.2.2.1.动态规则 schema 设计"></a>5.2.2.1.动态规则 schema 设计</h4><p>动态规则包含的内容与用户需求息息相关：</p>
+<p>举例：用户需要将在首页上报 +  id &gt; 300 用户的客户端日志都写入 topic_id_bigger_than_300_and_main_page 的 kafka topic 中。</p>
+<p>那么针对这个 flink 任务来说就有以下三项用户的输入：</p>
+<ol>
+<li>动态规则的过滤条件：即上游每一条数据过来之后检验这条数据是否满足规则条件。上面这个例子的条件就是 <code>clientLogSource.getId() &gt; 300 &amp;&amp; clientLogSource.getPage().equals(&quot;首页&quot;)</code>；其中 clientLogSource 是原始日志 model</li>
+<li>动态规则要写入的 topic 名称：这条规则过滤出来的数据要写入哪个 topic。上面这个例子的 topic 就是 <code>topic_id_bigger_than_300_and_main_page</code></li>
+<li>动态规则的唯一 id：唯一标识一个过滤规则的 id</li>
+</ol>
+<p>针对上述要求设计动态规则配置的 schema 如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;id-数值类型 string&quot;</span>: &#123;</span><br><span class="line">		<span class="attr">&quot;condition-过滤条件&quot;</span>: <span class="string">&quot;1==1&quot;</span>,</span><br><span class="line">		<span class="attr">&quot;targetTopic-目标 topic 名称&quot;</span>: <span class="string">&quot;tuzisir1&quot;</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="string">&quot;1&quot;</span>: &#123;</span><br><span class="line">		<span class="attr">&quot;condition&quot;</span>: <span class="string">&quot;clientLogSource.getId() &gt; 300 &amp;&amp; clientLogSource.getPage().equals(\&quot;首页\&quot;)&quot;</span>,</span><br><span class="line">		<span class="attr">&quot;targetTopic&quot;</span>: <span class="string">&quot;topic_id_bigger_than_300_and_main_page&quot;</span></span><br><span class="line">	&#125;,</span><br><span class="line">	<span class="attr">&quot;2&quot;</span>: &#123;</span><br><span class="line">		<span class="attr">&quot;condition&quot;</span>: <span class="string">&quot;clientLogSource.getPage().equals(\&quot;个人主页\&quot;)&quot;</span>,</span><br><span class="line">		<span class="attr">&quot;targetTopic&quot;</span>: <span class="string">&quot;topic_profile_page&quot;</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对应动态规则 model 设计如下：</p>
+<p><strong>项目代码、在博主公众号回复【揭秘字节跳动埋点数据实时动态处理引擎】获取：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DynamicProducerRule</span> <span class="keyword">implements</span> <span class="title">Evaluable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 具体过滤规则</span></span><br><span class="line">    <span class="keyword">private</span> String condition;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 具体写入 topic</span></span><br><span class="line">    <span class="keyword">private</span> String targetTopic;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用 janino 编译的规则过滤器</span></span><br><span class="line">    <span class="keyword">private</span> Evaluable evaluable;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">(Long id)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 使用 janino 初始化规则</span></span><br><span class="line">            Class&lt;Evaluable&gt; clazz = JaninoUtils.genCodeAndGetClazz(id, targetTopic, condition);</span><br><span class="line">            <span class="keyword">this</span>.evaluable = clazz.newInstance();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">eval</span><span class="params">(ClientLogSource clientLogSource)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.evaluable.eval(clientLogSource);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>重点在于 <strong>Evaluable</strong> 接口，动态生成代码就是继承了这个接口，用于执行过滤规则的基础接口。</p>
+<p>代码动态生成下面会详细介绍。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Evaluable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 动态规则接口过滤方法</span></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">eval</span><span class="params">(ClientLogSource clientLogSource)</span></span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="5-2-2-2-基于-zk-的动态配置中心"><a href="#5-2-2-2-基于-zk-的动态配置中心" class="headerlink" title="5.2.2.2.基于 zk 的动态配置中心"></a>5.2.2.2.基于 zk 的动态配置中心</h4><p>使用了 zk 作为动态配置中心，来动态监听规则配置以及更新规则池。</p>
+<p><strong>项目代码、在博主公众号回复【揭秘字节跳动埋点数据实时动态处理引擎】获取：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ZkBasedConfigCenter</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// zk config 变化监听器</span></span><br><span class="line">    <span class="keyword">private</span> TreeCache treeCache;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// zk 客户端</span></span><br><span class="line">    <span class="keyword">private</span> CuratorFramework zkClient;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">ZkBasedConfigCenter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            open();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ！！！规则池！！！规则池！！！规则池</span></span><br><span class="line">    <span class="keyword">private</span> ConcurrentMap&lt;Long, DynamicProducerRule&gt; map = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">open</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 初始化规则</span></span><br><span class="line">        <span class="comment">// 初始化 zk config 监听器</span></span><br><span class="line">        <span class="comment">// 当有配置变更时</span></span><br><span class="line">        <span class="comment">// 调用 private void update(String json) 更新规则</span></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.treeCache.close();</span><br><span class="line">        <span class="keyword">this</span>.zkClient.close();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">update</span><span class="params">(String json)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        Map&lt;Long, DynamicProducerRule&gt;</span><br><span class="line">                result = getNewMap(json);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 1.将新增规则添加进规则池</span></span><br><span class="line">        <span class="comment">// 2.将下线规则从规则池删除</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> Map&lt;Long, DynamicProducerRule&gt; <span class="title">getNewMap</span><span class="params">(String json)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 将新规则解析，并使用 janino 进行初始化</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以使用一个固定路径的配置，如图博主使用的是 /kafka-config</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/7.gif" alt="7"></p>
+<h3 id="5-2-3-动态规则引擎"><a href="#5-2-3-动态规则引擎" class="headerlink" title="5.2.3.动态规则引擎"></a>5.2.3.动态规则引擎</h3><p><strong>目前字节使用的引擎是 Groovy，但是博主常用 flink sql，sql 中的代码生成是使用 janino 做的，因此就比较了 janino 和 groovy 的性能差异，janino 编译出的原生 class 性能接近原生 class，是 Groovy 的 4 倍左右。其他的引擎不考虑，要么易用性差，要么性能差。</strong></p>
+<blockquote>
+<p>Notes：<br>性能这一点真的是很重要，1：4 的差距可以说是差别很大了。如果你的场景也是大流量，非常耗费性能的场景，建议直接入手 janino！！！</p>
+</blockquote>
+<p>来看看具体的 benchmark case 代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ClientLogSource 是原始日志</span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">eval</span><span class="params">(flink.examples.datastream._01.bytedance.split.model.ClientLogSource clientLogSource)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> String.valueOf(clientLogSource.getId()).equals(<span class="string">&quot;1&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面这段代码，在博主 mac 本地执行，每次循环执行 5kw 次，总计执行 5 次 得出的结果如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">java:847</span> <span class="string">ms</span></span><br><span class="line"><span class="string">janino:745</span> <span class="string">ms</span></span><br><span class="line"><span class="string">groovy:4110</span> <span class="string">ms</span></span><br><span class="line"></span><br><span class="line"><span class="string">java:1097</span> <span class="string">ms</span></span><br><span class="line"><span class="string">janino:1170</span> <span class="string">ms</span></span><br><span class="line"><span class="string">groovy:4052</span> <span class="string">ms</span></span><br><span class="line"></span><br><span class="line"><span class="string">java:916</span> <span class="string">ms</span></span><br><span class="line"><span class="string">janino:1117</span> <span class="string">ms</span></span><br><span class="line"><span class="string">groovy:4311</span> <span class="string">ms</span></span><br><span class="line"></span><br><span class="line"><span class="string">java:915</span> <span class="string">ms</span></span><br><span class="line"><span class="string">janino:1112</span> <span class="string">ms</span></span><br><span class="line"><span class="string">groovy:4382</span> <span class="string">ms</span></span><br><span class="line"></span><br><span class="line"><span class="string">java:921</span> <span class="string">ms</span></span><br><span class="line"><span class="string">janino:1104</span> <span class="string">ms</span></span><br><span class="line"><span class="string">groovy:4321</span> <span class="string">ms</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>重复执行了很多次：java object : janino 编译原生 class ： groovy ：几乎都是 1：1：4 的耗时。所以此处我们选择性能更好的 janino。</strong></p>
+<p><strong>项目代码、在博主公众号回复【揭秘字节跳动埋点数据实时动态处理引擎】获取：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JaninoUtils</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Class&lt;Evaluable&gt; <span class="title">genCodeAndGetClazz</span><span class="params">(Long id, String topic, String condition)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">// 动态生成代码</span></span><br><span class="line">        <span class="comment">// 初始化 Class&lt;Evaluable&gt; 并返回</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-4-动态上下线-Kafka-topic"><a href="#5-2-4-动态上下线-Kafka-topic" class="headerlink" title="5.2.4.动态上下线 Kafka topic"></a>5.2.4.动态上下线 Kafka topic</h3><p>来看入口类中的第二个核心点，就是 KafkaProducerCenter。其功能包含：</p>
+<ol>
+<li>维护所有的 producer 池</li>
+<li>提供消息发送接口</li>
+</ol>
+<p><strong>项目代码、在博主公众号回复【揭秘字节跳动埋点数据实时动态处理引擎】获取：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">KafkaProducerCenter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// kafka producer 池</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ConcurrentMap&lt;String, Producer&lt;String, String&gt;&gt; producerConcurrentMap</span><br><span class="line">            = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> Producer&lt;String, String&gt; <span class="title">getProducer</span><span class="params">(String topicName)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 如果 kafka producer 池中有当前 topic 的 producer，则直接返回</span></span><br><span class="line">        <span class="comment">// 如果没有，则初始化一个新的 producer 然后返回</span></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">send</span><span class="params">(String topicName, String message)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> ProducerRecord&lt;String, String&gt; record = <span class="keyword">new</span> ProducerRecord&lt;&gt;(topicName,</span><br><span class="line">                <span class="string">&quot;&quot;</span>, message);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            RecordMetadata metadata = getProducer(topicName).send(record).get();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 关闭所有 producer 连接</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面就是所有的代码、逻辑实现方案。其实整体看下来是非常简单的。</p>
+<h1 id="6-数据保障篇-框架的保障方案"><a href="#6-数据保障篇-框架的保障方案" class="headerlink" title="6. 数据保障篇-框架的保障方案"></a>6. 数据保障篇-框架的保障方案</h1><ol>
+<li>配置中心挂了怎么办？</li>
+</ol>
+<p>为这个任务分配独立的队列资源，每当这个任务加载到最新配置时，都将配置在本地存储一份。当配置中心挂了的时候，还可以直接加载机器本地的配置，不至于什么都产出不了。</p>
+<ol start="2">
+<li>怎么保障用户的配置是无误的？<ul>
+<li>上线前审批：有专门的埋点管理人员进行逻辑验证及管理</li>
+<li>上线前自动化测试：在埋点管理平台自动化验证逻辑正确性，保障上线到 flink 任务里的配置都是正确的</li>
+<li>AOP 异常处理、报警：在环境中做 AOP 异常处理，将异常数据 dump 到专用异常 topic 中，也需要自动化把报警信息透出</li>
+<li>结果验证：针对最终的结果需要有数据准确性验证机制</li>
+</ul>
+</li>
+</ol>
+<h1 id="7-总结与展望篇"><a href="#7-总结与展望篇" class="headerlink" title="7. 总结与展望篇"></a>7. 总结与展望篇</h1><h2 id="7-1-总结"><a href="#7-1-总结" class="headerlink" title="7.1.总结"></a>7.1.总结</h2><p>本文主要揭秘、实现了字节跳动埋点数据实时动态处理引擎。</p>
+<h2 id="7-2-展望"><a href="#7-2-展望" class="headerlink" title="7.2.展望"></a>7.2.展望</h2><ol>
+<li>本文主要实现了拆流的动态化，输出数据和输入数据完全相同，但是很多情况下，下游只需要其中的一些字段。因此之后还可以做到对于 sink message 字段、消息的个性化。比如可以加一个动态化的 Map 逻辑，将数据源中的 ClientLogSource 转化为任何用户想要的 Model。</li>
+<li>目前过滤条件完全是 java 语法，之后可以扩展成为 sql 语法，提高可读性</li>
+<li>函数、rpc 热加载</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div></div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechat.png" alt=" 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.png" alt=" 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Flink/" rel="tag"># Apache Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/10/12/wechat-blog/test/" rel="next" title="测试">
+                <i class="fa fa-chevron-left"></i> 测试
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/11/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/03_%E8%B8%A9%E5%9D%91%E8%AE%B0_count_distinct_%E8%B4%9F%E5%80%BC/" rel="prev" title="踩坑记 | flink sql count_retract 还有这种坑！">
+                踩坑记 | flink sql count_retract 还有这种坑！ <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/blog-img/avatar.jpeg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">115</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yangyichao-mango" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:1048262223@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%BA%8F%E7%AF%87-%E5%85%88%E8%AF%B4%E7%BB%93%E8%AE%BA"><span class="nav-number">1.</span> <span class="nav-text">1.序篇-先说结论</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%83%8C%E6%99%AF%E7%AF%87-%E4%B8%BA%E5%95%A5%E9%9C%80%E8%A6%81%E8%BF%99%E4%B9%88%E4%B8%AA%E6%A1%86%E6%9E%B6"><span class="nav-number">2.</span> <span class="nav-text">2.背景篇-为啥需要这么个框架</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%AE%9A%E4%B9%89%E3%80%81%E7%9B%AE%E6%A0%87%E7%AF%87-%E5%81%9A%E8%BF%99%E4%B8%AA%E6%A1%86%E6%9E%B6%E7%9A%84%E7%9B%AE%E6%A0%87%E3%80%81%E9%A2%84%E6%9C%9F%E6%95%88%E6%9E%9C%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">3.</span> <span class="nav-text">3.定义、目标篇-做这个框架的目标、预期效果是什么</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E9%9A%BE%E7%82%B9%E5%89%96%E6%9E%90%E7%AF%87-%E6%AD%A4%E6%A1%86%E6%9E%B6%E5%BB%BA%E8%AE%BE%E7%9A%84%E9%9A%BE%E7%82%B9%E3%80%81%E4%B8%9A%E7%95%8C%E7%9B%AE%E5%89%8D%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-number">4.</span> <span class="nav-text">4.难点剖析篇-此框架建设的难点、业界目前的实现</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E6%95%B0%E6%8D%AE%E5%BB%BA%E8%AE%BE%E7%AF%87-%E6%A1%86%E6%9E%B6%E5%85%B7%E4%BD%93%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1"><span class="nav-number">5.</span> <span class="nav-text">5.数据建设篇-框架具体方案设计</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#5-1-%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1"><span class="nav-number">5.1.</span> <span class="nav-text">5.1.方案设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-1-%E6%96%B9%E6%A1%88"><span class="nav-number">5.1.1.</span> <span class="nav-text">5.1.1.方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-2-%E9%A2%84%E6%9C%9F%E6%95%88%E6%9E%9C"><span class="nav-number">5.1.2.</span> <span class="nav-text">5.1.2.预期效果</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-1-2-1-%E4%B8%8A%E7%BA%BF%E9%85%8D%E7%BD%AE"><span class="nav-number">5.1.2.1.</span> <span class="nav-text">5.1.2.1.上线配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-1-2-2-%E4%B8%8B%E7%BA%BF%E9%85%8D%E7%BD%AE"><span class="nav-number">5.1.2.2.</span> <span class="nav-text">5.1.2.2.下线配置</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2-%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0"><span class="nav-number">5.2.</span> <span class="nav-text">5.2.具体实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-1-flink-%E4%BB%BB%E5%8A%A1%E5%85%A5%E5%8F%A3%E9%80%BB%E8%BE%91"><span class="nav-number">5.2.1.</span> <span class="nav-text">5.2.1.flink 任务入口逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-2-%E5%8A%A8%E6%80%81%E4%B8%8A%E4%B8%8B%E7%BA%BF%E8%A7%84%E5%88%99%E9%85%8D%E7%BD%AE"><span class="nav-number">5.2.2.</span> <span class="nav-text">5.2.2.动态上下线规则配置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-2-2-1-%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%99-schema-%E8%AE%BE%E8%AE%A1"><span class="nav-number">5.2.2.1.</span> <span class="nav-text">5.2.2.1.动态规则 schema 设计</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-2-2-2-%E5%9F%BA%E4%BA%8E-zk-%E7%9A%84%E5%8A%A8%E6%80%81%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83"><span class="nav-number">5.2.2.2.</span> <span class="nav-text">5.2.2.2.基于 zk 的动态配置中心</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-3-%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%99%E5%BC%95%E6%93%8E"><span class="nav-number">5.2.3.</span> <span class="nav-text">5.2.3.动态规则引擎</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-4-%E5%8A%A8%E6%80%81%E4%B8%8A%E4%B8%8B%E7%BA%BF-Kafka-topic"><span class="nav-number">5.2.4.</span> <span class="nav-text">5.2.4.动态上下线 Kafka topic</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-%E6%95%B0%E6%8D%AE%E4%BF%9D%E9%9A%9C%E7%AF%87-%E6%A1%86%E6%9E%B6%E7%9A%84%E4%BF%9D%E9%9A%9C%E6%96%B9%E6%A1%88"><span class="nav-number">6.</span> <span class="nav-text">6. 数据保障篇-框架的保障方案</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-%E6%80%BB%E7%BB%93%E4%B8%8E%E5%B1%95%E6%9C%9B%E7%AF%87"><span class="nav-number">7.</span> <span class="nav-text">7. 总结与展望篇</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#7-1-%E6%80%BB%E7%BB%93"><span class="nav-number">7.1.</span> <span class="nav-text">7.1.总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-2-%E5%B1%95%E6%9C%9B"><span class="nav-number">7.2.</span> <span class="nav-text">7.2.展望</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">244.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://true.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'https://yangyichao-mango.github.io/2021/11/12/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/01_one-data/05_%E6%8F%AD%E7%A7%98%E5%AD%97%E8%8A%82%E8%B7%B3%E5%8A%A8%E5%9F%8B%E7%82%B9%E6%95%B0%E6%8D%AE%E5%AE%9E%E6%97%B6%E5%8A%A8%E6%80%81%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/';
+          this.page.identifier = '2021/11/12/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/01_one-data/05_揭秘字节跳动埋点数据实时动态处理引擎/';
+          this.page.title = '揭秘字节跳动埋点数据实时动态处理引擎';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://true.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

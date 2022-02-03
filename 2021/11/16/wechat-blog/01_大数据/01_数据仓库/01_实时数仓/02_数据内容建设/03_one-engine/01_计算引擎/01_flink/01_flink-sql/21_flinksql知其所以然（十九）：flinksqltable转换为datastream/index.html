@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Apache Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="antigeneral's blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="flink sql 知其所以然（十九）：Table 与 DataStream 的转转转">
+<meta property="og:url" content="https://yangyichao-mango.github.io/2021/11/16/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/21_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B9%9D%EF%BC%89%EF%BC%9Aflinksqltable%E8%BD%AC%E6%8D%A2%E4%B8%BAdatastream/index.html">
+<meta property="og:site_name" content="antigeneral&#39;s blog">
+<meta property="og:description" content="本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！">
+<meta property="og:locale">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/22_flinksqltabletrans/1.jpg">
+<meta property="og:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/22_flinksqltabletrans/2.png">
+<meta property="article:published_time" content="2021-11-16T08:26:59.000Z">
+<meta property="article:modified_time" content="2021-12-16T16:54:01.085Z">
+<meta property="article:author" content="yangyichao-mango">
+<meta property="article:tag" content="Apache Flink">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yangyichao-mango.github.io/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/22_flinksqltabletrans/1.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://yangyichao-mango.github.io/2021/11/16/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/21_flinksql知其所以然（十九）：flinksqltable转换为datastream/"/>
+
+
+
+
+
+  <title>flink sql 知其所以然（十九）：Table 与 DataStream 的转转转 | antigeneral's blog</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-150061865-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c013b4f82e10e4f302d6f461f20bdf63";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">antigeneral's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-link"></i> <br />
+            
+            links
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yangyichao-mango.github.io/2021/11/16/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/21_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B9%9D%EF%BC%89%EF%BC%9Aflinksqltable%E8%BD%AC%E6%8D%A2%E4%B8%BAdatastream/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog-img/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="antigeneral's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">flink sql 知其所以然（十九）：Table 与 DataStream 的转转转</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-16T16:26:59+08:00">
+                2021-11-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Apache-Flink/" itemprop="url" rel="index">
+                    <span itemprop="name">Apache Flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/11/16/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/21_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B9%9D%EF%BC%89%EF%BC%9Aflinksqltable%E8%BD%AC%E6%8D%A2%E4%B8%BAdatastream/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/11/16/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/21_flinksql知其所以然（十九）：flinksqltable转换为datastream/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  2.5k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  10
+                </span>
+              
+            </div>
+          
+
+          
+              <div class="post-description">
+                  本系列每篇文章都是从实际生产出发，深度解析 flink 中的全局一致性快照流程以及具体实现，抛砖引玉，提高小伙伴的姿♂势水平。阅读时长大概 20 分钟，话不多说，直接进入正文！
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>看了那么多的技术文，你能明白作者想让你在读完文章后学到什么吗？</p>
+<p>大数据羊说的文章会让你明白</p>
+<ol>
+<li><p>博主会阐明博主期望本文能给小伙伴们带来什么帮助，让小伙伴萌能直观明白博主的心思</p>
+</li>
+<li><p>博主会以实际的应用场景和案例入手，不只是知识点的简单堆砌</p>
+</li>
+<li><p>博主会把重要的知识点的原理进行剖析，让小伙伴萌做到深入浅出</p>
+</li>
+</ol>
+<h1 id="1-序篇"><a href="#1-序篇" class="headerlink" title="1.序篇"></a>1.序篇</h1><p>源码公众号后台回复<strong>1.13.2 table datastream</strong>获取。</p>
+<p>废话不多说，咱们先直接上本文的目录和结论，小伙伴可以先看结论快速了解博主期望本文能给小伙伴们带来什么帮助：</p>
+<ol>
+<li><strong>背景及应用场景介绍</strong>：博主期望你能了解到，Flink 支持了 SQL 和 Table API 中的 Table 与 DataStream 互转的接口。通过这种互转的方式，我们就可以将一些自定义的数据源（DataStream）创建为 SQL 表，也可以将 SQL 执行结果转换为 DataStream 然后后续去完成一些在 SQL 中实现不了的复杂操作。肥肠的方便。</li>
+<li><strong>目前只有流任务支持互转，批任务不支持</strong>：在 1.13 版本中，由于流和批的 env 接口不一样，流任务为 StreamTableEnvironment，批任务为 TableEnvironment，目前只有 StreamTableEnvironment 支持了互转的接口，TableEnvironment 没有这样的接口，因此目前流任务支持互转，批任务不支持。但是 1.14 版本中流批任务的 env 都统一到了 StreamTableEnvironment 中，流批任务中就都可以进行互转了。</li>
+<li><strong>Retract 语义 SQL 转 DataStream 需要重点注意</strong>：Append 语义的 SQL 转为 DataStream 使用的 API 为 <code>StreamTableEnvironment::toDataStream</code>，Retract 语义的 SQL 转为 DataStream 使用的 API 为 <code>StreamTableEnvironment::toRetractStream</code>，两个接口不一样，小伙伴萌一定要特别注意。</li>
+</ol>
+<h1 id="2-背景及应用场景介绍"><a href="#2-背景及应用场景介绍" class="headerlink" title="2.背景及应用场景介绍"></a>2.背景及应用场景介绍</h1><p>相信大家看到本文的标题时，会比较好奇，要写 SQL 就纯 SQL 呗，要写 DataStream 就纯 DataStream 呗，为啥还要把这两个接口做集成呢？</p>
+<p>博主举一个案例：在拼多多发优惠券的场景下，为了控制成本，希望能在每日优惠券发放金额加和超过 1w 时，及时报警出来，控制预算。</p>
+<p>优惠券表的发放数据：</p>
+<table>
+<thead>
+<tr>
+<th>id（id）</th>
+<th>time（时间）</th>
+<th>money（金额）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>2021-11-01 00:01:03</td>
+<td>10</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2021-11-01 00:03:00</td>
+<td>20</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2021-11-01 00:05:00</td>
+<td>30</td>
+</tr>
+<tr>
+<td>4</td>
+<td>2021-11-01 00:06:00</td>
+<td>40</td>
+</tr>
+<tr>
+<td>5</td>
+<td>2021-11-01 00:07:00</td>
+<td>50</td>
+</tr>
+</tbody></table>
+<p>最终期望的结果是：每天的 money 之和超过 1w 的时候，报警报警报警！！！</p>
+<p>那么针对上述场景，有两种对应的解决方案：</p>
+<ol>
+<li><p>方案 1：可想而知，DataStream 是必然能够解决我们的问题的。</p>
+</li>
+<li><p>方案 2：DataStream 开发效率不高，可以使用 SQL 计算优惠券发放的结果，但是 SQL 无法做到报警。所以可以将 SQL 的查询的结果（即 Table）转为 DataStream，然后在 DataStream 后自定义报警逻辑的算子，超过阈值进行报警。</p>
+</li>
+</ol>
+<p>本节就介绍方案 2 的实现思路。</p>
+<blockquote>
+<p>注意：</p>
+<p>当然还有一些其他的比如模式识别监控异常然后报警的场景使用 DataStream 去实现就更加复杂了，所以我们也可以使用类似的思路，先 SQL 实现业务逻辑，然后接一个 DataStream 算子实现报警逻辑。</p>
+</blockquote>
+<h1 id="3-Table-与-DataStream-API-的转换具体实现"><a href="#3-Table-与-DataStream-API-的转换具体实现" class="headerlink" title="3.Table 与 DataStream API 的转换具体实现"></a>3.Table 与 DataStream API 的转换具体实现</h1><h2 id="3-1-先看一个官网的简单案例"><a href="#3-1-先看一个官网的简单案例" class="headerlink" title="3.1.先看一个官网的简单案例"></a>3.1.先看一个官网的简单案例</h2><p>官网的案例主要是让大家看看要做到 Table 与 DataStream API 的转换会涉及到使用哪些接口。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.datastream.DataStream;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.table.api.Table;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.table.api.bridge.java.StreamTableEnvironment;</span><br><span class="line"><span class="keyword">import</span> org.apache.flink.types.Row;</span><br><span class="line"></span><br><span class="line">StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();</span><br><span class="line">StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);</span><br><span class="line"></span><br><span class="line">DataStream&lt;String&gt; dataStream = env.fromElements(<span class="string">&quot;Alice&quot;</span>, <span class="string">&quot;Bob&quot;</span>, <span class="string">&quot;John&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 1. 使用 StreamTableEnvironment::fromDataStream API 将 DataStream 转为 Table</span></span><br><span class="line">Table inputTable = tableEnv.fromDataStream(dataStream);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将 Table 注册为一个临时表</span></span><br><span class="line">tableEnv.createTemporaryView(<span class="string">&quot;InputTable&quot;</span>, inputTable);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 然后就可以在这个临时表上做一些自定义的查询了</span></span><br><span class="line">Table resultTable = tableEnv.sqlQuery(<span class="string">&quot;SELECT UPPER(f0) FROM InputTable&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 也可以使用 StreamTableEnvironment::toDataStream 将 Table 转为 DataStream</span></span><br><span class="line"><span class="comment">// 注意：这里只能转为 DataStream&lt;Row&gt;，其中的数据类型只能为 Row</span></span><br><span class="line">DataStream&lt;Row&gt; resultStream = tableEnv.toDataStream(resultTable);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将 DataStream 结果打印到控制台</span></span><br><span class="line">resultStream.print();</span><br><span class="line">env.execute();</span><br><span class="line"></span><br><span class="line"><span class="comment">// prints:</span></span><br><span class="line"><span class="comment">// +I[Alice]</span></span><br><span class="line"><span class="comment">// +I[Bob]</span></span><br><span class="line"><span class="comment">// +I[John]</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到重点的接口就是：</p>
+<ol>
+<li>StreamTableEnvironment::toDataStream：将 Table 转为 DataStream</li>
+<li>StreamTableEnvironment::fromDataStream：将 DataStream 转为 Table</li>
+</ol>
+<h2 id="3-2-实现第-2-节中的逻辑"><a href="#3-2-实现第-2-节中的逻辑" class="headerlink" title="3.2.实现第 2 节中的逻辑"></a>3.2.实现第 2 节中的逻辑</h2><p>我们使用上面介绍的两个接口对优惠券发放金额预警的案例做一个实现。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AlertExample</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">        FlinkEnv flinkEnv = FlinkEnvUtils.getStreamTableEnv(args);</span><br><span class="line"></span><br><span class="line">        String createTableSql = <span class="string">&quot;CREATE TABLE source_table (\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;    id BIGINT,\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;    money BIGINT,\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;    row_time AS cast(CURRENT_TIMESTAMP as timestamp_LTZ(3)),\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;    WATERMARK FOR row_time AS row_time - INTERVAL &#x27;5&#x27; SECOND\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;) WITH (\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  &#x27;connector&#x27; = &#x27;datagen&#x27;,\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  &#x27;rows-per-second&#x27; = &#x27;1&#x27;,\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  &#x27;fields.id.min&#x27; = &#x27;1&#x27;,\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  &#x27;fields.id.max&#x27; = &#x27;100000&#x27;,\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  &#x27;fields.money.min&#x27; = &#x27;1&#x27;,\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;  &#x27;fields.money.max&#x27; = &#x27;100000&#x27;\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;)\n&quot;</span>;</span><br><span class="line"></span><br><span class="line">        String querySql = <span class="string">&quot;SELECT UNIX_TIMESTAMP(CAST(window_end AS STRING)) * 1000 as window_end, \n&quot;</span></span><br><span class="line">                + <span class="string">&quot;      window_start, \n&quot;</span></span><br><span class="line">                + <span class="string">&quot;      sum(money) as sum_money,\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;      count(distinct id) as count_distinct_id\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;FROM TABLE(CUMULATE(\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;         TABLE source_table\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;         , DESCRIPTOR(row_time)\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;         , INTERVAL &#x27;5&#x27; SECOND\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;         , INTERVAL &#x27;1&#x27; DAY))\n&quot;</span></span><br><span class="line">                + <span class="string">&quot;GROUP BY window_start, \n&quot;</span></span><br><span class="line">                + <span class="string">&quot;        window_end&quot;</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 1. 创建数据源表，即优惠券发放明细数据</span></span><br><span class="line">        flinkEnv.streamTEnv().executeSql(createTableSql);</span><br><span class="line">        <span class="comment">// 2. 执行 query 查询，计算每日发放金额</span></span><br><span class="line">        Table resultTable = flinkEnv.streamTEnv().sqlQuery(querySql);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 3. 报警逻辑（toDataStream 返回 Row 类型），如果 sum_money 超过 1w，报警</span></span><br><span class="line">        flinkEnv.streamTEnv()</span><br><span class="line">                .toDataStream(resultTable, Row.class)</span><br><span class="line">                .flatMap(<span class="keyword">new</span> FlatMapFunction&lt;Row, Object&gt;() &#123;</span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">flatMap</span><span class="params">(Row value, Collector&lt;Object&gt; out)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                        <span class="keyword">long</span> l = Long.parseLong(String.valueOf(value.getField(<span class="string">&quot;sum_money&quot;</span>)));</span><br><span class="line"></span><br><span class="line">                        <span class="keyword">if</span> (l &gt; <span class="number">10000L</span>) &#123;</span><br><span class="line">                            log.info(<span class="string">&quot;报警，超过 1w&quot;</span>);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line"></span><br><span class="line">        flinkEnv.env().execute();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>执行效果如下：</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/22_flinksqltabletrans/1.jpg" alt="warn"></p>
+<h2 id="3-3-Table-和-DataStream-转换注意事项"><a href="#3-3-Table-和-DataStream-转换注意事项" class="headerlink" title="3.3.Table 和 DataStream 转换注意事项"></a>3.3.Table 和 DataStream 转换注意事项</h2><h3 id="3-3-1-目前只支持流任务互转（1-13）"><a href="#3-3-1-目前只支持流任务互转（1-13）" class="headerlink" title="3.3.1.目前只支持流任务互转（1.13）"></a>3.3.1.目前只支持流任务互转（1.13）</h3><p>目前在 1.13 版本中，Flink 对于 Table 和 DataStream 的转化是有一些限制的：</p>
+<p>目前流任务使用的 env 为 StreamTableEnvironment，批任务为 TableEnvironment，而 Table 和 DataStream 之间的转换目前只有 StreamTableEnvironment 的接口支持。</p>
+<p>所以其实小伙伴萌可以理解为只有流任务才支持 Table 和 DataStream 之间的转换，批任务是不支持的（虽然可以使用流模式处理有界流（批数据），但效率较低，这种骚操作不建议大家搞）。</p>
+<p>那什么时候才能支持批任务的 Table 和 DataStream 之间的转换呢？</p>
+<p>1.14 版本支持。1.14 版本中，流和批的都统一到了 StreamTableEnvironment 中，因此就可以做 Table 和 DataStream 的互相转换了。</p>
+<h3 id="3-3-2-Retract-语义-SQL-转-DataStream-注意事项"><a href="#3-3-2-Retract-语义-SQL-转-DataStream-注意事项" class="headerlink" title="3.3.2.Retract 语义 SQL 转 DataStream 注意事项"></a>3.3.2.Retract 语义 SQL 转 DataStream 注意事项</h3><p>Retract 语义的 SQL 使用 <code>toDataStream</code> 转换会报错不支持。具体报错截图如下。意思是不支持 update 类型的结果数据。</p>
+<p><img src="/blog-img/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/22_flinksqltabletrans/2.png" alt="Retract error"></p>
+<p>如果要把 Retract 语义的 SQL 转为 DataStream，我们需要使用 <code>toRetractStream</code>。如下案例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">@Slf4j</span><br><span class="line">public class AlertExampleRetract &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line"></span><br><span class="line">        FlinkEnv flinkEnv &#x3D; FlinkEnvUtils.getStreamTableEnv(args);</span><br><span class="line"></span><br><span class="line">        String createTableSql &#x3D; &quot;CREATE TABLE source_table (\n&quot;</span><br><span class="line">                + &quot;    id BIGINT,\n&quot;</span><br><span class="line">                + &quot;    money BIGINT,\n&quot;</span><br><span class="line">                + &quot;    &#96;time&#96; as cast(CURRENT_TIMESTAMP as bigint) * 1000\n&quot;</span><br><span class="line">                + &quot;) WITH (\n&quot;</span><br><span class="line">                + &quot;  &#39;connector&#39; &#x3D; &#39;datagen&#39;,\n&quot;</span><br><span class="line">                + &quot;  &#39;rows-per-second&#39; &#x3D; &#39;1&#39;,\n&quot;</span><br><span class="line">                + &quot;  &#39;fields.id.min&#39; &#x3D; &#39;1&#39;,\n&quot;</span><br><span class="line">                + &quot;  &#39;fields.id.max&#39; &#x3D; &#39;100000&#39;,\n&quot;</span><br><span class="line">                + &quot;  &#39;fields.money.min&#39; &#x3D; &#39;1&#39;,\n&quot;</span><br><span class="line">                + &quot;  &#39;fields.money.max&#39; &#x3D; &#39;100000&#39;\n&quot;</span><br><span class="line">                + &quot;)\n&quot;;</span><br><span class="line"></span><br><span class="line">        String querySql &#x3D; &quot;SELECT max(&#96;time&#96;), \n&quot;</span><br><span class="line">                + &quot;      sum(money) as sum_money\n&quot;</span><br><span class="line">                + &quot;FROM source_table\n&quot;</span><br><span class="line">                + &quot;GROUP BY (&#96;time&#96; + 8 * 3600 * 1000) &#x2F; (24 * 3600 * 1000)&quot;;</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; 1. 创建数据源表，即优惠券发放明细数据</span><br><span class="line">        flinkEnv.streamTEnv().executeSql(createTableSql);</span><br><span class="line">        &#x2F;&#x2F; 2. 执行 query 查询，计算每日发放金额</span><br><span class="line">        Table resultTable &#x3D; flinkEnv.streamTEnv().sqlQuery(querySql);</span><br><span class="line">        &#x2F;&#x2F; 3. 报警逻辑（toRetractStream 返回 Tuple2&lt;Boolean, Row&gt; 类型），如果 sum_money 超过 1w，报警</span><br><span class="line">        &#x2F;&#x2F; Tuple2&lt;Boolean, Row&gt; f0 的 Boolean 标识是否是回撤消息</span><br><span class="line">        flinkEnv.streamTEnv()</span><br><span class="line">                .toRetractStream(resultTable, Row.class)</span><br><span class="line">                .flatMap(new FlatMapFunction&lt;Tuple2&lt;Boolean, Row&gt;, Object&gt;() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public void flatMap(Tuple2&lt;Boolean, Row&gt; value, Collector&lt;Object&gt; out) throws Exception &#123;</span><br><span class="line">                        long l &#x3D; Long.parseLong(String.valueOf(value.f1.getField(&quot;sum_money&quot;)));</span><br><span class="line"></span><br><span class="line">                        if (l &gt; 10000L) &#123;</span><br><span class="line">                            log.info(&quot;报警，超过 1w&quot;);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line"></span><br><span class="line">        flinkEnv.env().execute();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="5-总结与展望"><a href="#5-总结与展望" class="headerlink" title="5.总结与展望"></a>5.总结与展望</h1><p>源码公众号后台回复<strong>1.13.2 table datastream</strong>获取。</p>
+<p>本文主要介绍了 flink 中 Table 和 DataStream 互转使用方式，并介绍了一些使用注意事项，总结如下：</p>
+<ol>
+<li><strong>背景及应用场景介绍</strong>：博主期望你能了解到，Flink 支持了 SQL 和 Table API 中的 Table 与 DataStream 互转的接口。通过这种互转的方式，我们就可以将一些自定义的数据源（DataStream）创建为 SQL 表，也可以将 SQL 执行结果转换为 DataStream 然后后续去完成一些在 SQL 中实现不了的复杂操作。肥肠的方便。</li>
+<li><strong>目前只有流任务支持互转，批任务不支持</strong>：在 1.13 版本中，由于流和批的 env 接口不一样，流任务为 StreamTableEnvironment，批任务为 TableEnvironment，目前只有 StreamTableEnvironment 支持了互转的接口，TableEnvironment 没有这样的接口，因此目前流任务支持互转，批任务不支持。但是 1.14 版本中流批任务的 env 都统一到了 StreamTableEnvironment 中，流批任务中就都可以进行互转了。</li>
+<li><strong>Retract 语义 SQL 转 DataStream 需要重点注意</strong>：Append 语义的 SQL 转为 DataStream 使用的 API 为 <code>StreamTableEnvironment::toDataStream</code>，Retract 语义的 SQL 转为 DataStream 使用的 API 为 <code>StreamTableEnvironment::toRetractStream</code>，两个接口不一样，小伙伴萌一定要特别注意。</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div></div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechat.png" alt=" 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.png" alt=" 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Apache-Flink/" rel="tag"># Apache Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/18_flink%20sql%20%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B8%83%EF%BC%89%EF%BC%9Aflink-sql-%E5%BC%80%E5%8F%91%E5%88%A9%E5%99%A8%E4%B9%8Bzeppelin/" rel="next" title="flink sql 知其所以然（十七）：flink sql 开发利器之 Zeppelin">
+                <i class="fa fa-chevron-left"></i> flink sql 知其所以然（十七）：flink sql 开发利器之 Zeppelin
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2022/11/15/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/03_state/04_%E5%BD%93%E6%88%91%E4%BB%AC%E5%9C%A8%E9%85%8D%E7%BD%AE%E4%B8%8D%E5%90%8C%E7%9A%84%E7%8A%B6%E6%80%81%E5%90%8E%E7%AB%AF%E6%97%B6%EF%BC%8C%E5%88%B0%E5%BA%95%E5%BD%B1%E5%93%8D%E4%BA%86%E4%BB%80%E4%B9%88%E4%B8%9C%E8%A5%BF/" rel="prev" title="在配置不同的状态后端时，到底对 flink 任务有什么影响">
+                在配置不同的状态后端时，到底对 flink 任务有什么影响 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/blog-img/avatar.jpeg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">115</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yangyichao-mango" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:1048262223@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%BA%8F%E7%AF%87"><span class="nav-number">1.</span> <span class="nav-text">1.序篇</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%83%8C%E6%99%AF%E5%8F%8A%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">2.背景及应用场景介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-Table-%E4%B8%8E-DataStream-API-%E7%9A%84%E8%BD%AC%E6%8D%A2%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0"><span class="nav-number">3.</span> <span class="nav-text">3.Table 与 DataStream API 的转换具体实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-%E5%85%88%E7%9C%8B%E4%B8%80%E4%B8%AA%E5%AE%98%E7%BD%91%E7%9A%84%E7%AE%80%E5%8D%95%E6%A1%88%E4%BE%8B"><span class="nav-number">3.1.</span> <span class="nav-text">3.1.先看一个官网的简单案例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-%E5%AE%9E%E7%8E%B0%E7%AC%AC-2-%E8%8A%82%E4%B8%AD%E7%9A%84%E9%80%BB%E8%BE%91"><span class="nav-number">3.2.</span> <span class="nav-text">3.2.实现第 2 节中的逻辑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-3-Table-%E5%92%8C-DataStream-%E8%BD%AC%E6%8D%A2%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="nav-number">3.3.</span> <span class="nav-text">3.3.Table 和 DataStream 转换注意事项</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-1-%E7%9B%AE%E5%89%8D%E5%8F%AA%E6%94%AF%E6%8C%81%E6%B5%81%E4%BB%BB%E5%8A%A1%E4%BA%92%E8%BD%AC%EF%BC%881-13%EF%BC%89"><span class="nav-number">3.3.1.</span> <span class="nav-text">3.3.1.目前只支持流任务互转（1.13）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-2-Retract-%E8%AF%AD%E4%B9%89-SQL-%E8%BD%AC-DataStream-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="nav-number">3.3.2.</span> <span class="nav-text">3.3.2.Retract 语义 SQL 转 DataStream 注意事项</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E6%80%BB%E7%BB%93%E4%B8%8E%E5%B1%95%E6%9C%9B"><span class="nav-number">4.</span> <span class="nav-text">5.总结与展望</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2019 &mdash; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yangyichao-mango</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">244.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://true.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'https://yangyichao-mango.github.io/2021/11/16/wechat-blog/01_%E5%A4%A7%E6%95%B0%E6%8D%AE/01_%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/01_%E5%AE%9E%E6%97%B6%E6%95%B0%E4%BB%93/02_%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E5%BB%BA%E8%AE%BE/03_one-engine/01_%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/01_flink/01_flink-sql/21_flinksql%E7%9F%A5%E5%85%B6%E6%89%80%E4%BB%A5%E7%84%B6%EF%BC%88%E5%8D%81%E4%B9%9D%EF%BC%89%EF%BC%9Aflinksqltable%E8%BD%AC%E6%8D%A2%E4%B8%BAdatastream/';
+          this.page.identifier = '2021/11/16/wechat-blog/01_大数据/01_数据仓库/01_实时数仓/02_数据内容建设/03_one-engine/01_计算引擎/01_flink/01_flink-sql/21_flinksql知其所以然（十九）：flinksqltable转换为datastream/';
+          this.page.title = 'flink sql 知其所以然（十九）：Table 与 DataStream 的转转转';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://true.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
